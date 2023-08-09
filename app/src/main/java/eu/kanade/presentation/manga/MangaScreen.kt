@@ -79,6 +79,8 @@ import eu.kanade.tachiyomi.ui.manga.ChapterList
 import eu.kanade.tachiyomi.ui.manga.MangaScreenModel
 import eu.kanade.tachiyomi.ui.manga.MergedMangaData
 import eu.kanade.tachiyomi.ui.manga.PagePreviewState
+import eu.kanade.tachiyomi.util.chapter.getNextUnread
+import eu.kanade.tachiyomi.util.lang.toRelativeString
 import eu.kanade.tachiyomi.util.system.copyToClipboard
 import exh.metadata.MetadataUtil
 import exh.source.MERGED_SOURCE_ID
@@ -426,8 +428,10 @@ private fun MangaScreenSmallImpl(
                         val isReading = remember(state.chapters) {
                             state.chapters.fastAny { it.chapter.read }
                         }
+                        val chapterNumber = state.chapters.getNextUnread(state.manga)?.chapterNumber?.toFloat()?.toString()
+                            ?.replace(".0", "") ?: ""
                         Text(
-                            text = stringResource(if (isReading) MR.strings.action_resume else MR.strings.action_start),
+                            text = stringResource(if (isReading) MR.strings.action_resume else MR.strings.action_start) + " Ch " + chapterNumber,
                         )
                     },
                     icon = { Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null) },
