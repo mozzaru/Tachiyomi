@@ -5,6 +5,7 @@ import android.content.pm.ServiceInfo
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
+import androidx.compose.runtime.remember
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -357,6 +358,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
         val hasDownloads = AtomicBoolean(false)
         // SY -->
         val mdlistLogged = mdList.isLoggedIn
+        val unsortedPreferences = Injekt.get<UnsortedPreferences>()
         // SY <--
 
         val fetchWindow = fetchInterval.getWindow(ZonedDateTime.now())
@@ -367,6 +369,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                 .filterNot { it.key in LIBRARY_UPDATE_EXCLUDED_SOURCES }
                 // SY <--
                 .values
+                .flatMap { it.chunked(if (unsortedPreferences.superSecretSetting().get() > 9) 60 else 2000) }
                 .map { mangaInSource ->
                     async {
                         semaphore.withPermit {
