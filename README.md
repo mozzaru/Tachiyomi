@@ -3,14 +3,14 @@
 | [![Preview](https://github.com/jobobby04/TachiyomiSYPreview/workflows/Remote%20Dispatch%20Build%20App/badge.svg)](https://github.com/jobobby04/TachiyomiSYPreview/releases) | [![stable release](https://img.shields.io/github/release/jobobby04/tachiyomisy.svg?maxAge=3600&label=download)](https://github.com/jobobby04/tachiyomisy/releases/latest) | [![Discord](https://img.shields.io/discord/1195734228319617024.svg?label=discord&labelColor=7289da&color=2c2f33&style=flat)](https://discord.gg/mihon) |
 
 
-# ![app icon](./.github/readme-images/app-icon.png)TachiyomiSY
-Mihon is a free and open source manga reader for Android 6.0 and above. This version of Mihon, TachiyomiSY was based off TachiyomiAZ. This version is meant to push forward in the ways of usability and features. TachiyomiSY tries to push forward where it can, but staying in a place where it can easily grab updates and features from the main app, it tries to make new features, or take features from other forks like J2K and Neko.
-
-![screenshots of app](./.github/readme-images/screens.png)
+# ![app icon](./.github/readme-images/app-icon.png) Chai, a TachiyomiSY fork
+Mihon is a free and open source manga reader for Android 6.0 and above. This version of Mihon, Chai, was based off TachiyomiSY. This version is meant to integrate changes & features faster, but currently keeping in line with SY. TachiyomiSY tries to push forward where it can, but staying in a place where it can easily grab updates and features from the main app, it tries to make new features, or take features from other forks like J2K and Neko.
 
 ## Features
 
-Features of Mihon(original) include:
+<details>
+<summary>Mihon features</summary>
+
 * Online reading from a variety of sources
 * Local reading of downloaded content
 * A configurable reader with multiple viewers, reading directions and other settings.
@@ -20,7 +20,11 @@ Features of Mihon(original) include:
 * Schedule updating your library for new chapters
 * Create backups locally to read offline or to your desired cloud service
 
-Features of TachiyomiSY include:
+</details>
+
+<details>
+<summary>TachiyomiSY features</summary>
+
 * Latest tab, store up to 5 sources where you can easily view the latest manga by viewing the tab
 * Automatic webtoon detection, allowing the reader to switch to webtoon mode automatically when viewing one
 * Manga recommendations, uses MAL and Anilist, as well as Neko Similar Manga for Mangadex manga(Thanks to Az, She11Shocked, Carlos, and Goldbattle)
@@ -61,6 +65,10 @@ Additional features for some extensions, features include custom description, op
 * NHentai
 * Puruin
 * Tsumino
+
+</details>
+
+Currently a work in progress, anything below this sentence hasn't been edited yet.
 
 ## Download
 Get the app from our [releases page](https://github.com/jobobby04/tachiyomisy/releases/latest).
