@@ -84,6 +84,9 @@ object HomeScreen : Screen() {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
+        // Chai -->
+        val uiPreferences = Injekt.get<UiPreferences>()
+        // Chai <--
 
         // SY -->
         val scope = rememberCoroutineScope()
@@ -107,7 +110,7 @@ object HomeScreen : Screen() {
                                     .fastFilter { it.isEnabled() }
                                     // SY <--
                                     .fastForEach {
-                                        NavigationRailItem(it/* SY --> */, alwaysShowLabel/* SY <-- */)
+                                        NavigationRailItem(it/* Chai --> */, alwaysShowLabel, uiPreferences/* Chai <-- */)
                                     }
                             }
                         }
@@ -128,7 +131,7 @@ object HomeScreen : Screen() {
                                         .fastFilter { it.isEnabled() }
                                         // SY <--
                                         .fastForEach {
-                                            NavigationBarItem(it/* SY --> */, alwaysShowLabel/* SY <-- */)
+                                            NavigationBarItem(it/* Chai --> */, alwaysShowLabel, uiPreferences/* Chai <-- */)
                                         }
                                 }
                             }
@@ -202,12 +205,11 @@ object HomeScreen : Screen() {
 
     @Composable
     private fun RowScope.NavigationBarItem(
-        tab: eu.kanade.presentation.util.Tab/* SY --> */,
-        alwaysShowLabel: Boolean, /* SY <-- */
-    ) {
+        tab: eu.kanade.presentation.util.Tab,/* Chai --> */ alwaysShowLabel: Boolean, uiPreferences: UiPreferences) {
+        val scope = rememberCoroutineScope()
+        val selectedPageLabel by uiPreferences.selectedPageLabel().asState(scope) /* Chai <-- */
         val tabNavigator = LocalTabNavigator.current
         val navigator = LocalNavigator.currentOrThrow
-        val scope = rememberCoroutineScope()
         val selected = tabNavigator.current::class == tab::class
         NavigationBarItem(
             selected = selected,
@@ -220,22 +222,27 @@ object HomeScreen : Screen() {
             },
             icon = { NavigationIconItem(tab) },
             label = {
-                Text(
-                    text = tab.options.title,
-                    style = MaterialTheme.typography.labelLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                // Chai -->
+                if (alwaysShowLabel || !selectedPageLabel) {
+                    Text(
+                        text = tab.options.title,
+                        style = MaterialTheme.typography.labelLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                } // Chai <--
             },
             alwaysShowLabel = /* SY --> */alwaysShowLabel, /* SY <-- */
         )
     }
 
     @Composable
-    fun NavigationRailItem(tab: eu.kanade.presentation.util.Tab/* SY --> */, alwaysShowLabel: Boolean/* SY <-- */) {
+    fun NavigationRailItem(
+        tab: eu.kanade.presentation.util.Tab,/* Chai --> */alwaysShowLabel: Boolean, uiPreferences: UiPreferences) {
+        val scope = rememberCoroutineScope()
+        val selectedPageLabel by uiPreferences.selectedPageLabel().asState(scope) /* Chai <-- */
         val tabNavigator = LocalTabNavigator.current
         val navigator = LocalNavigator.currentOrThrow
-        val scope = rememberCoroutineScope()
         val selected = tabNavigator.current::class == tab::class
         NavigationRailItem(
             selected = selected,
@@ -248,12 +255,15 @@ object HomeScreen : Screen() {
             },
             icon = { NavigationIconItem(tab) },
             label = {
-                Text(
-                    text = tab.options.title,
-                    style = MaterialTheme.typography.labelLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                // Chai -->
+                if (alwaysShowLabel || !selectedPageLabel) {
+                    Text(
+                        text = tab.options.title,
+                        style = MaterialTheme.typography.labelLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                } // Chai <--
             },
             alwaysShowLabel = /* SY --> */alwaysShowLabel, /* SY <-- */
         )

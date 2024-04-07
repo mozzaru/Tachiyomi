@@ -175,6 +175,7 @@
     <string name="pref_hide_updates_button">Show updates in the nav</string>
     <string name="pref_hide_history_button">Show history in the nav</string>
     <string name="pref_show_bottom_bar_labels">Always show nav labels</string>
+    <string name="pref_hide_tab_label">Hide selected tab label</string>
 
     <!-- Tracker settings -->
     <string name="pref_tracker_resolve_using_source_metadata">Select entries using source metadata</string>
