@@ -129,8 +129,9 @@ fun MangaInfoBox(
                         brush = Brush.verticalGradient(colors = backdropGradientColors),
                     )
                 }
-                .blur(4.dp)
-                .alpha(0.2f),
+                // (Chai) Increased blur & alpha to make the backdrop more visible
+                .blur(8.dp)
+                .alpha(0.75f),
         )
 
         // Manga & source info
