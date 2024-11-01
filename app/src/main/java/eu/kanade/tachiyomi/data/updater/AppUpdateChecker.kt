@@ -76,39 +76,14 @@ class AppUpdateChecker(
         }
     }
 
-    // KMK -->
-    suspend fun getReleaseNotes(): GetApplicationRelease.Result {
-        return withIOContext {
-            getApplicationRelease.awaitReleaseNotes(
-                GetApplicationRelease.Arguments(
-                    isFoss = isFossBuildType,
-                    isPreview = isPreviewBuildType || peekIntoPreview,
-                    commitCount = BuildConfig.COMMIT_COUNT.toInt(),
-                    versionName = BuildConfig.VERSION_NAME,
-                    repository = getGithubRepo(peekIntoPreview),
-                ),
-            )
-        }
-    }
-    // KMK <--
-}
-
 val GITHUB_REPO: String by lazy { getGithubRepo() }
 
 fun getGithubRepo(peekIntoPreview: Boolean = false): String =
-    if (isPreviewBuildType || peekIntoPreview) {
-        "xkana-shii/komikku-preview"
-    } else {
-        "xkana-shii/komikku"
-    }
+   "mozzaru/Tachiyomi"
 
 val RELEASE_TAG: String by lazy { getReleaseTag() }
 
 fun getReleaseTag(peekIntoPreview: Boolean = false): String =
-    if (isPreviewBuildType || peekIntoPreview) {
-        "r${BuildConfig.COMMIT_COUNT}"
-    } else {
-        "v${BuildConfig.VERSION_NAME}"
-    }
+   "mozzaru/Tachiyomi"
 
-val RELEASE_URL = "https://github.com/$GITHUB_REPO/releases/tag/$RELEASE_TAG"
+val RELEASE_URL = "https://github.com/$GITHUB_REPO/releases/tag/${RELEASE_TAG}"
