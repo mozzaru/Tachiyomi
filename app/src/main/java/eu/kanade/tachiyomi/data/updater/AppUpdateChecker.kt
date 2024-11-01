@@ -45,11 +45,16 @@ class AppUpdateChecker {
 }
 
 val GITHUB_REPO: String by lazy {
-    // Chai -->
-    if (isPreviewBuildType) {
-        "smol-ame/chai"
-    } else {
-        "smol-ame/chai"
-    }
-    // Chai <--
+    "mozzaru/Tachiyomi"
 }
+
+val RELEASE_TAG: String by lazy {
+    if (isPreviewBuildType) {
+        "r${BuildConfig.COMMIT_COUNT}"
+    } else {
+        "v${BuildConfig.VERSION_NAME}"
+    }
+}
+
+val RELEASE_URL = "https://github.com/$GITHUB_REPO/releases/tag/${RELEASE_TAG}"
+
