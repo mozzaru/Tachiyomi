@@ -32,7 +32,7 @@ android {
         applicationId = "eu.kanade.mihon.chai"
 
         versionCode = 72
-        versionName = "1.11.0"
+        versionName = "325-1 (r579)"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getCommitCount()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"${getGitSha()}\"")
