@@ -30,3 +30,4 @@ jobs:
       with:
         name: "mihon_${{ env.MIHON_VERSION }}-github-release"
         path: ./app/build/outputs/apk/release/app-release-unsigned.apk
+
