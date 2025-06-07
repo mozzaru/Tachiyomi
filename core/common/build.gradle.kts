@@ -60,4 +60,6 @@ dependencies {
     implementation(libs.injekt)
     implementation(sylibs.exifinterface)
     // SY <--
+
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
