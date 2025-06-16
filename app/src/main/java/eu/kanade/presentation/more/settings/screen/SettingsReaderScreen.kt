@@ -175,9 +175,7 @@ object SettingsReaderScreen : SearchableSettings {
                 ),
                 Preference.PreferenceItem.SliderPreference(
                     value = flashMillis / ReaderPreferences.MILLI_CONVERSION,
-                    max = 15,
-                    min = 1,
-                    steps = 13,
+                    valueRange = 1..15,
                     title = stringResource(MR.strings.pref_flash_duration),
                     subtitle = stringResource(MR.strings.pref_flash_duration_summary, flashMillis),
                     enabled = flashPageState,
@@ -188,9 +186,7 @@ object SettingsReaderScreen : SearchableSettings {
                 ),
                 Preference.PreferenceItem.SliderPreference(
                     value = flashInterval,
-                    max = 10,
-                    min = 1,
-                    steps = 8,
+                    valueRange = 1..10,
                     title = stringResource(MR.strings.pref_flash_page_interval),
                     subtitle = pluralStringResource(MR.plurals.pref_pages, flashInterval, flashInterval),
                     enabled = flashPageState,
@@ -231,13 +227,6 @@ object SettingsReaderScreen : SearchableSettings {
                     preference = readerPreferences.skipDupe(),
                     title = stringResource(MR.strings.pref_skip_dupe_chapters),
                 ),
-                // SY -->
-                Preference.PreferenceItem.SwitchPreference(
-                    preference = readerPreferences.markReadDupe(),
-                    title = stringResource(SYMR.strings.pref_mark_read_dupe_chapters),
-                    subtitle = stringResource(SYMR.strings.pref_mark_read_dupe_chapters_summary),
-                ),
-                // SY <--
                 Preference.PreferenceItem.SwitchPreference(
                     preference = readerPreferences.alwaysShowChapterTransition(),
                     title = stringResource(MR.strings.pref_always_show_chapter_transition),
@@ -389,8 +378,9 @@ object SettingsReaderScreen : SearchableSettings {
                 ),
                 Preference.PreferenceItem.SliderPreference(
                     value = webtoonSidePadding,
-                    max = ReaderPreferences.WEBTOON_PADDING_MAX,
-                    min = ReaderPreferences.WEBTOON_PADDING_MIN,
+                    valueRange = ReaderPreferences.let {
+                        it.WEBTOON_PADDING_MIN..it.WEBTOON_PADDING_MAX
+                    },
                     title = stringResource(MR.strings.pref_webtoon_side_padding),
                     subtitle = numberFormat.format(webtoonSidePadding / 100f),
                     onValueChanged = {
@@ -607,7 +597,7 @@ object SettingsReaderScreen : SearchableSettings {
                     title = stringResource(SYMR.strings.page_layout),
                     subtitle = stringResource(SYMR.strings.automatic_can_still_switch),
                     entries = ReaderPreferences.PageLayouts
-                        .mapIndexed { index, it -> index + 1 to stringResource(it) }
+                        .mapIndexed { index, it -> index to stringResource(it) }
                         .toMap()
                         .toImmutableMap(),
                 ),

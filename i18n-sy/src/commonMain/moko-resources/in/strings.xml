@@ -159,7 +159,7 @@
     <string name="library_group_updates_all_but_ungrouped">Jalankan pembaruan global hanya untuk yang tidak dikelompokkan, pembaruan kategori untuk yang lainnya</string>
     <string name="library_group_updates_all">Hanya jalankan pembaruan kategori</string>
     <!-- Browse settings -->
-    <string name="pref_source_source_filtering">Filter Sumber dalam kategori</string>
+    <string name="pref_source_source_filtering">Filter sumber dalam kategori</string>
     <string name="pref_source_source_filtering_summery">Saring sumber-sumber yang ada dalam kategori, agar sumber-sumber tersebut tidak dimasukkan ke dalam kategori bahasa jika berada dalam suatu kategori</string>
     <string name="pref_source_navigation">Ganti tombol Terbaru</string>
     <string name="pref_source_navigation_summery">Ganti tombol Terbaru dengan tampilan penelusuran khusus yang mencakup bab terbaru dan daftar manga</string>
@@ -454,7 +454,7 @@
     <string name="aged">Aged</string>
     <string name="last_update_check">Last update check</string>
     <string name="path">Path</string>
-    <string name="artist">Artist</string>
+    <string name="artist">Seniman</string>
     <string name="characters">Characters</string>
     <string name="group">Group</string>
     <string name="media_id">Media id</string>
@@ -469,7 +469,7 @@
     <string name="rating_string">Rating string</string>
     <string name="collection">Collection</string>
     <string name="parodies">Parodies</string>
-    <string name="author">Author</string>
+    <string name="author">Penulis</string>
     <string name="last_chapter_number">Last chapter number</string>
     <string name="follow_status">Follow status</string>
     <string name="anilist_id">Anilist id</string>
@@ -539,7 +539,7 @@
     <string name="pref_library_mark_duplicate_chapters">Tandai bagian baru yang sudah terbaca sebagai terbaca</string>
     <string name="update_3hour">Setiap 3 jam</string>
     <string name="label_triggers">Pemicu</string>
-    <string name="sync_complete">Berhasil Menyinkronkan perpustakaan</string>
+    <string name="sync_complete">Berhasil menyinkronkan perpustakaan</string>
     <string name="label_sync">Sinkronisasi</string>
     <string name="pref_sync_host">Host</string>
     <string name="pref_sync_host_summ">Masukkan alamat host untuk menyinkronkan perpustakaan Anda</string>
@@ -653,4 +653,20 @@
     <string name="select_tracker">Pilih pelacak</string>
     <string name="fill_from_tracker">Isi melalui pelacak</string>
     <string name="similar_titles">Judul serupa</string>
+    <string name="pref_tracker_resolve_using_source_metadata">Pilih entri dengan sumber metadata</string>
+    <string name="pref_tracker_resolve_using_source_metadata_summary">Secara otomatis memilih judul yang cocok bila sumber menyediakan tautan ke trackers. Saat ini didukung oleh MangaDex</string>
+    <string name="rec_search">Temukan rekomendasi umum</string>
+    <string name="rec_hide_library_entries">Sembunyikan hasil yang terdapat di pustaka</string>
+    <string name="rec_services_to_search">Layanan rekomendasi untuk dicari</string>
+    <string name="rec_group_source">Layanan rekomendasi</string>
+    <string name="rec_group_tracker">Rekomendasi pelacak</string>
+    <string name="rec_common_recommendations">Rekomendasi umum</string>
+    <string name="rec_search_short">Temukan rekomendasi</string>
+    <string name="rec_no_results">Rekomendasi tidak ditemukan</string>
+    <string name="rec_error_title">Pencarian gagal</string>
+    <string name="rec_error_string">Terjadi sebuah error saat melakukan pencarian: %1$s</string>
+    <string name="rec_processing_state">Memproses entri %1$d dari %2$d</string>
+    <string name="rec_collecting">Mengumpulkan rekomendasi</string>
+    <string name="rec_initializing">Inisialisasi</string>
+    <string name="scan_qr_code">Pindai kode QR</string>
 </resources>

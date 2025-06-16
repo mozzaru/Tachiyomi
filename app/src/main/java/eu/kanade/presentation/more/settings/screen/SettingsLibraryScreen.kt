@@ -25,7 +25,6 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.launch
-import tachiyomi.domain.UnsortedPreferences
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.interactor.ResetCategoryFlags
 import tachiyomi.domain.category.model.Category
@@ -38,6 +37,8 @@ import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_HAS_U
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_COMPLETED
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_NON_READ
 import tachiyomi.domain.library.service.LibraryPreferences.Companion.MANGA_OUTSIDE_RELEASE_PERIOD
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.MARK_DUPLICATE_CHAPTER_READ_EXISTING
+import tachiyomi.domain.library.service.LibraryPreferences.Companion.MARK_DUPLICATE_CHAPTER_READ_NEW
 import tachiyomi.i18n.MR
 import tachiyomi.i18n.sy.SYMR
 import tachiyomi.presentation.core.i18n.pluralStringResource
@@ -57,17 +58,13 @@ object SettingsLibraryScreen : SearchableSettings {
         val getCategories = remember { Injekt.get<GetCategories>() }
         val libraryPreferences = remember { Injekt.get<LibraryPreferences>() }
         val allCategories by getCategories.subscribe().collectAsState(initial = emptyList())
-        // SY -->
-        val unsortedPreferences = remember { Injekt.get<UnsortedPreferences>() }
-        // SY <--
 
         return listOf(
             getCategoriesGroup(LocalNavigator.currentOrThrow, allCategories, libraryPreferences),
             getGlobalUpdateGroup(allCategories, libraryPreferences),
-            getChapterSwipeActionsGroup(libraryPreferences),
+            getBehaviorGroup(libraryPreferences),
             // SY -->
             getSortingCategory(LocalNavigator.currentOrThrow, libraryPreferences),
-            getMigrationCategory(unsortedPreferences),
             // SY <--
         )
     }
@@ -228,20 +225,16 @@ object SettingsLibraryScreen : SearchableSettings {
                     preference = libraryPreferences.newShowUpdatesCount(),
                     title = stringResource(MR.strings.pref_library_update_show_tab_badge),
                 ),
-                Preference.PreferenceItem.SwitchPreference(
-                    preference = libraryPreferences.markDuplicateChapterRead(),
-                    title = stringResource(MR.strings.pref_mark_duplicate_chapter_read),
-                ),
             ),
         )
     }
 
     @Composable
-    private fun getChapterSwipeActionsGroup(
+    private fun getBehaviorGroup(
         libraryPreferences: LibraryPreferences,
     ): Preference.PreferenceGroup {
         return Preference.PreferenceGroup(
-            title = stringResource(MR.strings.pref_chapter_swipe),
+            title = stringResource(MR.strings.pref_behavior),
             preferenceItems = persistentListOf(
                 Preference.PreferenceItem.ListPreference(
                     preference = libraryPreferences.swipeToStartAction(),
@@ -271,6 +264,16 @@ object SettingsLibraryScreen : SearchableSettings {
                     ),
                     title = stringResource(MR.strings.pref_chapter_swipe_end),
                 ),
+                Preference.PreferenceItem.MultiSelectListPreference(
+                    preference = libraryPreferences.markDuplicateReadChapterAsRead(),
+                    entries = persistentMapOf(
+                        MARK_DUPLICATE_CHAPTER_READ_EXISTING to
+                            stringResource(MR.strings.pref_mark_duplicate_read_chapter_read_existing),
+                        MARK_DUPLICATE_CHAPTER_READ_NEW to
+                            stringResource(MR.strings.pref_mark_duplicate_read_chapter_read_new),
+                    ),
+                    title = stringResource(MR.strings.pref_mark_duplicate_read_chapter_read),
+                ),
             ),
         )
     }
@@ -288,23 +291,6 @@ object SettingsLibraryScreen : SearchableSettings {
                     onClick = {
                         navigator.push(SortTagScreen())
                     },
-                ),
-            ),
-        )
-    }
-
-    @Composable
-    fun getMigrationCategory(unsortedPreferences: UnsortedPreferences): Preference.PreferenceGroup {
-        val skipPreMigration by unsortedPreferences.skipPreMigration().collectAsState()
-        val migrationSources by unsortedPreferences.migrationSources().collectAsState()
-        return Preference.PreferenceGroup(
-            stringResource(SYMR.strings.migration),
-            enabled = skipPreMigration || migrationSources.isNotEmpty(),
-            preferenceItems = persistentListOf(
-                Preference.PreferenceItem.SwitchPreference(
-                    preference = unsortedPreferences.skipPreMigration(),
-                    title = stringResource(SYMR.strings.skip_pre_migration),
-                    subtitle = stringResource(SYMR.strings.pref_skip_pre_migration_summary),
                 ),
             ),
         )

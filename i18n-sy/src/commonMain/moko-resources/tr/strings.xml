@@ -62,7 +62,7 @@
     <string name="pref_enhanced_e_hentai_view_summary">E/ExHentai için gelişmiş arama menüsü modunu açın/kapatın</string>
     <string name="favorites_sync">E-Hentai Favorileri eşitleme</string>
     <string name="disable_favorites_uploading">Favorilerin gönderilmesini kapat</string>
-    <string name="disable_favorites_uploading_summary">Favoriler yalnızca ExHentai üzerinden indirilir. Uygulama favorilere yapılan değişiklikler gönderilmeyecektir. ExHentai üzerinde favorilerin yanlışlıkla kaybolmasını önler. Silinenlerin yine de indirileceğini unutmayın (ExHentai üzerinde bir favoriyi silersemiz uygulamada da silinecektir).</string>
+    <string name="disable_favorites_uploading_summary">Favoriler yalnızca ExHentai üzerinden indirilir. Uygulamada favorilere yapılan değişiklikler gönderilmeyecektir. ExHentai üzerinde favorilerin yanlışlıkla kaybolmasını önler. Silinenlerin yine de indirileceğini unutmayın (ExHentai üzerinde bir favoriyi silerseniz uygulamada da silinecektir).</string>
     <string name="show_favorite_sync_notes">Favorilerin eşitleme notlarını göster</string>
     <string name="show_favorite_sync_notes_summary">Favori eşitleme özelliği ile ilgili çeşitli bilgiler gösterir</string>
     <string name="please_login">Lütfen giriş yapın!</string>
@@ -112,7 +112,7 @@
     <string name="log_level_summary">Bunu değiştirmek uygulama performansını etkileyebilir. Değiştirdikten sonra uygulamayı yeniden başlatın. Şu anki değer: %s</string>
     <string name="enable_source_blacklist">Kaynak kara listesini etkinleştir</string>
     <string name="enable_source_blacklist_summary">%1$s ile uyumsuz uzantıları/kaynakları gizle. Değiştirdikten sonra uygulamayı yeniden başlatın.</string>
-    <string name="open_debug_menu_summary"><![CDATA[NE YAPTIĞINIZI BİLMİYORSANIZ BU MENÜYE DOKUNMAYIN! <font color=\'red\'>KİTAPLIPINIZI KULLANILMAZ YAPABİLİR!</font>]]></string>
+    <string name="open_debug_menu_summary"><![CDATA[NE YAPTIĞINIZI BİLMİYORSANIZ BU MENÜYE DOKUNMAYIN! <font color=\'red\'>KİTAPLIĞINIZI KULLANILMAZ YAPABİLİR!</font>]]></string>
     <string name="starting_cleanup">Temizleme başlatılıyor</string>
     <string name="delete_unused_chapters">Var olmayan, yarım yüklenmiş veya okunmuş bölümleri silin</string>
     <string name="no_folders_to_cleanup">Temizlenecek klasör yok</string>
@@ -134,7 +134,7 @@
     <string name="bandwidth_hero">Bandwidth Hero (Bandwidth Hero ara sunucusu gerektirir)</string>
     <string name="wsrv">wsrv.nl</string>
     <string name="bandwidth_data_saver_server">Bandwidth Hero Ara Sunucusu</string>
-    <string name="clear_db_exclude_read">Okunmuş bölümleri olan girdileri tut</string>
+    <string name="clear_db_exclude_read">Okunmuş bölümleri olan girdileri koru</string>
     <string name="log_minimal">En düşük</string>
     <string name="log_extra">Daha fazla</string>
     <string name="log_extreme">En yüksek</string>
@@ -261,7 +261,7 @@
     <string name="reader_preload_amount_16_pages">16 sayfa</string>
     <string name="reader_preload_amount_20_pages">20 sayfa</string>
     <string name="reader_cache_size">Okuyucu önbellek boyutu</string>
-    <string name="reader_cache_size_summary">Okurken cihazda kaydedilecek görsel sayısı. Daha yüksek değerler daha rahat bir okuma deneyimi sağlar ancak kullanılan disk alanını artırır</string>
+    <string name="reader_cache_size_summary">Okurken cihazda kaydedilecek görsel miktarı. Daha yüksek değerler daha rahat bir okuma deneyimi sağlar ancak kullanılan disk alanını artırır</string>
     <string name="preserve_reading_position">Okunmuş girdilerde okuma konumunu koru</string>
     <string name="auto_webtoon_mode">Otomatik Webtoon Modu</string>
     <string name="auto_webtoon_mode_summary">Muhtemelen uzun şerit formatını kullandığı algılanan girdiler için otomatik webtoon modunu kullan</string>
@@ -604,4 +604,20 @@
     <string name="relation_serialization">Yayın</string>
     <string name="ignore_non_library_entries">Kitaplıkta olmayan girdileri görmezden gel</string>
     <string name="humanize_fallback">az önce</string>
+    <string name="pref_tracker_resolve_using_source_metadata_summary">Eğer kaynak, izleyiciler için bağlantılar sağlıyorsa eşleşen içeriği otomatik olarak seçer. Şu anda MangaDex tarafından destekleniyor</string>
+    <string name="rec_group_source">Kaynak önerileri</string>
+    <string name="rec_services_to_search">Arama yapılacak öneri hizmetleri</string>
+    <string name="rec_hide_library_entries">Zaten kitaplıkta olan sonuçları gizle</string>
+    <string name="rec_group_tracker">İzleyici önerileri</string>
+    <string name="pref_tracker_resolve_using_source_metadata">Kaynak meta verilerine göre girdileri seç</string>
+    <string name="rec_search">Sık rastlanan önerileri bul</string>
+    <string name="rec_common_recommendations">Sık rastlanan öneriler</string>
+    <string name="rec_search_short">Önerileri bul</string>
+    <string name="rec_no_results">Öneri bulunamadı</string>
+    <string name="rec_error_title">Arama başarsız oldu</string>
+    <string name="rec_error_string">Arama süreci sırasında bir hata oluştu: %1$s</string>
+    <string name="rec_processing_state">%2$d girdiden %1$d. girdi işleniyor</string>
+    <string name="rec_collecting">Öneriler toplanıyor</string>
+    <string name="rec_initializing">Başlatılıyor</string>
+    <string name="scan_qr_code">QR kod tarayın</string>
 </resources>
