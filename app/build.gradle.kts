@@ -33,7 +33,13 @@ android {
         buildConfigField("boolean", "INCLUDE_UPDATER", "false")
 
         ndk {
-            abiFilters += supportedAbis
+            val abi = project.findProperty("abiFilter") as String?
+            if (abi != null) {
+                abiFilters.clear()
+                abiFilters.add(abi)
+            } else {
+                abiFilters += supportedAbis
+            }
         }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
