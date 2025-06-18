@@ -51,8 +51,6 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.NavigatorDisposeBehavior
 import cafe.adriel.voyager.navigator.currentOrThrow
-import com.google.firebase.Firebase
-import com.google.firebase.analytics.analytics
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.source.interactor.GetIncognitoState
 import eu.kanade.presentation.components.AppStateBanners
@@ -525,14 +523,6 @@ class MainActivity : BaseActivity() {
         ready = true
         return true
     }
-
-    // SY -->
-    private fun addAnalytics() {
-        if (!BuildConfig.DEBUG && isPreviewBuildType) {
-            Firebase.analytics.setUserProperty("preview_version", syDebugVersion)
-        }
-    }
-    // SY <--
 
     companion object {
         const val INTENT_SEARCH = "eu.kanade.tachiyomi.SEARCH"
