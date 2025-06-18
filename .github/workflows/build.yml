@@ -23,10 +23,10 @@ jobs:
         distribution: temurin
     - name: Assemble APK
       run: ./gradlew --no-daemon 'assembleRelease'
-    - name: Set MIHON_VERSION
-      run: echo "MIHON_VERSION=v$(grep --only-matching --perl-regexp 'versionName\s=\s\"\K([0-9\.]+)' './app/build.gradle.kts')+$(git rev-parse --short 'HEAD')" >> "${GITHUB_ENV}"
+    - name: Set TACHIYOMI_VERSION
+      run: echo "TACHIYOMI_VERSION=v$(grep --only-matching --perl-regexp 'versionName\s=\s\"\K([0-9\.]+)' './app/build.gradle.kts')+$(git rev-parse --short 'HEAD')" >> "${GITHUB_ENV}"
     - name: Upload APK
       uses: actions/upload-artifact@main
       with:
-        name: "kahon_${{ env.MIHON_VERSION }}-github-release"
+        name: "tachiyomisy_${{ env.TACHIYOMI_VERSION }}-github-release"
         path: ./app/build/outputs/apk/release/app-release-unsigned.apk
