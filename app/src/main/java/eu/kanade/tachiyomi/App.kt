@@ -339,7 +339,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         xLogD("Application booting...")
         xLogD(
             """
-                App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.FLAVOR}, ${BuildConfig.COMMIT_SHA}, ${BuildConfig.VERSION_CODE})
+                App version: ${BuildConfig.VERSION_NAME}, ${BuildConfig.COMMIT_SHA}, ${BuildConfig.VERSION_CODE})
                 Preview build: $syDebugVersion
                 Android version: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})
                 Android build ID: ${Build.DISPLAY}
