@@ -58,37 +58,8 @@ android {
 
             buildConfigField("String", "BUILD_TIME", "\"${getBuildTime(useLastCommitTime = true)}\"")
         }
-        create("benchmark") {
-            initWith(getByName("release"))
-
-            signingConfig = signingConfigs.getByName("debug")
-            matchingFallbacks.add("release")
-            isDebuggable = false
-            isProfileable = true
-            versionNameSuffix = "-benchmark"
-            applicationIdSuffix = ".benchmark"
-        }
     }
-
-    sourceSets {
-        getByName("benchmark").res.srcDirs("src/debug/res")
-    }
-
-    flavorDimensions.add("default")
-
-    productFlavors {
-        create("standard") {
-            buildConfigField("boolean", "INCLUDE_UPDATER", "true")
-            dimension = "default"
-        }
-        create("fdroid") {
-            dimension = "default"
-        }
-        create("dev") {
-            dimension = "default"
-        }
-    }
-
+    
     packaging {
         resources.excludes.addAll(
             listOf(
@@ -295,14 +266,6 @@ dependencies {
 
     // ZXing Android Embedded
     implementation(sylibs.zxing.android.embedded)
-}
-
-androidComponents {
-    onVariants(selector().withFlavor("default" to "standard")) {
-        // Only excluding in standard flavor because this breaks
-        // Layout Inspector's Compose tree
-        it.packaging.resources.excludes.add("META-INF/*.version")
-    }
 }
 
 buildscript {
