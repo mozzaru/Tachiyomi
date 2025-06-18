@@ -1,8 +1,6 @@
 package exh.log
 
 import com.elvishew.xlog.printer.Printer
-import com.google.firebase.Firebase
-import com.google.firebase.crashlytics.crashlytics
 import eu.kanade.tachiyomi.BuildConfig
 
 class CrashlyticsPrinter(private val logLevel: Int) : Printer {
@@ -15,11 +13,8 @@ class CrashlyticsPrinter(private val logLevel: Int) : Printer {
      */
     override fun println(logLevel: Int, tag: String?, msg: String?) {
         if (logLevel >= this.logLevel) {
-            try {
-                Firebase.crashlytics.log("$logLevel/$tag: $msg")
-            } catch (t: Throwable) {
-                // Crash in debug if shit like this happens
-                if (BuildConfig.DEBUG) throw t
+            if (BuildConfig.DEBUG) {
+                println("$logLevel/$tag: $msg")
             }
         }
     }
