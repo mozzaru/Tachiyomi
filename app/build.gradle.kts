@@ -37,10 +37,10 @@ android {
         }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-    
+
     buildTypes {
         named("debug") {
-            versionNameSuffix = "-${getCommitCount()}"
+            versionNameSuffix = "-${getCommitCount()}-mozori"
             applicationIdSuffix = ".debug"
             isPseudoLocalesEnabled = true
         }
@@ -59,7 +59,7 @@ android {
             buildConfigField("String", "BUILD_TIME", "\"${getBuildTime(useLastCommitTime = true)}\"")
         }
     }
-    
+
     packaging {
         resources.excludes.addAll(
             listOf(
