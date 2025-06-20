@@ -431,6 +431,7 @@ class MangaScreenModel(
                     excludedScanlators = getExcludedScanlators.await(mangaId).toImmutableSet(),
                     isRefreshingData = needRefreshInfo || needRefreshChapter,
                     dialog = null,
+
                     // SY -->
                     showRecommendationsInOverflow = uiPreferences.recommendsInOverflow().get(),
                     showMergeInOverflow = uiPreferences.mergeInOverflow().get(),
@@ -447,6 +448,8 @@ class MangaScreenModel(
                     readerPreferences.preserveReadingPosition().get() && manga.isEhBasedManga(),
                     previewsRowCount = uiPreferences.previewsRowCount().get(),
                     // SY <--
+
+                    hideMissingChapters = libraryPreferences.hideMissingChapters().get(),
                 )
             }
 
@@ -1745,6 +1748,7 @@ class MangaScreenModel(
             val isRefreshingData: Boolean = false,
             val dialog: MangaScreenModel.Dialog? = null,
             val hasPromptedToAddBefore: Boolean = false,
+
             // SY -->
             val meta: RaisedSearchMetadata?,
             val mergedData: MergedMangaData?,
@@ -1755,6 +1759,8 @@ class MangaScreenModel(
             val alwaysShowReadingProgress: Boolean,
             val previewsRowCount: Int,
             // SY <--
+
+            val hideMissingChapters: Boolean = false,
         ) : State {
             val processedChapters by lazy {
                 chapters.applyFilters(manga).toList()
@@ -1765,6 +1771,10 @@ class MangaScreenModel(
             }
 
             val chapterListItems by lazy {
+                if (hideMissingChapters) {
+                    return@lazy processedChapters
+                }
+
                 processedChapters.insertSeparators { before, after ->
                     val (lowerChapter, higherChapter) = if (manga.sortDescending()) {
                         after to before
