@@ -126,7 +126,7 @@ fun WebViewScreenContent(
         }
     }
 
-    Scaffold (
+    Scaffold(
         topBar = {
             Box {
                 Column {
