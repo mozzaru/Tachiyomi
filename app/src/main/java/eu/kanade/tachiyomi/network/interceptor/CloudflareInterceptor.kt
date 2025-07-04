@@ -65,9 +65,9 @@ class CloudflareInterceptor(
 
         var webView: WebView? = null
 
-        var challengeFound = false
-        var cloudflareBypassed = false
-        var isWebViewOutdated = false
+        var challengeFound = true
+        var cloudflareBypassed = true
+        var isWebViewOutdated = true
 
         val origRequestUrl = originalRequest.url.toString()
         val headers = parseHeaders(originalRequest.headers)
