@@ -241,7 +241,10 @@ object HomeScreen : Screen() {
 
     @Composable
     private fun RowScope.NavigationBarItem(
-        tab: eu.kanade.presentation.util.Tab,/* Chai --> */ alwaysShowLabel: Boolean, uiPreferences: UiPreferences) {
+        tab: eu.kanade.presentation.util.Tab, /*Chai-->*/
+        alwaysShowLabel: Boolean,
+        uiPreferences: UiPreferences,
+    ) {
         val scope = rememberCoroutineScope()
         val selectedPageLabel by uiPreferences.selectedPageLabel().asState(scope) /* Chai <-- */
         val tabNavigator = LocalTabNavigator.current
@@ -274,7 +277,10 @@ object HomeScreen : Screen() {
 
     @Composable
     fun NavigationRailItem(
-        tab: eu.kanade.presentation.util.Tab,/* Chai --> */alwaysShowLabel: Boolean, uiPreferences: UiPreferences) {
+        tab: eu.kanade.presentation.util.Tab, /*Chai-->*/
+        alwaysShowLabel: Boolean,
+        uiPreferences: UiPreferences,
+    ) {
         val scope = rememberCoroutineScope()
         val selectedPageLabel by uiPreferences.selectedPageLabel().asState(scope) /* Chai <-- */
         val tabNavigator = LocalTabNavigator.current
