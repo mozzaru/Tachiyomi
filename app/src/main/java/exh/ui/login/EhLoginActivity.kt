@@ -233,7 +233,6 @@ class EhLoginActivity : BaseActivity() {
 
         fun newIntent(context: Context): Intent {
             return Intent(context, EhLoginActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }
         }
     }

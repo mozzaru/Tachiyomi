@@ -134,7 +134,7 @@ class InterceptActivity : BaseActivity() {
                             } else {
                                 Intent(this, MainActivity::class.java)
                                     .setAction(Constants.SHORTCUT_MANGA)
-                                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                                    .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                                     .putExtra(Constants.MANGA_EXTRA, it.mangaId)
                             },
                         )

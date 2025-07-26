@@ -78,7 +78,7 @@ fun UpdatesWidget(
                                         action = Constants.SHORTCUT_MANGA
                                         putExtra(Constants.MANGA_EXTRA, mangaId)
                                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                                        addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
 
                                         // https://issuetracker.google.com/issues/238793260
                                         addCategory(mangaId.toString())

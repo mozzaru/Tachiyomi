@@ -439,7 +439,7 @@ class NotificationReceiver : BroadcastReceiver() {
         internal fun openChapterPendingActivity(context: Context, manga: Manga, groupId: Int): PendingIntent {
             val newIntent =
                 Intent(context, MainActivity::class.java).setAction(Constants.SHORTCUT_MANGA)
-                    .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                     .putExtra(Constants.MANGA_EXTRA, manga.id)
                     .putExtra("notificationId", manga.id.hashCode())
                     .putExtra("groupId", groupId)
@@ -513,7 +513,7 @@ class NotificationReceiver : BroadcastReceiver() {
          */
         internal fun openEntryPendingActivity(context: Context, mangaId: Long): PendingIntent {
             val newIntent = Intent(context, MainActivity::class.java).setAction(Constants.SHORTCUT_MANGA)
-                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                 .putExtra(Constants.MANGA_EXTRA, mangaId)
                 .putExtra("notificationId", mangaId.hashCode())
 
@@ -591,7 +591,7 @@ class NotificationReceiver : BroadcastReceiver() {
         internal fun openExtensionsPendingActivity(context: Context): PendingIntent {
             val intent = Intent(context, MainActivity::class.java).apply {
                 action = Constants.SHORTCUT_EXTENSIONS
-                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
             }
             return PendingIntent.getActivity(
                 context,

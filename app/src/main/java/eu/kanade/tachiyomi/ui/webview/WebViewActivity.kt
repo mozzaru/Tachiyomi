@@ -124,7 +124,6 @@ class WebViewActivity : BaseActivity() {
 
         fun newIntent(context: Context, url: String, sourceId: Long? = null, title: String? = null): Intent {
             return Intent(context, WebViewActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 putExtra(URL_KEY, url)
                 putExtra(SOURCE_KEY, sourceId)
                 putExtra(TITLE_KEY, title)

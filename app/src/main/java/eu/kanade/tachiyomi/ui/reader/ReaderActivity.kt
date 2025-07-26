@@ -142,7 +142,6 @@ class ReaderActivity : BaseActivity() {
                 // SY -->
                 putExtra("page", page)
                 // SY <--
-                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }
         }
 
@@ -901,7 +900,7 @@ class ReaderActivity : BaseActivity() {
                 Intent(this, MainActivity::class.java).apply {
                     action = Constants.SHORTCUT_MANGA
                     putExtra(Constants.MANGA_EXTRA, id)
-                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                 },
             )
         }
