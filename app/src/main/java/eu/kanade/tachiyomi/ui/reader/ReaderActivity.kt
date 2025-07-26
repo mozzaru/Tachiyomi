@@ -15,6 +15,7 @@ import android.graphics.Paint
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -142,6 +143,7 @@ class ReaderActivity : BaseActivity() {
                 // SY -->
                 putExtra("page", page)
                 // SY <--
+                Log.d("ReaderActivity", "newIntent DIPANGGIL")
             }
         }
 
@@ -184,6 +186,7 @@ class ReaderActivity : BaseActivity() {
      * Called when the activity is created. Initializes the presenter and configuration.
      */
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d("ReaderActivity", "onCreate DIPANGGIL")
         registerSecureActivity(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             overrideActivityTransition(
@@ -291,11 +294,13 @@ class ReaderActivity : BaseActivity() {
         config = null
         menuToggleToast?.cancel()
         readingModeToast?.cancel()
+        Log.d("ReaderActivity", "onDestroy DIPANGGIL")
     }
 
     override fun onPause() {
         viewModel.flushReadTimer()
         super.onPause()
+        Log.d("ReaderActivity", "onPause DIPANGGIL")
     }
 
     /**
@@ -306,6 +311,7 @@ class ReaderActivity : BaseActivity() {
         super.onResume()
         viewModel.restartReadTimer()
         setMenuVisibility(viewModel.state.value.menuVisible)
+        Log.d("ReaderActivity", "onResume DIPANGGIL")
     }
 
     /**
@@ -901,6 +907,7 @@ class ReaderActivity : BaseActivity() {
                     action = Constants.SHORTCUT_MANGA
                     putExtra(Constants.MANGA_EXTRA, id)
                     addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                    Log.d("ReaderActivity", "openMangaScreen DIPANGGIL")
                 },
             )
         }
