@@ -128,17 +128,21 @@ class InterceptActivity : BaseActivity() {
                 when (it) {
                     is InterceptResult.Success -> {
                         finish()
-                        startActivity(
-                            if (it.chapter != null) {
-                                ReaderActivity.newIntent(this, it.manga.id, it.chapter.id)
-                            } else {
-                                Intent(this, MainActivity::class.java)
-                                    .setAction(Constants.SHORTCUT_MANGA)
-                                    .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-                                    .putExtra(Constants.MANGA_EXTRA, it.mangaId)
-                            },
-                        )
+    
+                        val intent = if (it.chapter != null) {
+                            ReaderActivity
+                                .newIntent(this, it.manga.id, it.chapter.id)
+                                .apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) }
+                        } else {
+                            Intent(this, MainActivity::class.java)
+                                .setAction(Constants.SHORTCUT_MANGA)
+                                .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                                .putExtra(Constants.MANGA_EXTRA, it.mangaId)
+                        }
+    
+                        startActivity(intent)
                     }
+    
                     is InterceptResult.Failure -> {
                         MaterialAlertDialogBuilder(this)
                             .setTitle(MR.strings.chapter_error.getString(this))
@@ -148,6 +152,7 @@ class InterceptActivity : BaseActivity() {
                             .setOnDismissListener { finish() }
                             .show()
                     }
+    
                     else -> Unit
                 }
             }

@@ -365,7 +365,10 @@ class MangaScreen(
     }
 
     private fun openChapter(context: Context, chapter: Chapter) {
-        context.startActivity(ReaderActivity.newIntent(context, chapter.mangaId, chapter.id))
+        val intent = ReaderActivity
+            .newIntent(context, chapter.mangaId, chapter.id)
+            .apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) }
+        context.startActivity(intent)
     }
 
     private fun getMangaUrl(manga_: Manga?, source_: Source?): String? {
@@ -512,7 +515,10 @@ class MangaScreen(
 
     private fun openPagePreview(context: Context, chapter: Chapter?, page: Int) {
         chapter ?: return
-        context.startActivity(ReaderActivity.newIntent(context, chapter.mangaId, chapter.id, page))
+        val intent = ReaderActivity
+            .newIntent(context, chapter.mangaId, chapter.id, page)
+            .apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) }
+        context.startActivity(intent)
     }
     // SY <--
 

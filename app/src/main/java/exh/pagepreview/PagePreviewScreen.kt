@@ -1,6 +1,7 @@
 package exh.pagepreview
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -34,7 +35,10 @@ class PagePreviewScreen(private val mangaId: Long) : Screen() {
     fun openPage(context: Context, state: PagePreviewState, page: Int) {
         if (state !is PagePreviewState.Success) return
         context.run {
-            startActivity(ReaderActivity.newIntent(this, state.manga.id, state.chapter.id, page))
+            val intent = ReaderActivity
+                .newIntent(this, state.manga.id, state.chapter.id, page)
+                .apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) }
+            startActivity(intent)
         }
     }
 }

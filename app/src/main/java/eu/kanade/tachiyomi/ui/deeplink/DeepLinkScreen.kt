@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.ui.deeplink
 
+import android.content.Intent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -59,11 +60,10 @@ class DeepLinkScreen(
                         )
                     } else {
                         navigator.pop()
-                        ReaderActivity.newIntent(
-                            context,
-                            resultState.manga.id,
-                            resultState.chapterId,
-                        ).also(context::startActivity)
+                        val intent = ReaderActivity
+                            .newIntent(context, resultState.manga.id, resultState.chapterId)
+                            .apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) }
+                        context.startActivity(intent)
                     }
                 }
             }

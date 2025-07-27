@@ -421,7 +421,11 @@ class NotificationReceiver : BroadcastReceiver() {
          * @param chapter chapter that needs to be opened
          */
         internal fun openChapterPendingActivity(context: Context, manga: Manga, chapter: Chapter): PendingIntent {
-            val newIntent = ReaderActivity.newIntent(context, manga.id, chapter.id)
+            val newIntent = ReaderActivity
+                .newIntent(context, manga.id, chapter.id)
+                .apply {
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                }
             return PendingIntent.getActivity(
                 context,
                 manga.id.hashCode(),

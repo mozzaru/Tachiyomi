@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.ui.library
 
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.graphics.res.animatedVectorResource
 import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
@@ -248,9 +249,10 @@ data object LibraryTab : Tab {
                             scope.launchIO {
                                 val chapter = screenModel.getNextUnreadChapter(it.manga)
                                 if (chapter != null) {
-                                    context.startActivity(
-                                        ReaderActivity.newIntent(context, chapter.mangaId, chapter.id),
-                                    )
+                                    val intent = ReaderActivity
+                                        .newIntent(context, chapter.mangaId, chapter.id)
+                                        .apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) }
+                                    context.startActivity(intent)
                                 } else {
                                     snackbarHostState.showSnackbar(context.stringResource(MR.strings.no_next_chapter))
                                 }
