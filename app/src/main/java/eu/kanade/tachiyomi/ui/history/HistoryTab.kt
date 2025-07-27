@@ -1,7 +1,7 @@
 package eu.kanade.tachiyomi.ui.history
 
-import android.content.Intent
 import android.content.Context
+import android.content.Intent
 import androidx.compose.animation.graphics.res.animatedVectorResource
 import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
 import androidx.compose.animation.graphics.vector.AnimatedImageVector

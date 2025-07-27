@@ -140,7 +140,7 @@ class ReaderActivity : BaseActivity() {
             context: Context,
             mangaId: Long?,
             chapterId: Long?,
-            page: Int? = null
+            page: Int? = null,
         ): Intent {
             return Intent(context, ReaderActivity::class.java).apply {
                 putExtra("manga", mangaId)
@@ -149,7 +149,7 @@ class ReaderActivity : BaseActivity() {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) // default clear top
             }
         }
-    
+
         const val SHIFT_DOUBLE_PAGES = "shiftingDoublePages"
         const val SHIFTED_PAGE_INDEX = "shiftedPageIndex"
         const val SHIFTED_CHAP_INDEX = "shiftedChapterIndex"
@@ -321,14 +321,14 @@ class ReaderActivity : BaseActivity() {
         super.onNewIntent(intent)
         // Supaya getIntent() kini intent yang baru
         setIntent(intent)
-    
+
         // Ambil kembali extras dari Intent
-        val mangaId   = intent.extras?.getLong("manga",   -1L) ?: -1L
+        val mangaId = intent.extras?.getLong("manga", -1L) ?: -1L
         val chapterId = intent.extras?.getLong("chapter", -1L) ?: -1L
-        val page      = intent.extras?.getInt("page",      -1).takeUnless { it == -1 }
-    
+        val page = intent.extras?.getInt("page", -1).takeUnless { it == -1 }
+
         if (mangaId == -1L || chapterId == -1L) return
-    
+
         // Panggil ulang init() untuk memuat chapter baru
         lifecycleScope.launchNonCancellable {
             val result = viewModel.init(mangaId, chapterId, page)
