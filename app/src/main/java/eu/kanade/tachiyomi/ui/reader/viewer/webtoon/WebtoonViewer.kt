@@ -14,6 +14,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.WebtoonLayoutManager
 import eu.kanade.tachiyomi.data.download.DownloadManager
+import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.ui.reader.ReaderActivity
 import eu.kanade.tachiyomi.ui.reader.model.ChapterTransition
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
@@ -21,6 +22,7 @@ import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.viewer.Viewer
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation.NavigationRegion
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import tachiyomi.core.common.util.system.logcat
@@ -30,6 +32,7 @@ import uy.kohesive.injekt.injectLazy
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.time.Duration
+import logcat.LogPriority
 
 /**
  * Implementation of a [Viewer] to display pages with a [RecyclerView].
@@ -108,6 +111,27 @@ class WebtoonViewer(
                         val firstItem = adapter.items.getOrNull(firstIndex)
                         if (firstItem is ChapterTransition.Prev && firstItem.to != null) {
                             activity.requestPreloadChapter(firstItem.to)
+                        }
+                    }
+
+                    // TAMBAHAN: Preload pages ahead saat scroll down
+                    if (dy > 0) {
+                        val lastIndex = layoutManager.findLastEndVisibleItemPosition()
+                        // Preload 2-3 pages ahead
+                        for (i in 1..2) {
+                            val nextIndex = lastIndex + i
+                            val nextItem = adapter.items.getOrNull(nextIndex)
+                            if (nextItem is ReaderPage && nextItem.status == Page.State.Queue) {
+                                // Launch coroutine dengan proper scope
+                                scope.launch {
+                                    try {
+                                        nextItem.chapter.pageLoader?.loadPage(nextItem)
+                                    } catch (e: Exception) {
+                                        // Handle error silently untuk preload
+                                        logcat(LogPriority.WARN) { "Preload failed for page ${nextItem.number}: $e" }
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -207,6 +231,9 @@ class WebtoonViewer(
     override fun destroy() {
         super.destroy()
         scope.cancel()
+
+        // Clear cache saat keluar dari reader
+        WebtoonPageHolder.clearCache()
     }
 
     /**
@@ -404,4 +431,4 @@ class WebtoonViewer(
 }
 
 // Double the cache size to reduce rebinds/recycles incurred by the extra layout space on scroll direction changes
-private val RECYCLER_VIEW_CACHE_SIZE = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) 4 else 2
+private val RECYCLER_VIEW_CACHE_SIZE = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) 30 else 20
