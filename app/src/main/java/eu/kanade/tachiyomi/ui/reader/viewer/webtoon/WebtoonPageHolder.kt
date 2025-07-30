@@ -133,21 +133,27 @@ class WebtoonPageHolder(
     private suspend fun loadPageAndProcessStatus() {
         val page = page ?: return
         val loader = page.chapter.pageLoader ?: return
+
+        // Check if page already loaded before
+        if (isPageLoaded(page) && page.status == Page.State.Ready) {
+            // Skip loading, directly set image
+            setImage()
+            return
+        }
+
         supervisorScope {
             launchIO {
                 loader.loadPage(page)
             }
             page.statusFlow.collectLatest { state ->
                 when (state) {
-                    Page.State.Queue -> setQueued()
-                    Page.State.LoadPage -> setLoading()
-                    Page.State.DownloadImage -> {
-                        setDownloading()
-                        page.progressFlow.collectLatest { value ->
-                            progressIndicator.setProgress(value)
-                        }
+                    Page.State.Queue -> removeErrorLayout()
+                    Page.State.LoadPage -> removeErrorLayout()
+                    Page.State.DownloadImage -> removeErrorLayout()
+                    Page.State.Ready -> {
+                        markPageLoaded(page) // Mark as loaded
+                        setImage()
                     }
-                    Page.State.Ready -> setImage()
                     is Page.State.Error -> setError(state.error)
                 }
             }
@@ -313,6 +319,25 @@ class WebtoonPageHolder(
         errorLayout?.let {
             frame.removeView(it.root)
             errorLayout = null
+        }
+    }
+
+    companion object {
+        // Simple cache untuk track pages yang sudah loaded
+        private val loadedPages = mutableSetOf<String>()
+
+        fun isPageLoaded(page: ReaderPage): Boolean {
+            val key = "${page.chapter.chapter.id}_${page.number}"
+            return loadedPages.contains(key)
+        }
+
+        fun markPageLoaded(page: ReaderPage) {
+            val key = "${page.chapter.chapter.id}_${page.number}"
+            loadedPages.add(key)
+        }
+
+        fun clearCache() {
+            loadedPages.clear()
         }
     }
 }
