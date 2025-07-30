@@ -178,21 +178,28 @@ object ImageUtil {
         val height = imageBitmap.height
         val width = imageBitmap.width
 
-        val result = createBitmap(width / 2, height * 2)
+        // SY --> Add 1px margin between split images to avoid flickering lines
+        val margin = 1
+        val result = createBitmap(width / 2, height * 2 + margin)
+        // SY <--
+
         result.applyCanvas {
-            // right -> upper
+            // Gambar bagian atas
             val rightPart = when (upperSide) {
                 Side.RIGHT -> Rect(width - width / 2, 0, width, height)
                 Side.LEFT -> Rect(0, 0, width / 2, height)
             }
             val upperPart = Rect(0, 0, width / 2, height)
             drawBitmap(imageBitmap, rightPart, upperPart, null)
-            // left -> bottom
+
+            // Gambar bagian bawah dengan margin
             val leftPart = when (upperSide) {
                 Side.LEFT -> Rect(width - width / 2, 0, width, height)
                 Side.RIGHT -> Rect(0, 0, width / 2, height)
             }
-            val bottomPart = Rect(0, height, width / 2, height * 2)
+            // SY --> Apply margin between images
+            val bottomPart = Rect(0, height + margin, width / 2, height * 2 + margin)
+            // SY <--
             drawBitmap(imageBitmap, leftPart, bottomPart, null)
         }
 
