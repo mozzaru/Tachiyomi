@@ -178,31 +178,26 @@ object ImageUtil {
         val height = imageBitmap.height
         val width = imageBitmap.width
 
-        // Add 1px margin between split images to avoid flickering lines
-        val margin = 1
-        // Use ARGB_8888 configuration for better quality and WEBP support
-        val result = createBitmap(width / 2, height * 2 + margin, Bitmap.Config.ARGB_8888)
+        val result = createBitmap(width / 2, height * 2, Bitmap.Config.ARGB_8888)
 
         result.applyCanvas {
-            // Draw upper part
-            val rightPart = when (upperSide) {
-                Side.RIGHT -> Rect(width - width / 2, 0, width, height)
+            // Gambar bagian atas
+            val upperSrcRect = when (upperSide) {
+                Side.RIGHT -> Rect(width / 2, 0, width, height)
                 Side.LEFT -> Rect(0, 0, width / 2, height)
             }
-            val upperPart = Rect(0, 0, width / 2, height)
-            drawBitmap(imageBitmap, rightPart, upperPart, null)
+            val upperDstRect = Rect(0, 0, width / 2, height)
+            drawBitmap(imageBitmap, upperSrcRect, upperDstRect, null)
 
-            // Draw lower part with margin
-            val leftPart = when (upperSide) {
-                Side.LEFT -> Rect(width - width / 2, 0, width, height)
+            val lowerSrcRect = when (upperSide) {
+                Side.LEFT -> Rect(width / 2, 0, width, height)
                 Side.RIGHT -> Rect(0, 0, width / 2, height)
             }
-            val bottomPart = Rect(0, height + margin, width / 2, height * 2 + margin)
-            drawBitmap(imageBitmap, leftPart, bottomPart, null)
+            val lowerDstRect = Rect(0, height, width / 2, height * 2)
+            drawBitmap(imageBitmap, lowerSrcRect, lowerDstRect, null)
         }
 
         val output = Buffer()
-        // Use WEBP format with 90% quality for better compression
         result.compress(Bitmap.CompressFormat.WEBP, 90, output.outputStream())
         return output
     }

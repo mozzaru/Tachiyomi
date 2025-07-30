@@ -100,9 +100,9 @@ class WebtoonPageHolder(
 
     private fun refreshLayoutParams() {
         frame.layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
-            // Add 1px bottom margin in continuous mode to avoid flickering lines between pages
-            // Keep 15dp margin in non-continuous mode
-            bottomMargin = if (viewer.isContinuous) 1 else 15.dpToPx
+            if (!viewer.isContinuous) {
+                bottomMargin = 15.dpToPx
+            }
 
             val margin = Resources.getSystem().displayMetrics.widthPixels * (viewer.config.sidePadding / 100f)
             marginEnd = margin.toInt()
