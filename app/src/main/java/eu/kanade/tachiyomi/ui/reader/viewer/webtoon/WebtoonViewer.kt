@@ -111,6 +111,19 @@ class WebtoonViewer(
                         }
                     }
 
+                    // TAMBAHAN: Preload pages ahead saat scroll down
+                    if (dy > 0) {
+                        val lastIndex = layoutManager.findLastEndVisibleItemPosition()
+                        // Preload 2-3 pages ahead
+                        for (i in 1..2) {
+                            val nextIndex = lastIndex + i
+                            val nextItem = adapter.items.getOrNull(nextIndex)
+                            if (nextItem is ReaderPage && nextItem.status == Page.State.Queue) {
+                                nextItem.chapter.pageLoader?.loadPage(nextItem)
+                            }
+                        }
+                    }
+
                     val lastIndex = layoutManager.findLastEndVisibleItemPosition()
                     val lastItem = adapter.items.getOrNull(lastIndex)
                     if (lastItem is ChapterTransition.Next && lastItem.to == null) {
@@ -207,6 +220,9 @@ class WebtoonViewer(
     override fun destroy() {
         super.destroy()
         scope.cancel()
+
+        // Clear cache saat keluar dari reader
+        WebtoonPageHolder.clearCache()
     }
 
     /**
@@ -404,4 +420,4 @@ class WebtoonViewer(
 }
 
 // Double the cache size to reduce rebinds/recycles incurred by the extra layout space on scroll direction changes
-private val RECYCLER_VIEW_CACHE_SIZE = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) 4 else 2
+private val RECYCLER_VIEW_CACHE_SIZE = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) 30 else 20
