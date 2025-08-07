@@ -97,7 +97,7 @@ class MetadataUpdateJob(private val context: Context, workerParams: WorkerParame
 
     private suspend fun updateMetadata() {
         val semaphore = Semaphore(10)
-        val progressCount = AtomicInt(0)
+        val progressCount = AtomicInteger(0)
         val currentlyUpdatingManga = CopyOnWriteArrayList<Manga>()
 
         coroutineScope {

@@ -2,7 +2,7 @@ name: Release Builder
 on:
   push:
    branches: 
-    - 'release'
+    - 'SYRizV3.13-v1'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -118,4 +118,4 @@ jobs:
           draft: true
           prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}

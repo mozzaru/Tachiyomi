@@ -5,7 +5,6 @@ import android.content.pm.ServiceInfo
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
-import androidx.compose.runtime.remember
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -351,7 +350,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
      */
     private suspend fun updateChapterList() {
         val semaphore = Semaphore(10)
-        val progressCount = AtomicInt(0)
+        val progressCount = AtomicInteger(0)
         val currentlyUpdatingManga = CopyOnWriteArrayList<Manga>()
         val newUpdates = CopyOnWriteArrayList<Pair<Manga, Array<Chapter>>>()
         val failedUpdates = CopyOnWriteArrayList<Pair<Manga, String?>>()
@@ -517,7 +516,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
 
     private suspend fun updateCovers() {
         val semaphore = Semaphore(10)
-        val progressCount = AtomicInt(0)
+        val progressCount = AtomicInteger(0)
         val currentlyUpdatingManga = CopyOnWriteArrayList<Manga>()
 
         coroutineScope {
