@@ -15,6 +15,7 @@ data class LibraryItem(
     private val sourceManager: SourceManager = Injekt.get(),
 ) {
     val id: Long = libraryManga.id
+
     /**
      * Checks if a query matches the manga
      *

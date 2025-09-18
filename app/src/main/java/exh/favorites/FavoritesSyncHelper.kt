@@ -382,13 +382,16 @@ class FavoritesSyncHelper(val context: Context) {
 
                 val error = when (result) {
                     is GalleryAddEvent.Fail.Error -> FavoritesSyncStatus.SyncError.GallerySyncError.GalleryAddFail(
-                        it.title, result.logMessage,
+                        it.title,
+                        result.logMessage,
                     )
                     is GalleryAddEvent.Fail.UnknownType -> FavoritesSyncStatus.SyncError.GallerySyncError.InvalidGalleryFail(
-                        it.title, result.galleryUrl,
+                        it.title,
+                        result.galleryUrl,
                     )
                     is GalleryAddEvent.Fail.UnknownSource -> FavoritesSyncStatus.SyncError.GallerySyncError.InvalidGalleryFail(
-                        it.title, result.galleryUrl,
+                        it.title,
+                        result.galleryUrl,
                     )
                 }
 

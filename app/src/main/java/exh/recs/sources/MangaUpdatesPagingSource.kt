@@ -24,7 +24,8 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.i18n.sy.SYMR
 
 abstract class MangaUpdatesPagingSource(manga: Manga) : TrackerRecommendationPagingSource(
-    "https://api.mangaupdates.com/v1/", manga,
+    "https://api.mangaupdates.com/v1/",
+    manga,
 ) {
     override val name: String
         get() = "MangaUpdates"
