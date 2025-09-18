@@ -1112,7 +1112,9 @@ class ReaderActivity : BaseActivity() {
         // SY -->
         val text = if (secondPage != null) {
             stringResource(
-                SYMR.strings.share_pages_info, manga.title, chapter.name,
+                SYMR.strings.share_pages_info,
+                manga.title,
+                chapter.name,
                 if (resources.configuration.layoutDirection ==
                     View.LAYOUT_DIRECTION_LTR
                 ) {
