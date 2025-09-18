@@ -939,7 +939,7 @@ class LibraryScreenModel(
 
     fun getRandomLibraryItemForCurrentCategory(): LibraryItem? {
         val state = state.value
-        return state.getItemsForCategoryId(state.activeCategory?.id).randomOrNull()
+        return state.getItemsForCategoryId(activeCategory.id).randomOrNull()
     }
 
     fun showSettingsDialog() {
@@ -1171,7 +1171,7 @@ class LibraryScreenModel(
         lastSelectionCategory = null
         mutableState.update { state ->
             val newSelection = state.selection.mutate { list ->
-                state.getItemsForCategoryId(state.activeCategory?.id).map { it.id }.let(list::addAll)
+                state.getItemsForCategoryId(activeCategory.id).map { it.id }.let(list::addAll)
             }
             state.copy(selection = newSelection)
         }
@@ -1181,7 +1181,7 @@ class LibraryScreenModel(
         lastSelectionCategory = null
         mutableState.update { state ->
             val newSelection = state.selection.mutate { list ->
-                val itemIds = state.getItemsForCategoryId(state.activeCategory?.id).fastMap { it.id }
+                val itemIds = state.getItemsForCategoryId(activeCategory.id).fastMap { it.id }
                 val (toRemove, toAdd) = itemIds.partition { it in list }
                 list.removeAll(toRemove.toSet())
                 list.addAll(toAdd)
