@@ -272,15 +272,13 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
     }
 
     override fun getPackageName(): String {
-        // This causes freezes in Android 6/7 for some reason
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            try {
-                // Override the value passed as X-Requested-With in WebView requests
-                val stackTrace = Looper.getMainLooper().thread.stackTrace
-                val isChromiumCall = stackTrace.any { trace ->
-                    trace.className.equals("org.chromium.base.BuildInfo", ignoreCase = true) &&
-                        setOf("getAll", "getPackageName", "<init>").any { trace.methodName.equals(it, ignoreCase = true) }
-                }
+        try {
+            // Override the value passed as X-Requested-With in WebView requests
+            val stackTrace = Looper.getMainLooper().thread.stackTrace
+            val isChromiumCall = stackTrace.any { trace ->
+                trace.className.lowercase() in setOf("org.chromium.base.buildinfo", "org.chromium.base.apkinfo") &&
+                    trace.methodName.lowercase() in setOf("getall", "getpackagename", "<init>")
+            }
 
                 if (isChromiumCall) return WebViewUtil.spoofedPackageName(applicationContext)
             } catch (_: Exception) {
