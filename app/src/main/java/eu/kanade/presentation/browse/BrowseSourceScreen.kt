@@ -176,7 +176,7 @@ fun BrowseSourceContent(
                 contentPadding = contentPadding,
                 onMangaClick = onMangaClick,
                 onMangaLongClick = onMangaLongClick,
-                selection = selection
+                selection = selection,
             )
         }
     }

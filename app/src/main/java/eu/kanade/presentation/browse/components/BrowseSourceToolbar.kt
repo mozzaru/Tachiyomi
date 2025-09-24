@@ -40,7 +40,7 @@ fun BrowseSourceToolbar(
     onHelpClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onSelectClick: () -> Unit,
-    inSelection:Boolean,
+    inSelection: Boolean,
     onSearch: (String) -> Unit,
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
@@ -122,10 +122,13 @@ fun BrowseSourceToolbar(
                         }
                         add(
                             AppBar.OverflowAction(
-                                    title = if (inSelection) stringResource(MR.strings.exit_multiple_selection)
-                                    else stringResource(MR.strings.enter_multiple_selection),
-                                    onClick = onSelectClick,
-                                ),
+                                title = if (inSelection) {
+                                stringResource(MR.strings.exit_multiple_selection)
+                                } else {
+                                stringResource(MR.strings.enter_multiple_selection),
+                                },
+                                onClick = onSelectClick,
+                            ),
                         )
                     }
                     .build(),

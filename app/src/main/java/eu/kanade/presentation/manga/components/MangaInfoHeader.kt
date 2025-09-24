@@ -244,14 +244,14 @@ fun MangaActionRow(
             )
         }
         // SY <--
-        //TY -->
+        // TY -->
         MangaActionButton(
             title = stringResource(MR.strings.delete_archived),
             icon = Icons.Outlined.Delete,
             color = defaultActionButtonColor,
             onClick = onDeleteArchivedClicked,
         )
-        //TY <--
+        // TY <--
     }
 }
 

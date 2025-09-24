@@ -31,7 +31,7 @@ fun BrowseSourceList(
     contentPadding: PaddingValues,
     onMangaClick: (Manga) -> Unit,
     onMangaLongClick: (Manga) -> Unit,
-    selection:List<Manga> =emptyList()
+    selection: List<Manga> = emptyList(),
 ) {
     LazyColumn(
         contentPadding = contentPadding + PaddingValues(vertical = 8.dp),
@@ -50,7 +50,7 @@ fun BrowseSourceList(
             // SY <--
 
             BrowseSourceListItem(
-                isSelected=selection.fastAny { it.id == manga.id },
+                isSelected = selection.fastAny { it.id == manga.id },
                 manga = manga,
                 // SY -->
                 metadata = metadata,

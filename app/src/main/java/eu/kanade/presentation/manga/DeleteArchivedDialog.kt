@@ -25,7 +25,6 @@ fun DeleteArchivedDialog(
             buildList<CheckboxState.State<StringResource>> {
                 add(CheckboxState.State.None(MR.strings.manga_from_library))
                 add(CheckboxState.State.None(MR.strings.delete_archived_from_lanrar))
-
             },
         )
     }
@@ -43,7 +42,7 @@ fun DeleteArchivedDialog(
                     onDismissRequest()
                     onConfirm(
                         list[0].isChecked,
-                        list.getOrElse(1) { CheckboxState.State.None(0) }.isChecked
+                        list.getOrElse(1) { CheckboxState.State.None(0) }.isChecked,
                     )
                 },
             ) {

@@ -787,7 +787,6 @@ object SettingsDataScreen : SearchableSettings {
     }
     // SY <--
 
-
     @Composable
     private fun getWebDAVPreferences(syncPreferences: SyncPreferences): List<Preference> {
         val scope = rememberCoroutineScope()

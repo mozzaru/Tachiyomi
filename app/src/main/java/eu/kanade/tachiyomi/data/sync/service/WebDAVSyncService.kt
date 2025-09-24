@@ -125,8 +125,10 @@ class WebDAVSyncService(context: Context, json: Json, syncPreferences: SyncPrefe
         val syncFileUrl = "$baseUrl/$remoteFileName"
         val deviceIdFileUrl = "$baseUrl/$deviceIdFileName"
 
-        if (baseUrl.isEmpty() || syncPreferences.webDavUsername().get()
-                .isEmpty() || syncPreferences.webDavPassword().get().isEmpty()
+        if (baseUrl.isEmpty() || 
+            syncPreferences.webDavUsername().get()
+                .isEmpty() || 
+            syncPreferences.webDavPassword().get().isEmpty()
         ) {
             throw Exception(context.stringResource(SYMR.strings.webdav_not_configured))
         }
@@ -135,7 +137,7 @@ class WebDAVSyncService(context: Context, json: Json, syncPreferences: SyncPrefe
             if (doesFileExist(syncFileUrl)) {
                 logcat(
                     LogPriority.DEBUG,
-                    "WebDAVSyncService"
+                    "WebDAVSyncService",
                 ) { "Found remote sync file: $syncFileUrl" }
 
                 // Read device ID from separate file
