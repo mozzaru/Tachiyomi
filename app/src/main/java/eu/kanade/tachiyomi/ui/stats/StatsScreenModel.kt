@@ -41,7 +41,7 @@ class StatsScreenModel(
     private val trackerManager: TrackerManager = Injekt.get(),
     // SY -->
     private val getReadMangaNotInLibraryView: GetReadMangaNotInLibraryView = Injekt.get(),
-    private val getChaptersByMangaId: GetChaptersByMangaId = Injekt.get()
+    private val getChaptersByMangaId: GetChaptersByMangaId = Injekt.get(),
     // SY <--
 ) : StateScreenModel<StatsScreenState>(StatsScreenState.Loading) {
 
@@ -132,8 +132,11 @@ class StatsScreenModel(
             .fastDistinctBy { it.manga.id }
             .fastCountNot {
                 (MANGA_NON_COMPLETED in updateRestrictions && it.manga.status.toInt() == SManga.COMPLETED) ||
-                    (MANGA_HAS_UNREAD in updateRestrictions && getChaptersByMangaId.await(it.manga.id)
-                        .filter { it.read.not() }.map { it.chapterNumber.toInt() }.distinct().size > 1) ||
+                    (
+                        MANGA_HAS_UNREAD in updateRestrictions &&
+                            getChaptersByMangaId.await(it.manga.id)
+                                .filter { it.read.not() }.map { it.chapterNumber.toInt() }.distinct().size > 1
+                        ) ||
                     (MANGA_NON_READ in updateRestrictions && it.totalChapters > 0 && !it.hasStarted)
             }
     }
