@@ -5,7 +5,7 @@ run-name: ${{ github.event_name == 'workflow_dispatch' && format('Build and Rele
 on:
   push:
     branches:
-      - master
+      - Guard-yokai-hiirbaf
   workflow_dispatch:
     inputs:
       version:
