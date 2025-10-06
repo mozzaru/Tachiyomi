@@ -130,6 +130,10 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.ByteArrayOutputStream
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Job
+import java.util.concurrent.TimeUnit
+import coil3.SingletonImageLoader
+import android.webkit.WebView
 
 class ReaderActivity : BaseActivity() {
 
@@ -150,6 +154,9 @@ class ReaderActivity : BaseActivity() {
         const val SHIFTED_PAGE_INDEX = "shiftedPageIndex"
         const val SHIFTED_CHAP_INDEX = "shiftedChapterIndex"
     }
+    
+    private var keepAliveJob: kotlinx.coroutines.Job? = null
+    private val QUICK_STATE_KEY = "reader_instant_state"
 
     private val readerPreferences = Injekt.get<ReaderPreferences>()
     private val preferences = Injekt.get<BasePreferences>()
@@ -164,6 +171,105 @@ class ReaderActivity : BaseActivity() {
     // SY -->
     private val sourceManager = Injekt.get<SourceManager>()
     // SY <--
+    
+    private fun saveUltraFastState() {
+        val currentChapter = viewModel.state.value.currentChapter
+        val currentPage = viewModel.state.value.currentPage
+        
+        if (currentChapter != null && currentPage > 0) {
+            val prefs = getSharedPreferences(QUICK_STATE_KEY, Context.MODE_PRIVATE)
+            prefs.edit().apply {
+                putLong("manga_id", viewModel.manga?.id ?: -1L)
+                putLong("chapter_id", currentChapter.chapter.id ?: -1L)
+                putInt("page_index", currentPage - 1)
+                putLong("timestamp", System.currentTimeMillis())
+                putInt("reading_mode", viewModel.getMangaReadingMode())
+                apply()
+            }
+            logcat { "Ultra-fast state saved: page=${currentPage - 1}" }
+        }
+    }
+    
+    private fun startBackgroundKeepAlive() {
+        keepAliveJob?.cancel()
+        keepAliveJob = lifecycleScope.launch {
+            // Strategy: Lakukan periodic task ringan untuk jaga process
+            var tickCount = 0
+            while (true) {
+                kotlinx.coroutines.delay(30 * 1000) // Setiap 30 detik
+                
+                if (viewModel.state.value.currentChapter != null) {
+                    // Task sangat ringan - hanya update timestamp
+                    val prefs = getSharedPreferences(QUICK_STATE_KEY, Context.MODE_PRIVATE)
+                    if (prefs.getLong("chapter_id", -1L) != -1L) {
+                        prefs.edit().putLong("timestamp", System.currentTimeMillis()).apply()
+                        tickCount++
+                        
+                        // Log setiap 10 ticks (5 menit) untuk hindari spam
+                        if (tickCount % 10 == 0) {
+                            logcat { "Background keep-alive active" }
+                        }
+                    }
+                } else {
+                    break // Stop jika tidak sedang baca
+                }
+            }
+        }
+    }
+    
+    private fun stopBackgroundKeepAlive() {
+        keepAliveJob?.cancel()
+        keepAliveJob = null
+    }
+    
+    private fun tryRestoreUltraFastState() {
+        // Cek jika ini resume dari process kill
+        val prefs = getSharedPreferences(QUICK_STATE_KEY, Context.MODE_PRIVATE)
+        val mangaId = prefs.getLong("manga_id", -1L)
+        val chapterId = prefs.getLong("chapter_id", -1L)
+        val pageIndex = prefs.getInt("page_index", -1)
+        val timestamp = prefs.getLong("timestamp", 0L)
+        
+        val currentMangaId = intent.extras?.getLong("manga", -1) ?: -1L
+        val currentChapterId = intent.extras?.getLong("chapter", -1) ?: -1L
+        
+        // Only restore if within 1 hour and matches current session
+        if (mangaId == currentMangaId && 
+            chapterId == currentChapterId && 
+            pageIndex != -1 &&
+            System.currentTimeMillis() - timestamp < java.util.concurrent.TimeUnit.HOURS.toMillis(1)) {
+            
+            logcat { "Ultra-fast restoring to page $pageIndex" }
+            
+            lifecycleScope.launch {
+                // Tunggu sebentar untuk pastikan viewer ready
+                kotlinx.coroutines.delay(100)
+                
+                // Force navigation ke saved page
+                moveToPageIndex(pageIndex)
+                
+                // Clear state setelah berhasil restore
+                prefs.edit().clear().apply()
+            }
+        }
+    }
+    
+    private fun optimizeMemoryForBackground() {
+        try {
+            // Clear image cache untuk free memory
+            val imageLoader = coil3.SingletonImageLoader.get(this)
+            imageLoader.memoryCache?.clear()
+            
+            // Reduce WebView memory (jika menggunakan WebView)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                android.webkit.WebView.enableSlowWholeDocumentDraw()
+            }
+            
+            logcat { "Memory optimized for background survival" }
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, e) { "Memory optimization failed" }
+        }
+    }
 
     /**
      * Configuration at reader level, like background color or forced orientation.
@@ -287,15 +393,28 @@ class ReaderActivity : BaseActivity() {
      * Called when the activity is destroyed. Cleans up the viewer, configuration and any view.
      */
     override fun onDestroy() {
-        super.onDestroy()
         viewModel.state.value.viewer?.destroy()
         config = null
         menuToggleToast?.cancel()
         readingModeToast?.cancel()
+        keepAliveJob?.cancel()
+
+        // Clear state jika activity benar2 di-destroy
+        if (!isChangingConfigurations) {
+            getSharedPreferences(QUICK_STATE_KEY, Context.MODE_PRIVATE).edit().clear().apply()
+        }
+        super.onDestroy()
     }
 
     override fun onPause() {
         viewModel.flushReadTimer()
+        
+        // SY --> Ultra-fast state saving tanpa service
+        saveUltraFastState()
+        startBackgroundKeepAlive()
+        optimizeMemoryForBackground()
+        // SY <--
+        
         super.onPause()
     }
 
@@ -305,6 +424,12 @@ class ReaderActivity : BaseActivity() {
      */
     override fun onResume() {
         super.onResume()
+        
+        // SY --> Stop background tasks & restore state
+        stopBackgroundKeepAlive()
+        tryRestoreUltraFastState()
+        // SY <--
+        
         viewModel.restartReadTimer()
         setMenuVisibility(viewModel.state.value.menuVisible)
     }
