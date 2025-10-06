@@ -278,17 +278,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
     override fun onStop(owner: LifecycleOwner) {
         SecureActivityDelegate.onApplicationStopped()
         isAppInForeground = false
-        
-        // Trigger immediate check
-        triggerImmediateBackgroundCheck()
-        
-        // Juga gunakan coroutine untuk delayed check
-        ProcessLifecycleOwner.get().lifecycleScope.launch {
-            delay(1000)
-            ensureBackgroundProcess()
-        }
-        
-        logcat { "App in background - immediate check triggered" }
+        logcat { "App in background" }
     }
 
     override fun getPackageName(): String {
@@ -411,129 +401,68 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         }
     }
     
-    // ✅ METHODS UNTUK MANAGER WORKER
     private fun setupBackgroundWorkers() {
         try {
-            setupKeepAliveWorker()
-            setupServiceWatcherWorker()
-            logcat { "Background workers setup completed" }
+            setupOptimizedKeepAliveWorker()
+            // Hapus ServiceWatcherWorker - tidak diperlukan
+            logcat { "Optimized background workers setup completed" }
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, e) { "Failed to setup background workers" }
         }
     }
     
-    private fun setupKeepAliveWorker() {
+    private fun setupOptimizedKeepAliveWorker() {
         val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
-            .setRequiresBatteryNotLow(false)
-            .setRequiresCharging(false)
+            .setRequiredNetworkType(NetworkType.UNMETERED) // ✅ Hanya di WiFi
+            .setRequiresBatteryNotLow(true)               // ✅ Hanya baterai tidak low
+            .setRequiresCharging(true)                    // ✅ Hanya saat dicharge
             .build()
     
-        val keepAliveWork = PeriodicWorkRequestBuilder<BackgroundKeepAliveWorker>(
-            15, TimeUnit.MINUTES
+        // ✅ Kurangi frekuensi jadi 6 jam
+        val keepAliveWork = PeriodicWorkRequestBuilder<OptimizedKeepAliveWorker>(
+            6, TimeUnit.HOURS,
+            1, TimeUnit.HOURS // Flex interval
         ).setConstraints(constraints).build()
     
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "tachiyomi_background_keep_alive",
+            "tachiyomi_optimized_keep_alive",
             ExistingPeriodicWorkPolicy.KEEP,
             keepAliveWork
         )
-    }
-    
-    private fun setupServiceWatcherWorker() {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
-            .build()
-    
-        val watcherWork = PeriodicWorkRequestBuilder<BackgroundServiceWatcherWorker>(
-            30, TimeUnit.MINUTES
-        ).setConstraints(constraints).build()
-    
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "tachiyomi_service_watcher",
-            ExistingPeriodicWorkPolicy.KEEP,
-            watcherWork
-        )
-    }
-    
-    // ✅ METHOD UNTUK MEMASTIKAN BACKGROUND PROCESS - UBAH JADI INTERNAL
-    internal fun ensureBackgroundProcess() {
-        try {
-            logcat { "Ensuring TachiyomiSY background process is active" }
-            // Simple maintenance task
-            Runtime.getRuntime().gc()
-        } catch (e: Exception) {
-            logcat(LogPriority.ERROR, e) { "Failed to ensure background process" }
-        }
-    }
-    
-    // ✅ METHOD UNTUK TRIGGER IMMEDIATE BACKGROUND CHECK
-    private fun triggerImmediateBackgroundCheck() {
-        try {
-            val immediateWork = androidx.work.OneTimeWorkRequestBuilder<BackgroundKeepAliveWorker>()
-                .setInitialDelay(1, TimeUnit.SECONDS)
-                .build()
-                
-            WorkManager.getInstance(this).enqueue(immediateWork)
-        } catch (e: Exception) {
-            logcat(LogPriority.ERROR, e) { "Failed to trigger immediate background check" }
-        }
     }
 }
 
 private const val ACTION_DISABLE_INCOGNITO_MODE = "tachi.action.DISABLE_INCOGNITO_MODE"
 
-// ✅ WORKER CLASSES - DI LUAR CLASS App TAPI MASIH DI FILE App.kt
-
-class BackgroundKeepAliveWorker(
+class OptimizedKeepAliveWorker(
     context: Context,
     workerParams: WorkerParameters
 ) : Worker(context, workerParams) {
     
     override fun doWork(): Result {
         try {
-            // Gunakan logcat dengan benar
-            android.util.Log.d("TachiyomiSY", "BackgroundKeepAliveWorker: Maintaining process")
+            logcat { "OptimizedKeepAliveWorker: Light maintenance" }
             
-            // Lakukan task kecil untuk menjaga process
-            maintainAppProcess()
+            // ✅ Task yang ringan, tanpa GC paksa
+            performLightMaintenance()
             
             return Result.success()
         } catch (e: Exception) {
-            android.util.Log.e("TachiyomiSY", "BackgroundKeepAliveWorker failed", e)
-            return Result.retry()
+            logcat(LogPriority.ERROR, e) { "OptimizedKeepAliveWorker failed" }
+            return Result.failure() // ❌ Jangan retry, biarkan failure
         }
     }
     
-    private fun maintainAppProcess() {
-        // Task kecil untuk menjaga process tetap aktif
-        val preferences = applicationContext.getSharedPreferences("background_worker", Context.MODE_PRIVATE)
-        val lastRun = preferences.getLong("last_background_run", 0)
-        preferences.edit().putLong("last_background_run", System.currentTimeMillis()).apply()
+    private fun performLightMaintenance() {
+        // ✅ Maintenance ringan tanpa impact battery
+        val prefs = applicationContext.getSharedPreferences("bg_prefs", Context.MODE_PRIVATE)
+        val lastMaintenance = prefs.getLong("last_maintenance", 0)
+        val now = System.currentTimeMillis()
         
-        android.util.Log.d("TachiyomiSY", "Background maintenance executed. Last run: $lastRun")
-    }
-}
-
-class BackgroundServiceWatcherWorker(
-    context: Context,
-    workerParams: WorkerParameters
-) : Worker(context, workerParams) {
-    
-    override fun doWork(): Result {
-        try {
-            android.util.Log.d("TachiyomiSY", "BackgroundServiceWatcherWorker: Checking service status")
-            
-            // Cek jika app di background dan perlu restart service
-            val app = applicationContext as? App
-            if (app != null && !app.isAppInForeground) {
-                app.ensureBackgroundProcess()
-            }
-            
-            return Result.success()
-        } catch (e: Exception) {
-            android.util.Log.e("TachiyomiSY", "BackgroundServiceWatcherWorker failed", e)
-            return Result.retry()
+        // ✅ Hanya log, tidak ada operasi berat
+        if (now - lastMaintenance > TimeUnit.HOURS.toMillis(6)) {
+            prefs.edit().putLong("last_maintenance", now).apply()
+            logcat { "Performed light maintenance at $now" }
         }
     }
 }
