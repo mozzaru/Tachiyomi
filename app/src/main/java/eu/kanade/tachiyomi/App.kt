@@ -99,6 +99,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
     private val networkPreferences: NetworkPreferences by injectLazy()
 
     private val disableIncognitoReceiver = DisableIncognitoReceiver()
+    internal var isAppInForeground = true
 
     @SuppressLint("LaunchActivityFromNotification")
     override fun onCreate() {
@@ -247,6 +248,8 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
     override fun onStart(owner: LifecycleOwner) {
         SecureActivityDelegate.onApplicationStart()
+        isAppInForeground = true
+    logcat { "App in foreground" }
 
         val syncPreferences: SyncPreferences = Injekt.get()
         val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
@@ -257,6 +260,8 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
     override fun onStop(owner: LifecycleOwner) {
         SecureActivityDelegate.onApplicationStopped()
+        isAppInForeground = false
+    logcat { "App in background" }
     }
 
     override fun getPackageName(): String {
