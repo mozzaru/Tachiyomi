@@ -91,6 +91,9 @@ import uy.kohesive.injekt.injectLazy
 import java.security.Security
 import java.text.SimpleDateFormat
 import java.util.Locale
+import eu.kanade.tachiyomi.ReaderKeepAliveService
+import kotlinx.coroutines.delay
+import tachiyomi.core.common.util.system.logcat
 
 class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factory {
 
@@ -103,7 +106,8 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
     @SuppressLint("LaunchActivityFromNotification")
     override fun onCreate() {
-        super<Application>.onCreate()  
+        super<Application>.onCreate()
+        checkBatteryOptimization()
 
         GlobalExceptionHandler.initialize(applicationContext, CrashActivity::class.java)
 

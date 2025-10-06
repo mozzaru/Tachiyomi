@@ -113,6 +113,12 @@
                 android:resource="@xml/shortcuts" />
         </activity>
 
+        <!-- Dalam <application> tag: -->
+        <service
+            android:name=".ReaderKeepAliveService"
+            android:enabled="true"
+            android:exported="false" />
+
         <activity
             android:name=".crash.CrashActivity"
             android:exported="false"

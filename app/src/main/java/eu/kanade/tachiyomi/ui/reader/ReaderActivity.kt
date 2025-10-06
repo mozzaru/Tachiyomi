@@ -130,6 +130,10 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.ByteArrayOutputStream
 import kotlin.time.Duration.Companion.seconds
+import coil3.SingletonImageLoader
+import eu.kanade.tachiyomi.ReaderKeepAliveService
+import kotlinx.coroutines.delay
+import tachiyomi.core.common.util.system.logcat
 
 class ReaderActivity : BaseActivity() {
 
@@ -180,6 +184,42 @@ class ReaderActivity : BaseActivity() {
 
     var isScrollingThroughPages = false
         private set
+
+    private fun startKeepAliveService() {
+        try {
+            val intent = Intent(this, ReaderKeepAliveService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+            logcat { "Keep-alive service started" }
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, e) { "Failed to start keep-alive service" }
+        }
+    }
+    
+    private fun stopKeepAliveService() {
+        try {
+            val intent = Intent(this, ReaderKeepAliveService::class.java)
+            stopService(intent)
+            logcat { "Keep-alive service stopped" }
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, e) { "Failed to stop keep-alive service" }
+        }
+    }
+    
+    // Optimize memory usage untuk reduce kemungkinan process kill
+    private fun optimizeMemoryUsage() {
+        try {
+            // Clear image cache untuk free memory
+            val imageLoader = SingletonImageLoader.get(this)
+            imageLoader.memoryCache?.clear()
+            logcat { "Memory optimized for process keep" }
+        } catch (e: Exception) {
+            logcat(LogPriority.ERROR, e) { "Failed to optimize memory" }
+        }
+    }
 
     /**
      * Called when the activity is created. Initializes the presenter and configuration.
@@ -292,10 +332,19 @@ class ReaderActivity : BaseActivity() {
         config = null
         menuToggleToast?.cancel()
         readingModeToast?.cancel()
+        stopKeepAliveService()
     }
 
     override fun onPause() {
         viewModel.flushReadTimer()
+        
+        // SY --> Process keep-alive optimization
+        optimizeMemoryUsage()
+        if (viewModel.state.value.currentChapter != null) {
+            startKeepAliveService()
+        }
+        // SY <--
+        
         super.onPause()
     }
 
@@ -305,6 +354,11 @@ class ReaderActivity : BaseActivity() {
      */
     override fun onResume() {
         super.onResume()
+        
+        // SY --> Stop service saat kembali ke app
+        stopKeepAliveService()
+        // SY <--
+        
         viewModel.restartReadTimer()
         setMenuVisibility(viewModel.state.value.menuVisible)
     }
