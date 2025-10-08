@@ -84,7 +84,7 @@ class MangaDexFollowsScreen(private val sourceId: Long) : Screen() {
                         val duplicateManga = screenModel.getDuplicateLibraryManga(manga)
                         when {
                             manga.favorite -> screenModel.setDialog(BrowseSourceScreenModel.Dialog.RemoveManga(manga))
-                            duplicateManga.isNotEmpty() -> screenModel.setDialog(
+                            duplicateManga != null -> screenModel.setDialog(
                                 BrowseSourceScreenModel.Dialog.AddDuplicateManga(
                                     manga,
                                     duplicateManga,
