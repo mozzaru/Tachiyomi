@@ -2,7 +2,7 @@ name: Release Builder
 on:
   push:
    branches: 
-    - 'release'
+    - 'SYRizV3.13-4'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
