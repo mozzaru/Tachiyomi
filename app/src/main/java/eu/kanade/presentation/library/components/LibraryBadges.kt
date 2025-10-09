@@ -24,6 +24,7 @@ internal fun DownloadsBadge(count: Long) {
 }
 
 val unsortedPreferences = Injekt.get<UnsortedPreferences>()
+
 @Composable
 internal fun UnreadBadge(count: Long) {
     if (count > 0) {

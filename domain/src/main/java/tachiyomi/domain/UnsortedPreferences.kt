@@ -119,7 +119,6 @@ class UnsortedPreferences(
             }
         }
 
-    return preferenceStore.getInt("super_secret_setting", cachedInt)
+        return preferenceStore.getInt("super_secret_setting", cachedInt)
     }
-
 }
