@@ -153,4 +153,3 @@ private fun Manga.toBackupManga(/* SY --> */customMangaInfo: CustomMangaInfo?/* 
         }
     }
 // SY <--
-

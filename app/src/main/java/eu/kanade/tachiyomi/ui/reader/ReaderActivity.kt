@@ -283,6 +283,10 @@ class ReaderActivity : BaseActivity() {
             .launchIn(lifecycleScope)
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+    }
+
     /**
      * Called when the activity is destroyed. Cleans up the viewer, configuration and any view.
      */

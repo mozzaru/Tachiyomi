@@ -16,7 +16,6 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!-- For managing extensions -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
@@ -153,11 +152,12 @@
                 android:name="android.app.searchable"
                 android:resource="@xml/searchable" />
         </activity>
-
+        
         <activity
             android:name=".ui.reader.ReaderActivity"
             android:exported="false"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:configChanges="uiMode|orientation|screenSize|keyboardHidden">
             <intent-filter>
                 <action android:name="com.samsung.android.support.REMOTE_ACTION" />
             </intent-filter>
