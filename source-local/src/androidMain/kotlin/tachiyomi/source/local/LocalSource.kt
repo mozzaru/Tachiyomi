@@ -257,8 +257,10 @@ actual class LocalSource(
                 noXmlFile == null -> {
                     val chapterArchives = mangaDirFiles.filter(Archive::isSupported)
 
-                    val copiedFile = copyComicInfoFileFromChapters(chapterArchives, mangaDir)
-                    if (copiedFile != null) {
+                    val copiedFile = copyComicInfoFileFromArchive(chapterArchives, mangaDir)
+
+                    // SY -->
+                    if (copiedFile != null && copiedFile.name != COMIC_INFO_ARCHIVE) {
                         setMangaDetailsFromComicInfoFile(copiedFile.openInputStream(), manga)
                     } else if (copiedFile != null && copiedFile.name == COMIC_INFO_ARCHIVE) {
                         copiedFile.archiveReader(context).getInputStream(COMIC_INFO_FILE)
@@ -277,24 +279,13 @@ actual class LocalSource(
         return@withIOContext manga
     }
 
-    private fun <T> getComicInfoForChapter(chapter: UniFile, block: (InputStream) -> T): T? {
-        if (chapter.isDirectory) {
-            return chapter.findFile(COMIC_INFO_FILE)?.let { file ->
-                file.openInputStream().use(block)
-            }
-        } else {
-            return chapter.archiveReader(context).use { reader ->
-                reader.getInputStream(COMIC_INFO_FILE)?.use(block)
-            }
-        }
-    }
-
-    private fun copyComicInfoFileFromChapters(chapterArchives: List<UniFile>, folder: UniFile): UniFile? {
+    private fun copyComicInfoFileFromArchive(chapterArchives: List<UniFile>, folder: UniFile): UniFile? {
         for (chapter in chapterArchives) {
-            val file = getComicInfoForChapter(chapter) f@{ stream ->
-                return@f copyComicInfoFile(stream, folder)
+            chapter.archiveReader(context).use { reader ->
+                reader.getInputStream(COMIC_INFO_FILE)?.use { stream ->
+                    return copyComicInfoFile(stream, folder, /* SY --> */ reader.encrypted /* SY <-- */)
+                }
             }
-            if (file != null) return file
         }
         return null
     }
@@ -325,22 +316,12 @@ actual class LocalSource(
         }
     }
 
-    private fun parseComicInfo(stream: InputStream): ComicInfo {
-        return AndroidXmlReader(stream, StandardCharsets.UTF_8.name()).use {
+    private fun setMangaDetailsFromComicInfoFile(stream: InputStream, manga: SManga) {
+        val comicInfo = AndroidXmlReader(stream, StandardCharsets.UTF_8.name()).use {
             xml.decodeFromReader<ComicInfo>(it)
         }
-    }
 
-    private fun setMangaDetailsFromComicInfoFile(stream: InputStream, manga: SManga) {
-        manga.copyFromComicInfo(parseComicInfo(stream))
-    }
-
-    private fun setChapterDetailsFromComicInfoFile(stream: InputStream, chapter: SChapter) {
-        val comicInfo = parseComicInfo(stream)
-
-        comicInfo.title?.let { chapter.name = it.value }
-        comicInfo.number?.value?.toFloatOrNull()?.let { chapter.chapter_number = it }
-        comicInfo.translator?.let { chapter.scanlator = it.value }
+        manga.copyFromComicInfo(comicInfo)
     }
 
     // Chapters
@@ -366,10 +347,6 @@ actual class LocalSource(
                     if (format is Format.Epub) {
                         EpubFile(format.file.archiveReader(context)).use { epub ->
                             epub.fillMetadata(manga, this)
-                        }
-                    } else {
-                        getComicInfoForChapter(chapterFile) { stream ->
-                            setChapterDetailsFromComicInfoFile(stream, this)
                         }
                     }
                 }
