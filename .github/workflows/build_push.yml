@@ -2,7 +2,7 @@ name: Release Builder
 on:
   push:
    branches: 
-    - 'release'
+    - 'SY-ori-v2'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
