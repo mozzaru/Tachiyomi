@@ -803,9 +803,9 @@ class LibraryScreenModel(
      * Marks mangas' chapters read status.
      */
     fun markReadSelection(read: Boolean) {
-        val selection = state.value.selectedManga
+        val mangas = state.value.selection.toList()
         screenModelScope.launchNonCancellable {
-            selection.forEach { manga ->
+            mangas.forEach { manga ->
                 setReadStatus.await(
                     manga = manga.manga,
                     read = read,
@@ -890,9 +890,14 @@ class LibraryScreenModel(
             .asState(screenModelScope)
     }
 
-    fun getRandomLibraryItemForCurrentCategory(): LibraryItem? {
-        val state = state.value
-        return state.getItemsForCategoryId(state.activeCategory?.id).randomOrNull()
+    suspend fun getRandomLibraryItemForCurrentCategory(): LibraryItem? {
+        if (state.value.categories.isEmpty()) return null
+
+        return withIOContext {
+            state.value
+                .getLibraryItemsByCategoryId(state.value.categories[activeCategoryIndex].id)
+                ?.randomOrNull()
+        }
     }
 
     fun showSettingsDialog() {
@@ -1142,18 +1147,10 @@ class LibraryScreenModel(
                     // We shouldn't reach this point
                     else -> return@mutate
                 }
-                selectionRange.mapNotNull { items[it] }.let(list::addAll)
-            }
-            lastSelectionCategory = category.id
-            state.copy(selection = newSelection)
-        }
-    }
-
-    fun selectAll() {
-        lastSelectionCategory = null
-        mutableState.update { state ->
-            val newSelection = state.selection.mutate { list ->
-                state.getItemsForCategoryId(state.activeCategory?.id).map { it.id }.let(list::addAll)
+                val newSelections = selectionRange.mapNotNull { index ->
+                    items[index].takeUnless { it.id in selectedIds }
+                }
+                list.addAll(newSelections)
             }
             state.copy(selection = newSelection)
         }
@@ -1162,9 +1159,27 @@ class LibraryScreenModel(
     fun selectAll(index: Int) {
         mutableState.update { state ->
             val newSelection = state.selection.mutate { list ->
-                val itemIds = state.getItemsForCategoryId(state.activeCategory?.id).fastMap { it.id }
-                val (toRemove, toAdd) = itemIds.partition { it in list }
-                list.removeAll(toRemove)
+                val categoryId = state.categories.getOrNull(index)?.id ?: -1
+                val selectedIds = list.fastMap { it.id }
+                state.getLibraryItemsByCategoryId(categoryId)
+                    ?.fastMapNotNull { item ->
+                        item.libraryManga.takeUnless { it.id in selectedIds }
+                    }
+                    ?.let { list.addAll(it) }
+            }
+            state.copy(selection = newSelection)
+        }
+    }
+
+    fun invertSelection(index: Int) {
+        mutableState.update { state ->
+            val newSelection = state.selection.mutate { list ->
+                val categoryId = state.categories[index].id
+                val items = state.getLibraryItemsByCategoryId(categoryId)?.fastMap { it.libraryManga }.orEmpty()
+                val selectedIds = list.fastMap { it.id }
+                val (toRemove, toAdd) = items.fastPartition { it.id in selectedIds }
+                val toRemoveIds = toRemove.fastMap { it.id }
+                list.removeAll { it.id in toRemoveIds }
                 list.addAll(toAdd)
             }
             state.copy(selection = newSelection)
@@ -1393,23 +1408,18 @@ class LibraryScreenModel(
                 .size
         }
 
-        val coercedActiveCategoryIndex = activeCategoryIndex.coerceIn(
-            minimumValue = 0,
-            maximumValue = displayedCategories.lastIndex.coerceAtLeast(0),
-        )
-
-        val activeCategory: Category? = displayedCategories.getOrNull(coercedActiveCategoryIndex)
-
-        val isLibraryEmpty = libraryData.favorites.isEmpty()
+        val isLibraryEmpty by lazy { libraryCount == 0 }
 
         val selectionMode = selection.isNotEmpty()
 
         val categories = library.keys.toList()
 
-        fun getItemsForCategoryId(categoryId: Long?): List<LibraryItem> {
-            if (categoryId == null) return emptyList()
-            val category = displayedCategories.find { it.id == categoryId } ?: return emptyList()
-            return getItemsForCategory(category)
+        // SY -->
+        val showCleanTitles: Boolean by lazy {
+            selection.any {
+                it.manga.isEhBasedManga() ||
+                    it.manga.source in nHentaiSourceIds
+            }
         }
 
         val showAddToMangadex: Boolean by lazy {
