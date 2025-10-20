@@ -41,7 +41,7 @@ object WebViewUtil {
             val pm = context.packageManager
             val label = webView.applicationInfo!!.loadLabel(pm)
             val version = webView.versionName
-            "$label $version"
+            return "$label $version"
         } else {
             "Unknown"
         }
