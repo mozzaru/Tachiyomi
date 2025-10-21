@@ -203,8 +203,8 @@ class ReaderActivity : BaseActivity() {
         setContentView(binding.root)
 
         if (viewModel.needsInit()) {
-            val manga = intent.extras?.getLong("manga", -1) ?: -1L
-            val chapter = intent.extras?.getLong("chapter", -1) ?: -1L
+            val manga = intent.extras?.getLong("manga", -1L) ?: -1L
+            val chapter = intent.extras?.getLong("chapter", -1L) ?: -1L
             // SY -->
             val page = intent.extras?.getInt("page", -1).takeUnless { it == -1 }
             // SY <--
