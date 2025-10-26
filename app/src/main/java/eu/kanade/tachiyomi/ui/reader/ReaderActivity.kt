@@ -295,7 +295,9 @@ class ReaderActivity : BaseActivity() {
     }
 
     override fun onPause() {
+        logcat { "onPause: saving page index ${viewModel.state.value.currentPage}" }
         viewModel.flushReadTimer()
+        viewModel.saveCurrentPageIndex()
         super.onPause()
     }
 
@@ -305,6 +307,7 @@ class ReaderActivity : BaseActivity() {
      */
     override fun onResume() {
         super.onResume()
+        logcat { "onResume: restoring page index ${viewModel.getSavedPageIndex()}" }
         viewModel.restartReadTimer()
         setMenuVisibility(viewModel.state.value.menuVisible)
     }

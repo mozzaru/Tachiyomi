@@ -44,6 +44,7 @@ import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
 import eu.kanade.tachiyomi.ui.reader.viewer.Viewer
 import eu.kanade.tachiyomi.ui.reader.viewer.pager.PagerViewer
 import eu.kanade.tachiyomi.ui.reader.viewer.pager.R2LPagerViewer
+import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.WebtoonViewer
 import eu.kanade.tachiyomi.util.chapter.filterDownloaded
 import eu.kanade.tachiyomi.util.chapter.removeDuplicates
 import eu.kanade.tachiyomi.util.editCover
@@ -331,6 +332,15 @@ class ReaderViewModel @JvmOverloads constructor(
         deletePendingChapters()
     }
 
+    fun saveCurrentPageIndex() {
+        val pageIndex = state.value.currentPage - 1
+        if (pageIndex >= 0) {
+            chapterPageIndex = pageIndex
+        }
+    }
+
+    fun getSavedPageIndex(): Int = chapterPageIndex
+
     /**
      * Whether this presenter is initialized yet.
      */
@@ -574,6 +584,22 @@ class ReaderViewModel @JvmOverloads constructor(
     fun onViewerLoaded(viewer: Viewer?) {
         mutableState.update {
             it.copy(viewer = viewer)
+        }
+
+        val currentChapter = getCurrentChapter()
+        val pageIndex = chapterPageIndex
+        if (currentChapter != null && pageIndex >= 0) {
+            currentChapter.requestedPage = pageIndex
+            val page = currentChapter.pages?.getOrNull(pageIndex)
+            if (page != null) {
+                logcat { "Restoring to page $pageIndex in ${viewer?.javaClass?.simpleName}" }
+                when (viewer) {
+                    is PagerViewer -> viewer.moveToPage(page)
+                    is WebtoonViewer -> viewer.moveToPage(page)
+                }
+            } else {
+                logcat { "Page index $pageIndex not found in chapter pages" }
+            }
         }
     }
 
