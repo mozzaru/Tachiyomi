@@ -134,7 +134,13 @@ object ImageUtil {
      * Extract the 'side' part from [BufferedSource] and return it as [BufferedSource].
      */
     fun splitInHalf(imageSource: BufferedSource, side: Side, sidePadding: Int): BufferedSource {
-        val imageBitmap = BitmapFactory.decodeStream(imageSource.inputStream())
+        val options = BitmapFactory.Options().apply {
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+            inMutable = true
+        }
+        val imageBitmap = BitmapFactory.decodeStream(imageSource.inputStream(), null, options)
+        ?: return Buffer() 
+
         val height = imageBitmap.height
         val width = imageBitmap.width
 
@@ -155,7 +161,13 @@ object ImageUtil {
     }
 
     fun rotateImage(imageSource: BufferedSource, degrees: Float): BufferedSource {
-        val imageBitmap = BitmapFactory.decodeStream(imageSource.inputStream())
+        val options = BitmapFactory.Options().apply {
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+            inMutable = true
+        }
+        val imageBitmap = BitmapFactory.decodeStream(imageSource.inputStream(), null, options)
+        ?: return Buffer()
+
         val rotated = rotateBitMap(imageBitmap, degrees)
 
         val output = Buffer()
@@ -174,7 +186,13 @@ object ImageUtil {
      * new vertically-aligned image.
      */
     fun splitAndMerge(imageSource: BufferedSource, upperSide: Side): BufferedSource {
-        val imageBitmap = BitmapFactory.decodeStream(imageSource.inputStream())
+        val options = BitmapFactory.Options().apply {
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+            inMutable = true
+        }
+        val imageBitmap = BitmapFactory.decodeStream(imageSource.inputStream(), null, options)
+        ?: return Buffer()
+
         val height = imageBitmap.height
         val width = imageBitmap.width
 
@@ -216,7 +234,13 @@ object ImageUtil {
         viewHeight: Int,
         backgroundContext: Context,
     ): BufferedSource {
-        val imageBitmap = ImageDecoder.newInstance(imageSource.inputStream())?.decode()!!
+        val options = BitmapFactory.Options().apply {
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+            inMutable = true
+        }
+        val imageBitmap = BitmapFactory.decodeStream(imageSource.inputStream(), null, options)
+            ?: return Buffer()
+
         val height = imageBitmap.height
         val width = imageBitmap.width
 

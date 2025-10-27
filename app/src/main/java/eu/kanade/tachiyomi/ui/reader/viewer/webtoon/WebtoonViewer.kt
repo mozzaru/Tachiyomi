@@ -219,7 +219,7 @@ class WebtoonViewer(
         activity.onPageSelected(page)
     
         val progress = page.number.toFloat() / pages.size.toFloat()
-        val inPreloadRange = progress >= 0.6f || (pages.size - page.number) <= 10
+        val inPreloadRange = progress >= 0.45f || (pages.size - page.number) <= 15
     
         if (inPreloadRange && allowPreload && page.chapter == adapter.currentChapter) {
             val nextItem = adapter.items.getOrNull(adapter.items.size - 1)
