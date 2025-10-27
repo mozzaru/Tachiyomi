@@ -18,6 +18,8 @@ data class ReaderChapter(val chapter: Chapter) {
     val pages: List<ReaderPage>?
         get() = (state as? State.Loaded)?.pages
 
+    var isPreloaded = false
+
     var pageLoader: PageLoader? = null
 
     var requestedPage: Int = 0

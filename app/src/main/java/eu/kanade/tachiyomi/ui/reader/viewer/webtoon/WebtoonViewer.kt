@@ -217,16 +217,19 @@ class WebtoonViewer(
         val pages = page.chapter.pages ?: return
         logcat { "onPageSelected: ${page.number}/${pages.size}" }
         activity.onPageSelected(page)
-
-        // Preload next chapter once we're within the last 5 pages of the current chapter
-        val inPreloadRange = pages.size - page.number < 5
+    
+        val progress = page.number.toFloat() / pages.size.toFloat()
+        val inPreloadRange = progress >= 0.6f || (pages.size - page.number) <= 10
+    
         if (inPreloadRange && allowPreload && page.chapter == adapter.currentChapter) {
-            logcat { "Request preload next chapter because we're at page ${page.number} of ${pages.size}" }
             val nextItem = adapter.items.getOrNull(adapter.items.size - 1)
-            val transitionChapter = (nextItem as? ChapterTransition.Next)?.to ?: (nextItem as?ReaderPage)?.chapter
-            if (transitionChapter != null) {
+            val transitionChapter = (nextItem as? ChapterTransition.Next)?.to
+                ?: (nextItem as? ReaderPage)?.chapter
+    
+            if (transitionChapter != null && !transitionChapter.isPreloaded) {
                 logcat { "Requesting to preload chapter ${transitionChapter.chapter.chapter_number}" }
                 activity.requestPreloadChapter(transitionChapter)
+                transitionChapter.isPreloaded = true
             }
         }
     }
