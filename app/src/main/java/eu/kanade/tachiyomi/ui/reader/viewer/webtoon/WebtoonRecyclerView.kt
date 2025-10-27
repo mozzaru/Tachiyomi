@@ -214,9 +214,24 @@ class WebtoonRecyclerView @JvmOverloads constructor(
 
     inner class GestureListener : GestureDetectorWithLongTap.Listener() {
 
+        private var didScroll = false
+
+        override fun onDown(ev: MotionEvent): Boolean {
+            didScroll = false
+            return super.onDown(ev)
+        }
+
+        override fun onScroll(
+            e1: MotionEvent?, e2: MotionEvent, distanceX: Float, distanceY: Float
+        ): Boolean {
+            didScroll = true
+            return super.onScroll(e1, e2, distanceX, distanceY)
+        }
+
         override fun onSingleTapConfirmed(ev: MotionEvent): Boolean {
+            if (didScroll) return false
             tapListener?.invoke(ev)
-            return false
+            return true
         }
 
         override fun onDoubleTap(ev: MotionEvent): Boolean {

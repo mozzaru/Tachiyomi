@@ -1392,7 +1392,7 @@ class ReaderActivity : BaseActivity() {
         }
         private fun setLayerPaint(grayscale: Boolean, invertedColors: Boolean) {
             val paint = if (grayscale || invertedColors) getCombinedPaint(grayscale, invertedColors) else null
-            binding.viewerContainer.setLayerType(LAYER_TYPE_HARDWARE, paint)
+            binding.viewerContainer.setLayerType(View.LAYER_TYPE_NONE, null)
         }
     }
 }
