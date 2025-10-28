@@ -11,6 +11,7 @@ import android.view.animation.LinearInterpolator
 import androidx.core.app.ActivityCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.WebtoonLayoutManager
 import eu.kanade.tachiyomi.data.download.DownloadManager
@@ -21,8 +22,10 @@ import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.viewer.Viewer
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation.NavigationRegion
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.MainScope
 import tachiyomi.core.common.util.system.logcat
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -107,7 +110,9 @@ class WebtoonViewer(
                         val firstIndex = layoutManager.findFirstVisibleItemPosition()
                         val firstItem = adapter.items.getOrNull(firstIndex)
                         if (firstItem is ChapterTransition.Prev && firstItem.to != null) {
-                            activity.requestPreloadChapter(firstItem.to)
+                            activity.lifecycleScope.launch(Dispatchers.IO) {
+                                activity.requestPreloadChapter(firstItem.to)
+                            }
                         }
                     }
 
@@ -217,18 +222,22 @@ class WebtoonViewer(
         val pages = page.chapter.pages ?: return
         logcat { "onPageSelected: ${page.number}/${pages.size}" }
         activity.onPageSelected(page)
-    
+
         val progress = page.number.toFloat() / pages.size.toFloat()
         val inPreloadRange = progress >= 0.45f || (pages.size - page.number) <= 15
-    
+
         if (inPreloadRange && allowPreload && page.chapter == adapter.currentChapter) {
             val nextItem = adapter.items.getOrNull(adapter.items.size - 1)
             val transitionChapter = (nextItem as? ChapterTransition.Next)?.to
                 ?: (nextItem as? ReaderPage)?.chapter
-    
+
             if (transitionChapter != null && !transitionChapter.isPreloaded) {
                 logcat { "Requesting to preload chapter ${transitionChapter.chapter.chapter_number}" }
-                activity.requestPreloadChapter(transitionChapter)
+
+                activity.lifecycleScope.launch(Dispatchers.IO) {
+                    activity.requestPreloadChapter(transitionChapter)
+                }
+
                 transitionChapter.isPreloaded = true
             }
         }
@@ -243,7 +252,9 @@ class WebtoonViewer(
         val toChapter = transition.to
         if (toChapter != null) {
             logcat { "Request preload destination chapter because we're on the transition" }
-            activity.requestPreloadChapter(toChapter)
+            activity.lifecycleScope.launch(Dispatchers.IO) {
+                activity.requestPreloadChapter(toChapter)
+            }
         }
     }
 
