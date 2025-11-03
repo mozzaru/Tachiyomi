@@ -239,10 +239,6 @@ dependencies {
     // Tests
     testImplementation(libs.bundles.test)
 
-    // For detecting memory leaks; see https://square.github.io/leakcanary/
-    // debugImplementation(libs.leakcanary.android)
-    implementation(libs.leakcanary.plumber)
-
     testImplementation(kotlinx.coroutines.test)
 
     // SY -->
