@@ -1,0 +1,37 @@
+name: Check Dependencies
+
+on:
+  workflow_dispatch:  # Manual trigger aja
+
+jobs:
+  check-deps:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+      
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+      
+      - name: Check androidx.core dependencies
+        run: |
+          ./gradlew app:dependencies --configuration standardReleaseRuntimeClasspath | grep -A 10 "androidx.core" > androidx-core-deps.txt
+          cat androidx-core-deps.txt
+      
+      - name: Check dependency insight
+        run: |
+          ./gradlew app:dependencyInsight --configuration standardReleaseRuntimeClasspath --dependency androidx.core:core
+      
+      - name: Upload dependency report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-report
+          path: |
+            androidx-core-deps.txt
