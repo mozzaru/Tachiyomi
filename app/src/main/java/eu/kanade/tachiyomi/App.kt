@@ -56,6 +56,7 @@ import eu.kanade.tachiyomi.di.PreferenceModule
 import eu.kanade.tachiyomi.di.SYPreferenceModule
 import eu.kanade.tachiyomi.di.importModule
 import eu.kanade.tachiyomi.di.initExpensiveComponents
+import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.NetworkPreferences
 import eu.kanade.tachiyomi.ui.base.delegate.SecureActivityDelegate
@@ -74,6 +75,7 @@ import exh.syDebugVersion
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import logcat.LogPriority
 import logcat.LogcatLogger
 import mihon.core.firebase.FirebaseConfig
@@ -133,7 +135,20 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         initExpensiveComponents(this)
         // SY <--
 
-        setupExhLogging() // EXH logging
+        // EXH logging (pindahkan ke background thread)
+        ProcessLifecycleOwner.get().lifecycleScope.launch(Dispatchers.IO) {
+            setupExhLogging()
+        }
+
+        // Inisialisasi ExtensionManager di background thread (FIX MASALAH 3.3 DETIK)
+        ProcessLifecycleOwner.get().lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                Injekt.get<ExtensionManager>().initExtensions()
+            } catch (e: Exception) {
+                logcat(LogPriority.ERROR, e) { "Gagal memuat ekstensi di background" }
+            }
+        }
+
         LogcatLogger.install(XLogLogcatLogger()) // SY Redirect Logcat to XLog
 
         setupNotificationChannels()
@@ -303,7 +318,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
     }
 
     // EXH
-    private fun setupExhLogging() {
+    private suspend fun setupExhLogging() {
         EHLogLevel.init(this)
 
         val logLevel = when {

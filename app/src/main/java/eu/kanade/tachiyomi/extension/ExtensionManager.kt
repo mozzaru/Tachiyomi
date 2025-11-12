@@ -83,7 +83,6 @@ class ExtensionManager(
     val untrustedExtensionsFlow = untrustedExtensionMapFlow.mapExtensions(scope)
 
     init {
-        initExtensions()
         ExtensionInstallReceiver(InstallationListener()).register(context)
     }
 
@@ -139,7 +138,7 @@ class ExtensionManager(
     /**
      * Loads and registers the installed extensions.
      */
-    private fun initExtensions() {
+    suspend fun initExtensions() {
         val extensions = ExtensionLoader.loadExtensions(context)
 
         installedExtensionMapFlow.value = extensions
