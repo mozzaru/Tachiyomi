@@ -22,7 +22,8 @@ class StorageManager(
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    private var baseDir: UniFile? = getBaseDir(storagePreferences.baseStorageDirectory().get())
+    // FIX #1: Initialize as null. This makes the constructor instant (super fast). // Heavy disk I/O calls are moved to the init block below.
+    private var baseDir: UniFile? = null
 
     private val _changes: Channel<Unit> = Channel(Channel.UNLIMITED)
     val changes = _changes.receiveAsFlow()
@@ -30,9 +31,15 @@ class StorageManager(
 
     init {
         storagePreferences.baseStorageDirectory().changes()
-            .drop(1)
+            // FIX #2: Remove .drop(1) 
+            // This forces the flow to load the INITIAL (current) value 
+            // asynchronously in a background thread (scope), 
+            // which will set 'baseDir' as soon as the constructor completes.
+            // .drop(1) 
             .distinctUntilChanged()
             .onEach { uri ->
+                // This getBaseDir() call is now safe because it is 
+                // inside .onEach which is launched in the IO scope.
                 baseDir = getBaseDir(uri)
                 baseDir?.let { parent ->
                     parent.createDirectory(AUTOMATIC_BACKUPS_PATH)
@@ -43,7 +50,7 @@ class StorageManager(
                 }
                 _changes.send(Unit)
             }
-            .launchIn(scope)
+            .launchIn(scope) // 'scope' is Dispatchers.IO, this is correct.
     }
 
     private fun getBaseDir(uri: String): UniFile? {
