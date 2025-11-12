@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.Looper
+import android.os.StrictMode
 import android.webkit.WebView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -30,6 +31,7 @@ import com.elvishew.xlog.printer.AndroidPrinter
 import com.elvishew.xlog.printer.Printer
 import com.elvishew.xlog.printer.file.backup.NeverBackupStrategy
 import com.elvishew.xlog.printer.file.naming.DateFileNameGenerator
+import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.domain.DomainModule
 import eu.kanade.domain.SYDomainModule
 import eu.kanade.domain.base.BasePreferences
@@ -105,6 +107,8 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
     override fun onCreate() {
         super<Application>.onCreate()
         FirebaseConfig.init(applicationContext)
+
+        setupStrictMode()
 
         GlobalExceptionHandler.initialize(applicationContext, CrashActivity::class.java)
 
@@ -388,6 +392,26 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
                 unregisterReceiver(this)
                 registered = false
             }
+        }
+    }
+
+    private fun setupStrictMode() {
+        if (BuildConfig.DEBUG) { // Hanya aktif saat debug
+            StrictMode.setThreadPolicy(
+                StrictMode.ThreadPolicy.Builder()
+                    .detectDiskReads()     // Deteksi baca disk
+                    .detectDiskWrites()    // Deteksi tulis disk
+                    .detectNetwork()       // Deteksi network (opsional)
+                    .penaltyLog()          // Cetak pelanggaran ke Logcat
+                    .build()
+            )
+            StrictMode.setVmPolicy(
+                StrictMode.VmPolicy.Builder()
+                    .detectLeakedSqlLiteObjects() // Deteksi kebocoran database
+                    .detectLeakedClosableObjects() // Deteksi objek yang lupa ditutup
+                    .penaltyLog()
+                    .build()
+            )
         }
     }
 }
