@@ -66,7 +66,6 @@ import eu.kanade.tachiyomi.util.system.WebViewUtil
 import eu.kanade.tachiyomi.util.system.animatorDurationScale
 import eu.kanade.tachiyomi.util.system.cancelNotification
 import eu.kanade.tachiyomi.util.system.notify
-import exh.log.CrashlyticsPrinter
 import exh.log.EHLogLevel
 import exh.log.EnhancedFilePrinter
 import exh.log.XLogLogcatLogger
@@ -347,7 +346,8 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
         // Install Crashlytics in prod
         if (!BuildConfig.DEBUG) {
-            printers += CrashlyticsPrinter(LogLevel.ERROR)
+            // Firebase Crashlytics removed, use DummyPrinter instead
+            printers += DummyPrinter(LogLevel.ERROR)
         }
 
         XLog.init(
