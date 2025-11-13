@@ -344,12 +344,6 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
                 }
         }
 
-        // Install Crashlytics in prod
-        if (!BuildConfig.DEBUG) {
-            // Firebase Crashlytics removed, use DummyPrinter instead
-            printers += DummyPrinter(LogLevel.ERROR)
-        }
-
         XLog.init(
             logConfig,
             *printers.toTypedArray(),
