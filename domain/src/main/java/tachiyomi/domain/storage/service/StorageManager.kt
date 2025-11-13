@@ -9,7 +9,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -22,7 +21,8 @@ class StorageManager(
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    // FIX #1: Initialize as null. This makes the constructor instant (super fast). // Heavy disk I/O calls are moved to the init block below.
+    // FIX #1: Initialize as null. This makes the constructor instant (super fast).
+    // Heavy disk I/O calls are moved to the init block below.
     private var baseDir: UniFile? = null
 
     private val _changes: Channel<Unit> = Channel(Channel.UNLIMITED)
@@ -31,14 +31,14 @@ class StorageManager(
 
     init {
         storagePreferences.baseStorageDirectory().changes()
-            // FIX #2: Remove .drop(1) 
-            // This forces the flow to load the INITIAL (current) value 
-            // asynchronously in a background thread (scope), 
+            // FIX #2: Remove .drop(1)
+            // This forces the flow to load the INITIAL (current) value
+            // asynchronously in a background thread (scope),
             // which will set 'baseDir' as soon as the constructor completes.
-            // .drop(1) 
+            // .drop(1)
             .distinctUntilChanged()
             .onEach { uri ->
-                // This getBaseDir() call is now safe because it is 
+                // This getBaseDir() call is now safe because it is
                 // inside .onEach which is launched in the IO scope.
                 baseDir = getBaseDir(uri)
                 baseDir?.let { parent ->
@@ -50,7 +50,7 @@ class StorageManager(
                 }
                 _changes.send(Unit)
             }
-            .launchIn(scope) // 'scope' is Dispatchers.IO, this is correct.
+            .launchIn(scope)
     }
 
     private fun getBaseDir(uri: String): UniFile? {

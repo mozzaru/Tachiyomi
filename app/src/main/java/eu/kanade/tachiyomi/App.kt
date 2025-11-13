@@ -31,13 +31,13 @@ import com.elvishew.xlog.printer.AndroidPrinter
 import com.elvishew.xlog.printer.Printer
 import com.elvishew.xlog.printer.file.backup.NeverBackupStrategy
 import com.elvishew.xlog.printer.file.naming.DateFileNameGenerator
-import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.domain.DomainModule
 import eu.kanade.domain.SYDomainModule
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.sync.SyncPreferences
 import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.domain.ui.model.setAppCompatDelegateThemeMode
+import eu.kanade.tachiyomi.BuildConfig
 import eu.kanade.tachiyomi.core.security.PrivacyPreferences
 import eu.kanade.tachiyomi.crash.CrashActivity
 import eu.kanade.tachiyomi.crash.GlobalExceptionHandler
@@ -411,21 +411,21 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
     }
 
     private fun setupStrictMode() {
-        if (BuildConfig.DEBUG) { // Hanya aktif saat debug
+        if (BuildConfig.DEBUG) { // Only active during debugging
             StrictMode.setThreadPolicy(
                 StrictMode.ThreadPolicy.Builder()
-                    .detectDiskReads()     // Deteksi baca disk
-                    .detectDiskWrites()    // Deteksi tulis disk
-                    .detectNetwork()       // Deteksi network (opsional)
-                    .penaltyLog()          // Cetak pelanggaran ke Logcat
-                    .build()
+                    .detectDiskReads() // Disk read detection
+                    .detectDiskWrites() // Disk write detection
+                    .detectNetwork() // Network detection (optional)
+                    .penaltyLog() // Print violations to Logcat
+                    .build(),
             )
             StrictMode.setVmPolicy(
                 StrictMode.VmPolicy.Builder()
-                    .detectLeakedSqlLiteObjects() // Deteksi kebocoran database
-                    .detectLeakedClosableObjects() // Deteksi objek yang lupa ditutup
+                    .detectLeakedSqlLiteObjects() // Database leak detection
+                    .detectLeakedClosableObjects() // Detect forgotten closed objects
                     .penaltyLog()
-                    .build()
+                    .build(),
             )
         }
     }
