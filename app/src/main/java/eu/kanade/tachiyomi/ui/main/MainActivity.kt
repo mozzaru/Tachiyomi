@@ -162,7 +162,6 @@ class MainActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
 
         val didMigration = if (isLaunch) {
-            addAnalytics()
             Migrator.awaitAndRelease()
         } else {
             false
