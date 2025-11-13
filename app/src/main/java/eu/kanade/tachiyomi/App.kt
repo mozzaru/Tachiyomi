@@ -78,7 +78,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import logcat.LogPriority
 import logcat.LogcatLogger
-import mihon.core.firebase.FirebaseConfig
 import mihon.core.migration.Migrator
 import mihon.core.migration.migrations.migrations
 import org.conscrypt.Conscrypt
@@ -108,7 +107,6 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
     @SuppressLint("LaunchActivityFromNotification")
     override fun onCreate() {
         super<Application>.onCreate()
-        FirebaseConfig.init(applicationContext)
 
         setupStrictMode()
 
@@ -184,16 +182,6 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
                     cancelNotification(Notifications.ID_INCOGNITO_MODE)
                 }
             }
-            .launchIn(scope)
-
-        privacyPreferences.analytics()
-            .changes()
-            .onEach(FirebaseConfig::setAnalyticsEnabled)
-            .launchIn(scope)
-
-        privacyPreferences.crashlytics()
-            .changes()
-            .onEach(FirebaseConfig::setCrashlyticsEnabled)
             .launchIn(scope)
 
         basePreferences.hardwareBitmapThreshold().let { preference ->
