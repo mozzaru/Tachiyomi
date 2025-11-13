@@ -47,6 +47,9 @@ class StorageManager(
                     parent.createDirectory(DOWNLOADS_PATH).also {
                         DiskUtil.createNoMediaFile(it, context)
                     }
+                    // SY -->
+                    parent.createDirectory(LOGS_PATH)
+                    // SY <--
                 }
                 _changes.send(Unit)
             }
