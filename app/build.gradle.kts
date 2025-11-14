@@ -22,7 +22,7 @@ android {
     namespace = "eu.kanade.tachiyomi"
 
     defaultConfig {
-        applicationId = "eu.kanade.tachiyomi.zz"
+        applicationId = "eu.kanade.tachiyomi.mm"
 
         versionCode = 75
         versionName = "1.12.0"
@@ -40,7 +40,7 @@ android {
 
     buildTypes {
         named("debug") {
-            versionNameSuffix = "-${getCommitCount()}-zz"
+            versionNameSuffix = "-${getCommitCount()}-mm"
             applicationIdSuffix = ".debug"
             isPseudoLocalesEnabled = true
         }
@@ -52,7 +52,7 @@ android {
             matchingFallbacks.add("release")
         }
         named("release") {
-            versionNameSuffix = "-zz"
+            versionNameSuffix = "-mm"
             isMinifyEnabled = true
             isShrinkResources = true
             setProguardFiles(listOf(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"))
