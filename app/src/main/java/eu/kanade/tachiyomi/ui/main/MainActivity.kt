@@ -148,7 +148,9 @@ class MainActivity : BaseActivity() {
         if (firstPaint) {
             task()
         } else {
-            iuuQueue += task
+            window.decorView.post {
+                iuuQueue += task
+            }
         }
     }
 
