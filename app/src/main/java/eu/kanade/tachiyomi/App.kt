@@ -19,11 +19,16 @@ import androidx.lifecycle.lifecycleScope
 import androidx.work.Configuration
 import androidx.work.WorkManager
 import coil3.ImageLoader
+import coil3.disk.DiskCache
+import coil3.disk.directory
+import coil3.memory.MemoryCache
 import coil3.SingletonImageLoader
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.allowRgb565
 import coil3.request.crossfade
 import coil3.util.DebugLogger
+import okio.Path
+import okio.Path.Companion.toOkioPath
 import com.elvishew.xlog.LogConfiguration
 import com.elvishew.xlog.LogLevel
 import com.elvishew.xlog.XLog
@@ -247,8 +252,25 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
             }
 
             crossfade((300 * this@App.animatorDurationScale).toInt())
-            allowRgb565(DeviceUtil.isLowRamDevice(this@App))
+            // FORCE 32-bit ALWAYS
+            allowRgb565(false)
             if (networkPreferences.verboseLogging().get()) logger(DebugLogger())
+
+            memoryCache(
+                MemoryCache.Builder()
+                    .maxSizePercent(context,0.25)
+                    .strongReferencesEnabled(true)
+                    .build(),
+            )
+
+            diskCache {
+                DiskCache.Builder()
+                    .directory(
+                        context.cacheDir.resolve("image_cache").toOkioPath()
+                    )
+                    .maxSizeBytes(384L * 1024 * 1024)
+                    .build()
+            }
 
             // Coil spawns a new thread for every image load by default
             fetcherCoroutineContext(Dispatchers.IO.limitedParallelism(8))
