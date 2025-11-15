@@ -294,8 +294,14 @@ dependencies {
 
     // Firebase (EH)
     implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics)
-    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.analytics) {
+        // FIX: Prevent duplicate class conflicts (AppComponentFactory)
+        exclude(group = "androidx.core")
+    }
+    implementation(libs.firebase.crashlytics) {
+        // FIX: Prevent duplicate class conflicts (AppComponentFactory)
+        exclude(group = "androidx.core")
+    }
 
     // Better logging (EH)
     implementation(sylibs.xlog)
