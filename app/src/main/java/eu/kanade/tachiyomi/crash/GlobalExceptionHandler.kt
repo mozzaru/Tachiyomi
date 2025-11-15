@@ -30,9 +30,17 @@ class GlobalExceptionHandler private constructor(
     }
 
     override fun uncaughtException(thread: Thread, exception: Throwable) {
+        // Log the crash to Logcat
         logcat(priority = LogPriority.ERROR, throwable = exception)
-        launchActivity(applicationContext, activityToBeLaunched, exception)
-        defaultHandler.uncaughtException(thread, exception)
+
+        // Launch CrashActivity once to show the crash screen
+        try {
+            launchActivity(applicationContext, activityToBeLaunched, exception)
+        } catch (e: Exception) {
+            // Fallback: let the app force close normally
+        }
+
+        // Do not call defaultHandler here to avoid reload loops
     }
 
     private fun launchActivity(
