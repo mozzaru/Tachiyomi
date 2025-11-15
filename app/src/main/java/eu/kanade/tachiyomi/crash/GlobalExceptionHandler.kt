@@ -11,10 +11,11 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
+import kotlin.system.exitProcess
 
 class GlobalExceptionHandler private constructor(
     private val applicationContext: Context,
-    private val defaultHandler: Thread.UncaughtExceptionHandler,
+    private val defaultHandler: Thread.UncaughtExceptionHandler?,
     private val activityToBeLaunched: Class<*>,
 ) : Thread.UncaughtExceptionHandler {
 
@@ -29,18 +30,30 @@ class GlobalExceptionHandler private constructor(
             encoder.encodeString(value.stackTraceToString())
     }
 
+    @Volatile
+    private var launched = false
+
     override fun uncaughtException(thread: Thread, exception: Throwable) {
-        // Log the crash to Logcat
+        // Log ke Logcat
         logcat(priority = LogPriority.ERROR, throwable = exception)
 
-        // Launch CrashActivity once to show the crash screen
-        try {
-            launchActivity(applicationContext, activityToBeLaunched, exception)
-        } catch (e: Exception) {
-            // Fallback: let the app force close normally
+        // Launch CrashActivity hanya sekali
+        if (!launched) {
+            launched = true
+            try {
+                launchActivity(applicationContext, activityToBeLaunched, exception)
+            } catch (_: Exception) {
+                // fallback: biarkan default handler
+            }
         }
 
-        // Do not call defaultHandler here to avoid reload loops
+        // Hentikan proses supaya tidak loop
+        try {
+            defaultHandler?.uncaughtException(thread, exception)
+        } catch (_: Throwable) {
+            android.os.Process.killProcess(android.os.Process.myPid())
+            exitProcess(10)
+        }
     }
 
     private fun launchActivity(
@@ -50,8 +63,7 @@ class GlobalExceptionHandler private constructor(
     ) {
         val intent = Intent(applicationContext, activity).apply {
             putExtra(INTENT_EXTRA, Json.encodeToString(ThrowableSerializer, exception))
-            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }
         applicationContext.startActivity(intent)
     }
@@ -65,7 +77,7 @@ class GlobalExceptionHandler private constructor(
         ) {
             val handler = GlobalExceptionHandler(
                 applicationContext,
-                Thread.getDefaultUncaughtExceptionHandler() as Thread.UncaughtExceptionHandler,
+                Thread.getDefaultUncaughtExceptionHandler(),
                 activityToBeLaunched,
             )
             Thread.setDefaultUncaughtExceptionHandler(handler)

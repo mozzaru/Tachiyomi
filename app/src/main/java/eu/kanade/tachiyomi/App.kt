@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
+import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -114,7 +115,11 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
             )
         }
 
-        FirebaseConfig.init(applicationContext)
+        try {
+            FirebaseConfig.init(applicationContext)
+        } catch (e: Throwable) {
+            logcat(LogPriority.WARN, e) { "Firebase init skipped" }
+        }
 
         GlobalExceptionHandler.initialize(applicationContext, CrashActivity::class.java)
 
@@ -179,12 +184,20 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
         privacyPreferences.analytics()
             .changes()
-            .onEach(FirebaseConfig::setAnalyticsEnabled)
+            .onEach { enabled ->
+                try {
+                    FirebaseConfig.setAnalyticsEnabled(enabled)
+                } catch (_: Throwable) {}
+            }
             .launchIn(scope)
 
         privacyPreferences.crashlytics()
             .changes()
-            .onEach(FirebaseConfig::setCrashlyticsEnabled)
+            .onEach { enabled ->
+                try {
+                    FirebaseConfig.setCrashlyticsEnabled(enabled)
+                } catch (_: Throwable) {}
+            }
             .launchIn(scope)
 
         basePreferences.hardwareBitmapThreshold().let { preference ->
@@ -262,6 +275,17 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
             decoderCoroutineContext(Dispatchers.IO.limitedParallelism(3))
         }
             .build()
+    }
+
+    override fun onTrimMemory(level: Int) {
+        // Stop ColorOS from clearing image cache when the app is in the background.
+        if (level == ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN ||
+            level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW ||
+            level == ComponentCallbacks2.TRIM_MEMORY_MODERATE
+        ) {
+            return
+        }
+        super.onTrimMemory(level)
     }
 
     override fun onStart(owner: LifecycleOwner) {
@@ -347,7 +371,11 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
         // Install Crashlytics in prod
         if (!BuildConfig.DEBUG) {
-            printers += CrashlyticsPrinter(LogLevel.ERROR)
+            try {
+                printers += CrashlyticsPrinter(LogLevel.ERROR)
+            } catch (_: Throwable) {
+                // no-op
+            }
         }
 
         XLog.init(

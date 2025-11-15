@@ -124,8 +124,7 @@
 
         <activity
             android:name=".crash.CrashActivity"
-            android:exported="false"
-            android:process=":error_handler" />
+            android:exported="false" />
 
         <activity
             android:name=".ui.deeplink.DeepLinkActivity"
@@ -157,7 +156,7 @@
         <activity
             android:name=".ui.reader.ReaderActivity"
             android:exported="false"
-            android:launchMode="singleTask">
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="com.samsung.android.support.REMOTE_ACTION" />
             </intent-filter>
@@ -280,6 +279,14 @@
         <meta-data
             android:name="google_analytics_adid_collection_enabled"
             android:value="false" />
+
+        <provider
+            android:name="com.google.firebase.provider.FirebaseInitProvider"
+            android:authorities="${applicationId}.firebaseinitprovider"
+            tools:node="remove" />
+        <service
+            android:name="com.google.firebase.sessions.SessionLifecycleService"
+            tools:node="remove" />
 
         <!-- EH -->
         <activity

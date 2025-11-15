@@ -292,10 +292,10 @@ dependencies {
     // Text distance (EH)
     implementation(sylibs.simularity)
 
-    // Firebase
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics)
-    implementation(libs.firebase.crashlytics)
+    // Firebase (EH)
+    "standardImplementation"(platform(libs.firebase.bom))
+    "standardImplementation"(libs.firebase.analytics)
+    "standardImplementation"(libs.firebase.crashlytics)
 
     // Explicit core dependency to avoid duplicate AppComponentFactory
     implementation("androidx.core:core-ktx:1.13.1")
