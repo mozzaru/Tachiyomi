@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
+import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -192,6 +193,17 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         }
 
         initializeMigrator()
+    }
+
+    override fun onTrimMemory(level: Int) {
+        // Stop ColorOS from clearing image cache when the app is in the background.
+        if (level == ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN ||
+            level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW ||
+            level == ComponentCallbacks2.TRIM_MEMORY_MODERATE
+        ) {
+            return
+        }
+        super.onTrimMemory(level)
     }
 
     private fun initializeMigrator() {
