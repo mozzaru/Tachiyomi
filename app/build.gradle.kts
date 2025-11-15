@@ -292,10 +292,13 @@ dependencies {
     // Text distance (EH)
     implementation(sylibs.simularity)
 
-    // Firebase (EH)
+    // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
+
+    // Explicit core dependency to avoid duplicate AppComponentFactory
+    implementation("androidx.core:core-ktx:1.13.1")
 
     // Better logging (EH)
     implementation(sylibs.xlog)
