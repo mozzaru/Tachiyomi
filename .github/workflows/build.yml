@@ -1,0 +1,49 @@
+name: Java Ci tachiyomisy 
+
+on:
+  push:
+    branches:
+        - '**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@main
+      with:
+        submodules: true
+    - name: Set up JDK 24
+      uses: actions/setup-java@main
+      with:
+        java-version: 24
+        distribution: temurin
+
+    # SY -->
+    - name: Write google-services.json
+      uses: DamianReeves/write-file-action@v1.3
+      with:
+        path: app/google-services.json
+        contents: ${{ secrets.GOOGLE_SERVICES_TEXT }}
+        write-mode: overwrite
+
+    - name: Write client_secrets.json
+      uses: DamianReeves/write-file-action@v1.3
+      with:
+        path: app/src/main/assets/client_secrets.json
+        contents: ${{ secrets.CLIENT_SECRETS_TEXT }}
+        write-mode: overwrite
+      # SY <--
+
+    - name: Assemble APK
+      run: ./gradlew --no-daemon 'assembleRelease'
+    - name: Set TACHIYOMISY_VERSION
+      run: echo "TACHIYOMISY_VERSION=v$(grep --only-matching --perl-regexp 'versionName\s=\s\"\K([0-9\.]+)' './app/build.gradle.kts')+$(git rev-parse --short 'HEAD')" >> "${GITHUB_ENV}"
+    - name: Upload APK
+      uses: actions/upload-artifact@main
+      with:
+        name: "tachiyomisy_${{ env.TACHIYOMISY_VERSION }}-github-release"
+        path: ./app/build/outputs/apk/release/app-release-unsigned.apk
