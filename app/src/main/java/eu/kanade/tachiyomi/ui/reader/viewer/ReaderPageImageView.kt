@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.reader.viewer
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.PointF
 import android.graphics.RectF
 import android.graphics.drawable.Animatable
@@ -64,6 +65,10 @@ open class ReaderPageImageView @JvmOverloads constructor(
         Injekt.get<BasePreferences>().alwaysDecodeLongStripWithSSIV().get()
     }
 
+    override fun invalidate() {
+        postInvalidateOnAnimation()
+    }
+
     private var pageView: View? = null
 
     private var config: Config? = null
@@ -82,6 +87,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
     open fun onImageLoaded() {
         onImageLoaded?.invoke()
         background = pageBackground
+        (pageView as? SubsamplingScaleImageView)?.let { prefetchNextTiles() }
     }
 
     @CallSuper
@@ -240,6 +246,8 @@ open class ReaderPageImageView @JvmOverloads constructor(
         } else {
             SubsamplingScaleImageView(context)
         }.apply {
+            SubsamplingScaleImageView.setPreferredBitmapConfig(Bitmap.Config.ARGB_8888)
+
             setMaxTileSize(ImageUtil.hardwareBitmapThreshold)
             setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
@@ -251,13 +259,15 @@ open class ReaderPageImageView @JvmOverloads constructor(
                     }
 
                     override fun onCenterChanged(newCenter: PointF?, origin: Int) {
-                        // Not used
+                        prefetchNextTiles()
                     }
                 },
             )
             setOnClickListener { this@ReaderPageImageView.onViewClicked() }
         }
         addView(pageView, MATCH_PARENT, MATCH_PARENT)
+
+        (pageView as? SubsamplingScaleImageView)?.setTileCacheSize(64)
     }
 
     private fun SubsamplingScaleImageView.setupZoom(config: Config?) {
@@ -277,9 +287,21 @@ open class ReaderPageImageView @JvmOverloads constructor(
         data: Any,
         config: Config,
     ) = (pageView as? SubsamplingScaleImageView)?.apply {
+        val imageHeight = when (data) {
+            is BufferedSource -> ImageUtil.getImageHeight(data.peek())
+            is BitmapDrawable -> data.bitmap.height
+            else -> 0
+        }
+
+        if (imageHeight > 0 && imageHeight > 10000) {
+            SubsamplingScaleImageView.setPreferredBitmapConfig(Bitmap.Config.RGB_565)
+        } else {
+            SubsamplingScaleImageView.setPreferredBitmapConfig(Bitmap.Config.ARGB_8888)
+        }
+
         setDoubleTapZoomDuration(config.zoomDuration.getSystemScaledDuration())
         setMinimumScaleType(config.minimumScaleType)
-        setMinimumDpi(1) // Just so that very small image will be fit for initial load
+        setMinimumDpi(1)
         setCropBorders(config.cropBorders)
         setOnImageEventListener(
             object : SubsamplingScaleImageView.DefaultOnImageEventListener() {
@@ -375,6 +397,21 @@ open class ReaderPageImageView @JvmOverloads constructor(
             }
         }
         addView(pageView, MATCH_PARENT, MATCH_PARENT)
+    }
+
+    fun prefetchNextTiles() {
+        (pageView as? SubsamplingScaleImageView)?.let { ssiv ->
+            val center = ssiv.center ?: return
+            val scale = ssiv.scale
+            val visibleRect = RectF(
+                center.x - ssiv.width / (2 * scale),
+                center.y - ssiv.height / (2 * scale),
+                center.x + ssiv.width / (2 * scale),
+                center.y + ssiv.height / (2 * scale)
+            )
+
+            ssiv.refreshTiles()
+        }
     }
 
     private fun setAnimatedImage(

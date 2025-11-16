@@ -252,8 +252,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
             }
 
             crossfade((300 * this@App.animatorDurationScale).toInt())
-            // FORCE 32-bit ALWAYS
-            allowRgb565(false)
+            allowRgb565(DeviceUtil.isLowRamDevice(this@App))
             if (networkPreferences.verboseLogging().get()) logger(DebugLogger())
 
             memoryCache(

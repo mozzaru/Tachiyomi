@@ -208,6 +208,22 @@ object ImageUtil {
     // SY -->
 
     /**
+     * Get image height from BufferedSource without fully decoding bitmap.
+     * Uses inJustDecodeBounds to read metadata only.
+     */
+    fun getImageHeight(source: BufferedSource): Int {
+        return try {
+            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            source.inputStream().use { input ->
+                BitmapFactory.decodeStream(input, null, options)
+            }
+            options.outHeight
+        } catch (e: Exception) {
+            0 // fallback kalau gagal
+        }
+    }
+
+    /**
      * Split the image into left and right parts, then merge them into a
      * new image with added center padding scaled relative to the height of the display view
      * to compensate for scaling.
