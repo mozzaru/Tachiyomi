@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.ui.reader.viewer.webtoon
 
+import android.util.Log
 import android.graphics.PointF
 import android.os.Build
 import android.view.KeyEvent
@@ -229,6 +230,7 @@ class WebtoonViewer(
                 activity.requestPreloadChapter(transitionChapter)
             }
         }
+        android.util.Log.d("FlickerWatch", "onPageSelected page=${page.number} allowPreload=$allowPreload")
     }
 
     /**
@@ -285,6 +287,7 @@ class WebtoonViewer(
                 is ChapterTransition -> onTransitionSelected(item)
             }
         }
+        android.util.Log.d("FlickerWatch", "onScrolled dy=$dy first=${layoutManager.findFirstVisibleItemPosition()} last=${layoutManager.findLastEndVisibleItemPosition()}")
     }
 
     /**

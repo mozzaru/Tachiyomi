@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.ui.reader.viewer
 
+import android.util.Log
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.PointF
@@ -294,8 +295,10 @@ open class ReaderPageImageView @JvmOverloads constructor(
         }
 
         if (imageHeight > 0 && imageHeight > 10000) {
+            android.util.Log.d("FlickerWatch", "BitmapConfig=RGB_565 height=$imageHeight")
             SubsamplingScaleImageView.setPreferredBitmapConfig(Bitmap.Config.RGB_565)
         } else {
+            android.util.Log.d("FlickerWatch", "BitmapConfig=ARGB_8888 height=$imageHeight")
             SubsamplingScaleImageView.setPreferredBitmapConfig(Bitmap.Config.ARGB_8888)
         }
 
@@ -305,17 +308,24 @@ open class ReaderPageImageView @JvmOverloads constructor(
         setCropBorders(config.cropBorders)
         setOnImageEventListener(
             object : SubsamplingScaleImageView.DefaultOnImageEventListener() {
-                override fun onReady() {
-                    setupZoom(config)
-                    if (isVisibleOnScreen()) landscapeZoom(true)
-                    this@ReaderPageImageView.onImageLoaded()
+            override fun onReady() {
+                Log.d("FlickerWatch", "onReady: tilesReady=$isReady scale=$scale")
+                setupZoom(config)
+                handler?.postDelayed(100) {
+                    if (isVisibleOnScreen()) {
+                        Log.d("FlickerWatch", "prefetch run + landscapeZoom")
+                        landscapeZoom(true)
+                        prefetchNextTiles()
+                    }
                 }
+                this@ReaderPageImageView.onImageLoaded()
+            }
 
-                override fun onImageLoadError(e: Exception) {
-                    this@ReaderPageImageView.onImageLoadError(e)
-                }
-            },
-        )
+            override fun onImageLoadError(e: Exception) {
+                Log.e("FlickerWatch", "onImageLoadError: ${e.message}", e)
+                this@ReaderPageImageView.onImageLoadError(e)
+            }
+        })
 
         when (data) {
             is BitmapDrawable -> {
@@ -410,7 +420,9 @@ open class ReaderPageImageView @JvmOverloads constructor(
                 center.y + ssiv.height / (2 * scale)
             )
 
+            android.util.Log.d("FlickerWatch", "prefetchNextTiles: scale=${ssiv.scale} center=${ssiv.center}")
             ssiv.refreshTiles()
+            android.util.Log.d("FlickerWatch", "refreshTiles() called")
         }
     }
 
