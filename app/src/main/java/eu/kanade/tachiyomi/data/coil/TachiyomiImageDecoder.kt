@@ -12,6 +12,7 @@ import coil3.decode.ImageSource
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
 import coil3.request.bitmapConfig
+import coil3.size.Dimension
 import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.util.storage.CbzCrypto
 import eu.kanade.tachiyomi.util.storage.CbzCrypto.getCoverStream
@@ -22,27 +23,31 @@ import tachiyomi.decoder.ImageDecoder
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.BufferedInputStream
+import java.io.IOException
 
-/**
- * A [Decoder] that uses built-in [ImageDecoder] to decode images that is not supported by the system.
- */
 class TachiyomiImageDecoder(private val resources: ImageSource, private val options: Options) : Decoder {
     private val context = Injekt.get<Application>()
 
     override suspend fun decode(): DecodeResult {
         // SY -->
         var coverStream: BufferedInputStream? = null
-        if (resources.sourceOrNull()?.peek()?.use { CbzCrypto.detectCoverImageArchive(it.inputStream()) } == true) {
-            if (resources.source().peek().use { ImageUtil.findImageType(it.inputStream()) == null }) {
-                coverStream = UniFile.fromFile(resources.file().toFile())
-                    ?.archiveReader(context = context)
-                    ?.getCoverStream()
+        val source = resources.sourceOrNull()
+        
+        // FIX: Safety Catch untuk stream
+        try {
+            if (source != null && source.peek().use { CbzCrypto.detectCoverImageArchive(it.inputStream()) }) {
+                if (source.peek().use { ImageUtil.findImageType(it.inputStream()) == null }) {
+                    coverStream = UniFile.fromFile(resources.file().toFile())
+                        ?.archiveReader(context = context)
+                        ?.getCoverStream()
+                }
             }
+        } catch (e: Exception) {
+            // Abaikan error cover stream
         }
-        val decoder = resources.sourceOrNull()?.use {
-            coverStream.use { coverStream ->
-                ImageDecoder.newInstance(coverStream ?: it.inputStream(), options.cropBorders, displayProfile)
-            }
+
+        val decoder = (coverStream ?: resources.source().inputStream()).use { stream ->
+            ImageDecoder.newInstance(stream, options.cropBorders, displayProfile)
         }
         // SY <--
 
@@ -50,9 +55,10 @@ class TachiyomiImageDecoder(private val resources: ImageSource, private val opti
 
         val srcWidth = decoder.width
         val srcHeight = decoder.height
-
-        val dstWidth = options.size.widthPx(options.scale) { srcWidth }
-        val dstHeight = options.size.heightPx(options.scale) { srcHeight }
+        
+        // LOGIKA SIZE.ORIGINAL
+        val dstWidth = if (options.size.width is Dimension.Undefined) srcWidth else options.size.widthPx(options.scale) { srcWidth }
+        val dstHeight = if (options.size.height is Dimension.Undefined) srcHeight else options.size.heightPx(options.scale) { srcHeight }
 
         val sampleSize = DecodeUtils.calculateInSampleSize(
             srcWidth = srcWidth,
@@ -86,7 +92,6 @@ class TachiyomiImageDecoder(private val resources: ImageSource, private val opti
     }
 
     class Factory : Decoder.Factory {
-
         override fun create(result: SourceFetchResult, options: Options, imageLoader: ImageLoader): Decoder? {
             return if (options.customDecoder || isApplicable(result.source.source())) {
                 TachiyomiImageDecoder(result.source, options)
@@ -96,23 +101,29 @@ class TachiyomiImageDecoder(private val resources: ImageSource, private val opti
         }
 
         private fun isApplicable(source: BufferedSource): Boolean {
-            val type = source.peek().inputStream().buffered().use { stream ->
-                ImageUtil.findImageType(stream)
-            }
-            // SY -->
-            source.peek().inputStream().use { stream ->
-                if (CbzCrypto.detectCoverImageArchive(stream)) return true
-            }
-            // SY <--
-            return when (type) {
-                ImageUtil.ImageType.AVIF, ImageUtil.ImageType.JXL -> true
-                ImageUtil.ImageType.HEIF -> Build.VERSION.SDK_INT < Build.VERSION_CODES.O
-                else -> false
+            // FIX: Safety Catch untuk stream closed
+            return try {
+                val type = source.peek().inputStream().buffered().use { stream ->
+                    ImageUtil.findImageType(stream)
+                }
+                // SY -->
+                if (type == null) {
+                     source.peek().inputStream().use { stream ->
+                        if (CbzCrypto.detectCoverImageArchive(stream)) return true
+                    }
+                }
+                // SY <--
+                when (type) {
+                    ImageUtil.ImageType.AVIF, ImageUtil.ImageType.JXL -> true
+                    ImageUtil.ImageType.HEIF -> Build.VERSION.SDK_INT < Build.VERSION_CODES.O
+                    else -> false
+                }
+            } catch (e: Exception) {
+                false
             }
         }
 
         override fun equals(other: Any?) = other is Factory
-
         override fun hashCode() = javaClass.hashCode()
     }
 
