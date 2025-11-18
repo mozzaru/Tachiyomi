@@ -240,23 +240,24 @@ open class ReaderPageImageView @JvmOverloads constructor(
         } else {
             SubsamplingScaleImageView(context)
         }.apply {
-            setMaxTileSize(ImageUtil.hardwareBitmapThreshold)
+            // FINAL FIX: Stabil & anti flicker
+            setMaxTileSize(4096)
             setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
-            setMinimumTileDpi(180)
+
             setOnStateChangedListener(
                 object : SubsamplingScaleImageView.OnStateChangedListener {
                     override fun onScaleChanged(newScale: Float, origin: Int) {
                         this@ReaderPageImageView.onScaleChanged(newScale)
                     }
 
-                    override fun onCenterChanged(newCenter: PointF?, origin: Int) {
-                        // Not used
-                    }
+                    override fun onCenterChanged(newCenter: PointF?, origin: Int) {}
                 },
             )
+
             setOnClickListener { this@ReaderPageImageView.onViewClicked() }
         }
+
         addView(pageView, MATCH_PARENT, MATCH_PARENT)
     }
 
@@ -277,10 +278,10 @@ open class ReaderPageImageView @JvmOverloads constructor(
         data: Any,
         config: Config,
     ) = (pageView as? SubsamplingScaleImageView)?.apply {
-        setDoubleTapZoomDuration(config.zoomDuration.getSystemScaledDuration())
+        setDoubleTapZoomScale(scale * 2)
         setMinimumScaleType(config.minimumScaleType)
-        setMinimumDpi(1) // Just so that very small image will be fit for initial load
         setCropBorders(config.cropBorders)
+
         setOnImageEventListener(
             object : SubsamplingScaleImageView.DefaultOnImageEventListener() {
                 override fun onReady() {
@@ -300,9 +301,11 @@ open class ReaderPageImageView @JvmOverloads constructor(
                 setImage(ImageSource.bitmap(data.bitmap))
                 isVisible = true
             }
+
             is BufferedSource -> {
                 if (!isWebtoon || alwaysDecodeLongStripWithSSIV) {
-                    setHardwareConfig(ImageUtil.canUseHardwareBitmap(data))
+                    // Full anti flicker
+                    setHardwareConfig(false)
                     setImage(ImageSource.inputStream(data.inputStream()))
                     isVisible = true
                     return@apply
@@ -332,9 +335,8 @@ open class ReaderPageImageView @JvmOverloads constructor(
                     .build()
                     .let(context.imageLoader::enqueue)
             }
-            else -> {
-                throw IllegalArgumentException("Not implemented for class ${data::class.simpleName}")
-            }
+
+            else -> error("Not implemented for class ${data::class.simpleName}")
         }
     }
 
