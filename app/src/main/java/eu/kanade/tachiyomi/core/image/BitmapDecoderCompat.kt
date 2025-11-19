@@ -17,7 +17,7 @@ object BitmapDecoderCompat {
                 BitmapRegionDecoder.newInstance(inputStream, false)
             }
         } catch (e: IOException) {
-            logcat(text = "Failed to create region decoder") { e.message.toString() }
+            logcat { "Failed to create region decoder: ${e.message}" }
             null
         }
     }
