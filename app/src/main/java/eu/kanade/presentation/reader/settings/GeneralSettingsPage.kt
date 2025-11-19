@@ -87,6 +87,11 @@ internal fun ColumnScope.GeneralPage(screenModel: ReaderSettingsScreenModel) {
         pref = screenModel.preferences.fullscreen(),
     )
 
+    CheckboxItem(
+        label = stringResource(MR.strings.pref_high_color_depth),
+        pref = screenModel.preferences.highColorDepth(),
+    )
+
     val isFullscreen by screenModel.preferences.fullscreen().collectAsState()
     if (LocalActivity.current?.hasDisplayCutout() == true && isFullscreen) {
         CheckboxItem(

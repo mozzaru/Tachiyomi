@@ -34,6 +34,7 @@ import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView.EASE_OUT_QU
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView.SCALE_TYPE_CENTER_INSIDE
 import com.github.chrisbanes.photoview.PhotoView
 import eu.kanade.domain.base.BasePreferences
+import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.data.coil.cropBorders
 import eu.kanade.tachiyomi.data.coil.customDecoder
 import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.WebtoonSubsamplingImageView
@@ -60,6 +61,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
     private val isWebtoon: Boolean = false,
 ) : FrameLayout(context, attrs, defStyleAttrs, defStyleRes) {
 
+    private val readerPreferences by lazy { Injekt.get<ReaderPreferences>() }
     private val alwaysDecodeLongStripWithSSIV by lazy {
         Injekt.get<BasePreferences>().alwaysDecodeLongStripWithSSIV().get()
     }
@@ -310,6 +312,12 @@ open class ReaderPageImageView @JvmOverloads constructor(
 
                 ImageRequest.Builder(context)
                     .data(data)
+                    .apply {
+                        if (readerPreferences.highColorDepth().get()) {
+                            bitmapConfig(android.graphics.Bitmap.Config.ARGB_8888)
+                        }
+                        allowHardware(false)
+                    }
                     .memoryCachePolicy(CachePolicy.DISABLED)
                     .diskCachePolicy(CachePolicy.DISABLED)
                     .target(
@@ -387,6 +395,12 @@ open class ReaderPageImageView @JvmOverloads constructor(
 
         val request = ImageRequest.Builder(context)
             .data(data)
+            .apply {
+                if (readerPreferences.highColorDepth().get()) {
+                    bitmapConfig(android.graphics.Bitmap.Config.ARGB_8888)
+                }
+                allowHardware(false)
+            }
             .memoryCachePolicy(CachePolicy.DISABLED)
             .diskCachePolicy(CachePolicy.DISABLED)
             .target(
