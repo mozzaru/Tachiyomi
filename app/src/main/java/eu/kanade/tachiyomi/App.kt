@@ -22,6 +22,7 @@ import coil3.SingletonImageLoader
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.allowRgb565
 import coil3.request.crossfade
+import coil3.memory.MemoryCache
 import coil3.util.DebugLogger
 import com.elvishew.xlog.LogConfiguration
 import com.elvishew.xlog.LogLevel
@@ -215,34 +216,35 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         return ImageLoader.Builder(this).apply {
             val callFactoryLazy = lazy { Injekt.get<NetworkHelper>().client }
             components {
-                // NetworkFetcher.Factory
                 add(OkHttpNetworkFetcherFactory(callFactoryLazy::value))
-                // Decoder.Factory
                 add(TachiyomiImageDecoder.Factory())
-                // Fetcher.Factory
                 add(BufferedSourceFetcher.Factory())
                 add(MangaCoverFetcher.MangaCoverFactory(callFactoryLazy))
                 add(MangaCoverFetcher.MangaFactory(callFactoryLazy))
-                // SY -->
                 add(PagePreviewFetcher.Factory(callFactoryLazy))
-                // SY <--
-                // Keyer
                 add(MangaCoverKeyer())
                 add(MangaKeyer())
-                // SY -->
                 add(PagePreviewKeyer())
-                // SY <--
             }
 
-            crossfade((300 * this@App.animatorDurationScale).toInt())
-            allowRgb565(DeviceUtil.isLowRamDevice(this@App))
-            if (networkPreferences.verboseLogging().get()) logger(DebugLogger())
+            allowRgb565(false) 
+            crossfade(false)
 
-            // Coil spawns a new thread for every image load by default
-            fetcherCoroutineContext(Dispatchers.IO.limitedParallelism(8))
-            decoderCoroutineContext(Dispatchers.IO.limitedParallelism(3))
+            // --- PERBAIKAN DI SINI ---
+            // MemoryCache.Builder() kosong, context dimasukkan ke maxSizePercent
+            memoryCache {
+                coil3.memory.MemoryCache.Builder()
+                    .maxSizePercent(context, 0.20)
+                    .build()
+            }
+            // -------------------------
+
+            fetcherCoroutineContext(Dispatchers.IO.limitedParallelism(4))
+            decoderCoroutineContext(Dispatchers.IO.limitedParallelism(2))
+
+            if (networkPreferences.verboseLogging().get()) logger(DebugLogger())
         }
-            .build()
+        .build()
     }
 
     override fun onStart(owner: LifecycleOwner) {

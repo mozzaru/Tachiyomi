@@ -67,17 +67,9 @@ class TachiyomiImageDecoder(private val resources: ImageSource, private val opti
 
         check(bitmap != null) { "Failed to decode image" }
 
-        if (
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-            options.bitmapConfig == Bitmap.Config.HARDWARE &&
-            ImageUtil.canUseHardwareBitmap(bitmap)
-        ) {
-            val hwBitmap = bitmap.copy(Bitmap.Config.HARDWARE, false)
-            if (hwBitmap != null) {
-                bitmap.recycle()
-                bitmap = hwBitmap
-            }
-        }
+        // FIX GLITCH: Kode konversi ke HARDWARE dihapus total di sini.
+        // Ini akan menghilangkan bayangan hitam/kedip saat scroll.
+        // Bitmap akan tetap menggunakan Software config (ARGB_8888) yang aman & tajam.
 
         return DecodeResult(
             image = bitmap.asImage(),

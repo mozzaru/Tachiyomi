@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.reader.viewer
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.PointF
 import android.graphics.RectF
 import android.graphics.drawable.Animatable
@@ -18,6 +19,7 @@ import androidx.annotation.StyleRes
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.os.postDelayed
 import androidx.core.view.isVisible
+import coil3.request.bitmapConfig
 import coil3.BitmapImage
 import coil3.asDrawable
 import coil3.dispose
@@ -240,7 +242,12 @@ open class ReaderPageImageView @JvmOverloads constructor(
         } else {
             SubsamplingScaleImageView(context)
         }.apply {
-            setMaxTileSize(ImageUtil.hardwareBitmapThreshold)
+            // --- PERBAIKAN FINAL ---
+            // Kode lama: setMaxTileSize(ImageUtil.hardwareBitmapThreshold)
+            // Kode BARU (Wajib untuk Realme SD662):
+            setMaxTileSize(2048) 
+            // -----------------------
+
             setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
             setMinimumTileDpi(180)
@@ -279,7 +286,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
     ) = (pageView as? SubsamplingScaleImageView)?.apply {
         setDoubleTapZoomDuration(config.zoomDuration.getSystemScaledDuration())
         setMinimumScaleType(config.minimumScaleType)
-        setMinimumDpi(1) // Just so that very small image will be fit for initial load
+        setMinimumDpi(1)
         setCropBorders(config.cropBorders)
         setOnImageEventListener(
             object : SubsamplingScaleImageView.DefaultOnImageEventListener() {
@@ -329,6 +336,8 @@ open class ReaderPageImageView @JvmOverloads constructor(
                     .cropBorders(config.cropBorders)
                     .customDecoder(true)
                     .crossfade(false)
+                    // Pastikan import coil3.request.bitmapConfig dan android.graphics.Bitmap sudah ada di atas
+                    .bitmapConfig(Bitmap.Config.ARGB_8888) 
                     .build()
                     .let(context.imageLoader::enqueue)
             }
