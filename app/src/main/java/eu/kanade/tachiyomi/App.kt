@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.work.Configuration
 import androidx.work.WorkManager
 import coil3.ImageLoader
+import coil3.memory.MemoryCache
 import coil3.SingletonImageLoader
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.allowRgb565
@@ -235,13 +236,19 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
                 // SY <--
             }
 
+            memoryCache {
+                MemoryCache.Builder()
+                    .maxSizePercent(context, 0.15) 
+                    .build()
+            }
+
             crossfade((300 * this@App.animatorDurationScale).toInt())
-            allowRgb565(DeviceUtil.isLowRamDevice(this@App))
+            allowRgb565(false)
+
             if (networkPreferences.verboseLogging().get()) logger(DebugLogger())
 
-            // Coil spawns a new thread for every image load by default
             fetcherCoroutineContext(Dispatchers.IO.limitedParallelism(8))
-            decoderCoroutineContext(Dispatchers.IO.limitedParallelism(3))
+            decoderCoroutineContext(Dispatchers.IO.limitedParallelism(5))
         }
             .build()
     }
