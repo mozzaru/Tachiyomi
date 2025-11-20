@@ -1,9 +1,11 @@
-name: Java Ci
+name: Android build 
 
 on:
   push:
     branches:
-        - '**'
+      - '**'
+    tags:
+      - 'v*'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -11,22 +13,72 @@ concurrency:
 
 jobs:
   build:
+    name: Build & Sign APK
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@main
-      with:
-        submodules: true
-    - name: Set up JDK 24
-      uses: actions/setup-java@main
-      with:
-        java-version: 24
-        distribution: temurin
-    - name: Assemble APK
-      run: ./gradlew --no-daemon 'assembleRelease'
-    - name: Set TACHIYOMISY_VERSION
-      run: echo "TACHIYOMISY_VERSION=v$(grep --only-matching --perl-regexp 'versionName\s=\s\"\K([0-9\.]+)' './app/build.gradle.kts')+$(git rev-parse --short 'HEAD')" >> "${GITHUB_ENV}"
-    - name: Upload APK
-      uses: actions/upload-artifact@main
-      with:
-        name: "tachiyomisy_${{ env.TACHIYOMISY_VERSION }}-github-release"
-        path: ./app/build/outputs/apk/release/app-release-unsigned.apk
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v5
+        with:
+          java-version: '24'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --no-daemon
+
+      # --- BAGIAN INI YANG DIPERBAIKI (MANUAL SCRIPT) ---
+      - name: Sign Release APK
+        id: sign_app
+        run: |
+          # 1. Decode Keystore dari Secret GitHub
+          echo "${{ secrets.SIGNING_KEY }}" | base64 --decode > release.jks
+          
+          # 2. Otomatis cari versi Build Tools TERBARU di server (Pasti ketemu)
+          BUILD_TOOLS_VERSION=$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)
+          echo "Using Build Tools: $BUILD_TOOLS_VERSION"
+          BUILD_TOOLS_PATH="$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION"
+          
+          # 3. Definisi path file
+          INPUT_APK="app/build/outputs/apk/release/app-release-unsigned.apk"
+          ALIGNED_APK="app/build/outputs/apk/release/app-release-aligned.apk"
+          SIGNED_APK="app/build/outputs/apk/release/app-release-signed.apk"
+          
+          # 4. Zipalign (Merapikan struktur APK)
+          "$BUILD_TOOLS_PATH/zipalign" -v -p 4 "$INPUT_APK" "$ALIGNED_APK"
+          
+          # 5. Signing (Tanda Tangan Digital dengan apksigner)
+          "$BUILD_TOOLS_PATH/apksigner" sign \
+            --ks release.jks \
+            --ks-key-alias "${{ secrets.ALIAS }}" \
+            --ks-pass "pass:${{ secrets.KEY_STORE_PASSWORD }}" \
+            --key-pass "pass:${{ secrets.KEY_PASSWORD }}" \
+            --out "$SIGNED_APK" \
+            "$ALIGNED_APK"
+            
+          # 6. Kirim path file signed ke langkah berikutnya
+          echo "signedReleaseFile=${SIGNED_APK}" >> $GITHUB_OUTPUT
+
+      - name: Set Version Variable
+        run: |
+          VERSION_NAME=$(grep --only-matching --perl-regexp 'versionName\s=\s\"\K([0-9\.]+)' './app/build.gradle.kts')
+          COMMIT_HASH=$(git rev-parse --short 'HEAD')
+          echo "TACHIYOMISY_VERSION=v${VERSION_NAME}-${COMMIT_HASH}" >> $GITHUB_ENV
+
+      - name: Upload Signed APK
+        uses: actions/upload-artifact@v5
+        with:
+          name: tachiyomisy-${{ env.TACHIYOMISY_VERSION }}-signed
+          path: ${{ steps.sign_app.outputs.signedReleaseFile }}
+
+#      - name: Upload Unsigned APK
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: tachiyomisy-${{ env.TACHIYOMISY_VERSION }}-unsigned
+#          path: app/build/outputs/apk/release/app-release-unsigned.apk
