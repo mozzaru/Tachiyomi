@@ -67,6 +67,16 @@ class TachiyomiImageDecoder(private val resources: ImageSource, private val opti
 
         check(bitmap != null) { "Failed to decode image" }
 
+        val needArgb = bitmap.config != Bitmap.Config.ARGB_8888
+
+        if (needArgb && bitmap.config != Bitmap.Config.ARGB_8888) {
+            val argbBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, false)
+            if (argbBitmap != null) {
+                bitmap.recycle()
+                bitmap = argbBitmap
+            }
+        }
+
         if (
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
             options.bitmapConfig == Bitmap.Config.HARDWARE &&

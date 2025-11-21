@@ -1,11 +1,13 @@
 package eu.kanade.tachiyomi.ui.reader.viewer
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.PointF
 import android.graphics.RectF
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.os.AsyncTask
 import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -51,6 +53,8 @@ import uy.kohesive.injekt.api.get
  *
  * @param isWebtoon if true, [WebtoonSubsamplingImageView] will be used instead of [SubsamplingScaleImageView]
  * and [AppCompatImageView] will be used instead of [PhotoView]
+ * FINAL VERSION FOR REALME/OPPO FIX
+ * Integrates with modified SubsamplingScaleImageView library.
  */
 open class ReaderPageImageView @JvmOverloads constructor(
     context: Context,
@@ -77,6 +81,20 @@ open class ReaderPageImageView @JvmOverloads constructor(
      * For automatic background. Will be set as background color when [onImageLoaded] is called.
      */
     var pageBackground: Drawable? = null
+
+    // Static initialization block for global library config set (Only needed once)
+    companion object {
+        init {
+            // [GOD MODE] Tells your modified library to
+            // ALWAYS use 32-bit quality (ARGB_8888).
+            // This prevents color banding in Realme.
+            try {
+                SubsamplingScaleImageView.setPreferredBitmapConfig(Bitmap.Config.ARGB_8888)
+            } catch (e: Exception) {
+                // Fallback if the library is not fully updated (prevents crashes)
+            }
+        }
+    }
 
     @CallSuper
     open fun onImageLoaded() {
@@ -240,10 +258,12 @@ open class ReaderPageImageView @JvmOverloads constructor(
         } else {
             SubsamplingScaleImageView(context)
         }.apply {
-            setMaxTileSize(ImageUtil.hardwareBitmapThreshold)
+            setExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
+            setMaxTileSize(4096)
+            setMinimumTileDpi(160)
             setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
-            setMinimumTileDpi(180)
+
             setOnStateChangedListener(
                 object : SubsamplingScaleImageView.OnStateChangedListener {
                     override fun onScaleChanged(newScale: Float, origin: Int) {
@@ -251,7 +271,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                     }
 
                     override fun onCenterChanged(newCenter: PointF?, origin: Int) {
-                        // Not used
+                        // not used
                     }
                 },
             )
@@ -261,10 +281,8 @@ open class ReaderPageImageView @JvmOverloads constructor(
     }
 
     private fun SubsamplingScaleImageView.setupZoom(config: Config?) {
-        // 5x zoom
         maxScale = scale * MAX_ZOOM_SCALE
         setDoubleTapZoomScale(scale * 2)
-
         when (config?.zoomStartPosition) {
             ZoomStartPosition.LEFT -> setScaleAndCenter(scale, PointF(0F, 0F))
             ZoomStartPosition.RIGHT -> setScaleAndCenter(scale, PointF(sWidth.toFloat(), 0F))
@@ -279,7 +297,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
     ) = (pageView as? SubsamplingScaleImageView)?.apply {
         setDoubleTapZoomDuration(config.zoomDuration.getSystemScaledDuration())
         setMinimumScaleType(config.minimumScaleType)
-        setMinimumDpi(1) // Just so that very small image will be fit for initial load
+        setMinimumDpi(160)
         setCropBorders(config.cropBorders)
         setOnImageEventListener(
             object : SubsamplingScaleImageView.DefaultOnImageEventListener() {
@@ -301,21 +319,37 @@ open class ReaderPageImageView @JvmOverloads constructor(
                 isVisible = true
             }
             is BufferedSource -> {
-                if (!isWebtoon || alwaysDecodeLongStripWithSSIV) {
-                    setHardwareConfig(ImageUtil.canUseHardwareBitmap(data))
+                val imageType = try {
+                     data.peek().inputStream().use { ImageUtil.findImageType(it) }
+                } catch (e: Exception) {
+                    null
+                }
+
+                val isNativeSupported = imageType == ImageUtil.ImageType.JPEG ||
+                                        imageType == ImageUtil.ImageType.PNG ||
+                                        imageType == ImageUtil.ImageType.WEBP
+
+                if (isNativeSupported || !isWebtoon || alwaysDecodeLongStripWithSSIV) {
+                    // setHardwareConfig(ImageUtil.canUseHardwareBitmap(data))
+                    setHardwareConfig(false)
                     setImage(ImageSource.inputStream(data.inputStream()))
                     isVisible = true
                     return@apply
                 }
 
-                ImageRequest.Builder(context)
+                val request = ImageRequest.Builder(context)
                     .data(data)
                     .memoryCachePolicy(CachePolicy.DISABLED)
                     .diskCachePolicy(CachePolicy.DISABLED)
                     .target(
                         onSuccess = { result ->
                             val image = result as BitmapImage
-                            setImage(ImageSource.bitmap(image.bitmap))
+                            val bitmap = if (image.bitmap.config != Bitmap.Config.ARGB_8888) {
+                                image.bitmap.copy(Bitmap.Config.ARGB_8888, false)
+                            } else {
+                                image.bitmap
+                            }
+                            setImage(ImageSource.bitmap(bitmap))
                             isVisible = true
                         },
                     )
@@ -330,7 +364,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                     .customDecoder(true)
                     .crossfade(false)
                     .build()
-                    .let(context.imageLoader::enqueue)
+                context.imageLoader.enqueue(request)
             }
             else -> {
                 throw IllegalArgumentException("Not implemented for class ${data::class.simpleName}")
@@ -348,10 +382,8 @@ open class ReaderPageImageView @JvmOverloads constructor(
             PhotoView(context)
         }.apply {
             adjustViewBounds = true
-
             if (this is PhotoView) {
                 setScaleLevels(1F, 2F, MAX_ZOOM_SCALE)
-                // Force 2 scale levels on double tap
                 setOnDoubleTapListener(
                     object : GestureDetector.SimpleOnGestureListener() {
                         override fun onDoubleTap(e: MotionEvent): Boolean {
