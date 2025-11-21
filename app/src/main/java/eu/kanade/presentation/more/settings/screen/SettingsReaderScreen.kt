@@ -1,5 +1,8 @@
 package eu.kanade.presentation.more.settings.screen
 
+import android.content.ComponentName
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
@@ -11,6 +14,8 @@ import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences
 import eu.kanade.tachiyomi.ui.reader.setting.ReadingMode
 import eu.kanade.tachiyomi.ui.reader.viewer.pager.PagerConfig
+import eu.kanade.tachiyomi.ui.setting.onClick
+import eu.kanade.tachiyomi.ui.setting.preference
 import eu.kanade.tachiyomi.util.system.hasDisplayCutout
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
@@ -139,6 +144,22 @@ object SettingsReaderScreen : SearchableSettings {
                     title = stringResource(MR.strings.pref_cutout_short),
                     enabled = LocalView.current.hasDisplayCutout() && fullscreen,
                 ),
+                if (DeviceUtil.isVivo && DeviceUtil.hasCutout(activity) == DeviceUtil.CutoutSupport.LEGACY) {
+                    preference {
+                        title = context.getString(MR.strings.pref_legacy_cutout).addBetaTag(context)
+                        summaryRes = MR.strings.pref_legacy_cutout_info
+    
+                        onClick {
+                            val intent = Intent().apply {
+                                setComponent(ComponentName("com.android.settings", "com.vivo.settings.display.FullScreenDisplayActivity"))
+                            }
+                            startActivity(intent)
+                        }
+                    }
+                }
+                if (DeviceUtil.isOppo || DeviceUtil.isRealme || DeviceUtil.isOnePlus) {
+                    cutoutShort.isVisible = false
+                }
                 Preference.PreferenceItem.SwitchPreference(
                     preference = readerPreferences.keepScreenOn(),
                     title = stringResource(MR.strings.pref_keep_screen_on),

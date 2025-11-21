@@ -387,6 +387,8 @@
     <string name="pref_page_rotate">Rotate wide pages to fit</string>
     <string name="pref_page_rotate_invert">Flip orientation of rotated wide pages</string>
     <string name="pref_double_tap_zoom">Double tap to zoom</string>
+    <string name="pref_legacy_cutout">Open legacy cutout settings</string>
+    <string name="pref_legacy_cutout_info">On devices older than Android 9.0, there\'s no way to set cutout other than setting it through to your system settings</string>
     <string name="pref_cutout_short">Show content in cutout area</string>
     <string name="pref_page_transitions">Animate page transitions</string>
     <string name="pref_flash_page">Flash on page change</string>

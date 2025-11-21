@@ -92,6 +92,8 @@ import eu.kanade.tachiyomi.ui.reader.viewer.pager.PagerViewer
 import eu.kanade.tachiyomi.ui.reader.viewer.pager.VerticalPagerViewer
 import eu.kanade.tachiyomi.ui.reader.viewer.webtoon.WebtoonViewer
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
+import eu.kanade.tachiyomi.util.system.DeviceUtil
+import eu.kanade.tachiyomi.util.system.DeviceUtil.LegacyCutoutMode
 import eu.kanade.tachiyomi.util.system.isNightMode
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.toShareIntent
@@ -1409,6 +1411,56 @@ class ReaderActivity : BaseActivity() {
         private fun setLayerPaint(grayscale: Boolean, invertedColors: Boolean) {
             val paint = if (grayscale || invertedColors) getCombinedPaint(grayscale, invertedColors) else null
             binding.viewerContainer.setLayerType(LAYER_TYPE_HARDWARE, paint)
+        }
+
+        /**
+         * Sets notch cutout mode to "NEVER", if mobile is in a landscape view
+         */
+        private fun setCutoutMode() {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val currentOrientation = resources.configuration.orientation
+
+                val attributes = window.attributes
+                attributes.layoutInDisplayCutoutMode =
+                    when (currentOrientation) {
+                        Configuration.ORIENTATION_LANDSCAPE -> {
+                            if (readerPreferences.landscapeCutoutBehavior().get() == LandscapeCutoutBehaviour.HIDE) {
+                                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER
+                            } else {
+                                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+                            }
+                        }
+
+                        else -> {
+                            if (readerPreferences.cutoutShort().get()) {
+                                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+                            } else {
+                                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER
+                            }
+                        }
+                    }
+
+                window.attributes = attributes
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val currentOrientation = resources.configuration.orientation
+                DeviceUtil.setLegacyCutoutMode(
+                    window,
+                    when (currentOrientation) {
+                        Configuration.ORIENTATION_LANDSCAPE -> {
+                            if (readerPreferences.landscapeCutoutBehavior().get() == LandscapeCutoutBehaviour.HIDE)
+                                LegacyCutoutMode.NEVER
+                            else
+                                LegacyCutoutMode.SHORT_EDGES
+                        }
+                        else -> {
+                            if (readerPreferences.cutoutShort().get())
+                                LegacyCutoutMode.SHORT_EDGES
+                            else
+                                LegacyCutoutMode.NEVER
+                        }
+                    },
+                )
+            }
         }
     }
 }
