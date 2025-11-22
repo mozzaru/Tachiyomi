@@ -236,7 +236,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
             }
 
             crossfade((300 * this@App.animatorDurationScale).toInt())
-            allowRgb565(DeviceUtil.isLowRamDevice(this@App))
+            allowRgb565(false)
             if (networkPreferences.verboseLogging().get()) logger(DebugLogger())
 
             // Coil spawns a new thread for every image load by default
@@ -256,8 +256,11 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         }
     }
 
-    override fun onStop(owner: LifecycleOwner) {
+    override fun onPause(owner: LifecycleOwner) {
         SecureActivityDelegate.onApplicationStopped()
+    }
+
+    override fun onStop(owner: LifecycleOwner) {
     }
 
     override fun getPackageName(): String {

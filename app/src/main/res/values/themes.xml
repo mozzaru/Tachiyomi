@@ -10,6 +10,11 @@
         <!-- Disallow "Force dark theme" -->
         <item name="android:forceDarkAllowed" tools:targetApi="Q">false</item>
 
+        <!-- [FIX REALME/COLOROS RELOAD] --> 
+        <!-- Required: Forces the app to always use the notch/cutout area --> 
+        <!-- Prevents the OS from changing the cutout mode, which triggers activity reloading -->
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+
         <!-- Theme Colors -->
         <item name="colorPrimary">@color/tachiyomi_primary</item>
         <item name="colorOnPrimary">@color/tachiyomi_onPrimary</item>

@@ -243,7 +243,15 @@ open class ReaderPageImageView @JvmOverloads constructor(
             setMaxTileSize(ImageUtil.hardwareBitmapThreshold)
             setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
-            setMinimumTileDpi(180)
+            setMinimumTileDpi(120)
+
+            try {
+                val method = this.javaClass.getMethod("setTileCacheSize", Int::class.javaPrimitiveType)
+                method.invoke(this, 12) 
+            } catch (e: Exception) {
+                // Fallback aman
+            }
+
             setOnStateChangedListener(
                 object : SubsamplingScaleImageView.OnStateChangedListener {
                     override fun onScaleChanged(newScale: Float, origin: Int) {

@@ -73,7 +73,7 @@ object ImageUtil {
 
     fun getExtensionFromMimeType(mime: String?, openStream: () -> InputStream): String {
         val type = mime?.let { ImageType.entries.find { it.mime == mime } } ?: findImageType(openStream)
-        return type?.extension ?: "jpg"
+        return type?.extension ?: "png"
     }
 
     fun isAnimatedAndSupported(source: BufferedSource): Boolean {
@@ -134,7 +134,14 @@ object ImageUtil {
      * Extract the 'side' part from [BufferedSource] and return it as [BufferedSource].
      */
     fun splitInHalf(imageSource: BufferedSource, side: Side, sidePadding: Int): BufferedSource {
-        val imageBitmap = BitmapFactory.decodeStream(imageSource.inputStream())
+        val imageBitmap = ImageDecoder.newInstance(imageSource.inputStream())?.decode()
+            ?: requireNotNull(
+                BitmapFactory.decodeStream(
+                    imageSource.inputStream(), null,
+                    BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
+                )
+            )
+
         val height = imageBitmap.height
         val width = imageBitmap.width
 
@@ -148,18 +155,25 @@ object ImageUtil {
         half.applyCanvas {
             drawBitmap(imageBitmap, part, singlePage, null)
         }
+
         val output = Buffer()
-        half.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+        half.compress(Bitmap.CompressFormat.PNG, 0, output.outputStream())
 
         return output
     }
 
     fun rotateImage(imageSource: BufferedSource, degrees: Float): BufferedSource {
-        val imageBitmap = BitmapFactory.decodeStream(imageSource.inputStream())
+        val imageBitmap = ImageDecoder.newInstance(imageSource.inputStream())?.decode()
+            ?: requireNotNull(
+                BitmapFactory.decodeStream(
+                    imageSource.inputStream(), null,
+                    BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
+                )
+            )
+    
         val rotated = rotateBitMap(imageBitmap, degrees)
-
         val output = Buffer()
-        rotated.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+        rotated.compress(Bitmap.CompressFormat.PNG, 0, output.outputStream())
 
         return output
     }
@@ -174,7 +188,14 @@ object ImageUtil {
      * new vertically-aligned image.
      */
     fun splitAndMerge(imageSource: BufferedSource, upperSide: Side): BufferedSource {
-        val imageBitmap = BitmapFactory.decodeStream(imageSource.inputStream())
+        val imageBitmap = ImageDecoder.newInstance(imageSource.inputStream())?.decode()
+            ?: requireNotNull(
+                BitmapFactory.decodeStream(
+                    imageSource.inputStream(), null,
+                    BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
+                )
+            )
+
         val height = imageBitmap.height
         val width = imageBitmap.width
 
@@ -197,7 +218,7 @@ object ImageUtil {
         }
 
         val output = Buffer()
-        result.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+        result.compress(Bitmap.CompressFormat.PNG, 0, output.outputStream())
         return output
     }
 
@@ -217,7 +238,14 @@ object ImageUtil {
         viewHeight: Int,
         backgroundContext: Context,
     ): BufferedSource {
-        val imageBitmap = ImageDecoder.newInstance(imageSource.inputStream())?.decode()!!
+        val imageBitmap = ImageDecoder.newInstance(imageSource.inputStream())?.decode()
+            ?: requireNotNull(
+                BitmapFactory.decodeStream(
+                    imageSource.inputStream(), null,
+                    BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
+                )
+            )
+
         val height = imageBitmap.height
         val width = imageBitmap.width
 
@@ -239,7 +267,7 @@ object ImageUtil {
         }
 
         val output = Buffer()
-        result.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+        result.compress(Bitmap.CompressFormat.PNG, 0, output.outputStream())
         return output
     }
     // SY <--
@@ -283,16 +311,18 @@ object ImageUtil {
         return try {
             splitDataList.forEach { splitData ->
                 val splitImageName = splitImageName(filenamePrefix, splitData.index)
-                // Remove pre-existing split if exists (this split shouldn't exist under normal circumstances)
                 tmpDir.findFile(splitImageName)?.delete()
 
                 val splitFile = tmpDir.createFile(splitImageName)!!
-
                 val region = Rect(0, splitData.topOffset, splitData.splitWidth, splitData.bottomOffset)
 
                 splitFile.openOutputStream().use { outputStream ->
-                    val splitBitmap = bitmapRegionDecoder.decodeRegion(region, options)
-                    splitBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                    val regionOptions = BitmapFactory.Options().apply {
+                        inPreferredConfig = Bitmap.Config.ARGB_8888
+                        inJustDecodeBounds = false
+                    }
+                    val splitBitmap = bitmapRegionDecoder.decodeRegion(region, regionOptions)
+                    splitBitmap.compress(Bitmap.CompressFormat.PNG, 0, outputStream)
                     splitBitmap.recycle()
                 }
                 logcat {
@@ -303,9 +333,7 @@ object ImageUtil {
             imageFile.delete()
             true
         } catch (e: Exception) {
-            // Image splits were not successfully saved so delete them and keep the original image
-            splitDataList
-                .map { splitImageName(filenamePrefix, it.index) }
+            splitDataList.map { splitImageName(filenamePrefix, it.index) }
                 .forEach { tmpDir.findFile(it)?.delete() }
             logcat(LogPriority.ERROR, e)
             false
@@ -317,7 +345,7 @@ object ImageUtil {
     private fun splitImageName(filenamePrefix: String, index: Int) = "${filenamePrefix}__${"%03d".format(
         Locale.ENGLISH,
         index + 1,
-    )}.jpg"
+    )}.png"
 
     private val BitmapFactory.Options.splitData
         get(): List<SplitData> {
@@ -609,7 +637,10 @@ object ImageUtil {
      * Used to check an image's dimensions without loading it in the memory.
      */
     private fun extractImageOptions(imageSource: BufferedSource): BitmapFactory.Options {
-        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        val options = BitmapFactory.Options().apply {
+            inJustDecodeBounds = true
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+        }
         BitmapFactory.decodeStream(imageSource.peek().inputStream(), null, options)
         return options
     }
@@ -796,7 +827,7 @@ object ImageUtil {
         progressCallback?.invoke(99)
 
         val output = Buffer()
-        result.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+        result.compress(Bitmap.CompressFormat.PNG, 0, output.outputStream())
         progressCallback?.invoke(100)
         return output
     }
