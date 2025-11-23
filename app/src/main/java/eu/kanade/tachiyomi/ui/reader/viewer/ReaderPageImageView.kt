@@ -278,7 +278,6 @@ open class ReaderPageImageView @JvmOverloads constructor(
     ) = (pageView as? SubsamplingScaleImageView)?.apply {
         setDoubleTapZoomDuration(config.zoomDuration.getSystemScaledDuration())
         setMinimumScaleType(config.minimumScaleType)
-        setMinimumDpi(1) // Just so that very small image will be fit for initial load
         setCropBorders(config.cropBorders)
         setOnImageEventListener(
             object : SubsamplingScaleImageView.DefaultOnImageEventListener() {
@@ -313,7 +312,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                         false
                     }
                 if (!isWebtoon || alwaysDecodeLongStripWithSSIV || isSafeToUseSSIV) {
-                    setHardwareConfig(ImageUtil.canUseHardwareBitmap(data))
+                    setBitmapDecoderConfig(android.graphics.Bitmap.Config.ARGB_8888)
                     setImage(ImageSource.inputStream(data.inputStream()))
                     isVisible = true
                     return@apply
@@ -324,6 +323,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                     .memoryCachePolicy(CachePolicy.DISABLED)
                     .diskCachePolicy(CachePolicy.DISABLED)
                     .size(Size.ORIGINAL)
+                    .bitmapConfig(android.graphics.Bitmap.Config.ARGB_8888)
                     .target(
                         onSuccess = { result ->
                             val image = result as BitmapImage
@@ -399,6 +399,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
             .data(data)
             .memoryCachePolicy(CachePolicy.DISABLED)
             .diskCachePolicy(CachePolicy.DISABLED)
+            .bitmapConfig(android.graphics.Bitmap.Config.ARGB_8888)
             .target(
                 onSuccess = { result ->
                     val drawable = result.asDrawable(context.resources)
