@@ -26,7 +26,7 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.size.Precision
-import coil3.size.ViewSizeResolver
+import coil3.size.Size
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView.EASE_IN_OUT_QUAD
@@ -243,7 +243,6 @@ open class ReaderPageImageView @JvmOverloads constructor(
             setMaxTileSize(ImageUtil.hardwareBitmapThreshold)
             setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
-            setMinimumTileDpi(180)
             setOnStateChangedListener(
                 object : SubsamplingScaleImageView.OnStateChangedListener {
                     override fun onScaleChanged(newScale: Float, origin: Int) {
@@ -324,6 +323,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                     .data(data)
                     .memoryCachePolicy(CachePolicy.DISABLED)
                     .diskCachePolicy(CachePolicy.DISABLED)
+                    .size(Size.ORIGINAL)
                     .target(
                         onSuccess = { result ->
                             val image = result as BitmapImage
