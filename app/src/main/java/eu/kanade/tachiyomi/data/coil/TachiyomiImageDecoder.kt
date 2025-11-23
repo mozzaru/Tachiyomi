@@ -12,6 +12,7 @@ import coil3.decode.ImageSource
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
 import coil3.request.bitmapConfig
+import coil3.size.Size
 import com.hippo.unifile.UniFile
 import eu.kanade.tachiyomi.util.storage.CbzCrypto
 import eu.kanade.tachiyomi.util.storage.CbzCrypto.getCoverStream
@@ -54,13 +55,18 @@ class TachiyomiImageDecoder(private val resources: ImageSource, private val opti
         val dstWidth = options.size.widthPx(options.scale) { srcWidth }
         val dstHeight = options.size.heightPx(options.scale) { srcHeight }
 
-        val sampleSize = DecodeUtils.calculateInSampleSize(
-            srcWidth = srcWidth,
-            srcHeight = srcHeight,
-            dstWidth = dstWidth,
-            dstHeight = dstHeight,
-            scale = options.scale,
-        )
+        val sampleSize = if (options.size == Size.ORIGINAL) {
+            1 
+        } else {
+            DecodeUtils.calculateInSampleSize(
+                srcWidth = srcWidth,
+                srcHeight = srcHeight,
+                dstWidth = dstWidth,
+                dstHeight = dstHeight,
+                scale = options.scale,
+            )
+        }
+        // --- BAGIAN FIX BERAKHIR DI SINI ---
 
         var bitmap = decoder.decode(sampleSize = sampleSize)
         decoder.recycle()

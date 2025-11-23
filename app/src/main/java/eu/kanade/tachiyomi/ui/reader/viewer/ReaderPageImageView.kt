@@ -23,7 +23,10 @@ import coil3.asDrawable
 import coil3.dispose
 import coil3.imageLoader
 import coil3.request.CachePolicy
+import coil3.request.ErrorResult
 import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.request.bitmapConfig
 import coil3.request.crossfade
 import coil3.size.Precision
 import coil3.size.Size
@@ -312,7 +315,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                         false
                     }
                 if (!isWebtoon || alwaysDecodeLongStripWithSSIV || isSafeToUseSSIV) {
-                    setBitmapDecoderConfig(android.graphics.Bitmap.Config.ARGB_8888)
+                    setHardwareConfig(false)
                     setImage(ImageSource.inputStream(data.inputStream()))
                     isVisible = true
                     return@apply
@@ -323,16 +326,17 @@ open class ReaderPageImageView @JvmOverloads constructor(
                     .memoryCachePolicy(CachePolicy.DISABLED)
                     .diskCachePolicy(CachePolicy.DISABLED)
                     .size(Size.ORIGINAL)
+                    .precision(Precision.EXACT)
                     .bitmapConfig(android.graphics.Bitmap.Config.ARGB_8888)
                     .target(
-                        onSuccess = { result ->
-                            val image = result as BitmapImage
-                            setImage(ImageSource.bitmap(image.bitmap))
+                        onSuccess = { image: coil3.Image ->
+                            val bitmap = (image as BitmapImage).bitmap
+                            setImage(ImageSource.bitmap(bitmap))
                             isVisible = true
                         },
                     )
                     .listener(
-                        onError = { _, result ->
+                        onError = { _, result: ErrorResult ->
                             onImageLoadError(result.throwable)
                         },
                     )
@@ -400,9 +404,10 @@ open class ReaderPageImageView @JvmOverloads constructor(
             .memoryCachePolicy(CachePolicy.DISABLED)
             .diskCachePolicy(CachePolicy.DISABLED)
             .bitmapConfig(android.graphics.Bitmap.Config.ARGB_8888)
+            .precision(Precision.EXACT)
             .target(
-                onSuccess = { result ->
-                    val drawable = result.asDrawable(context.resources)
+                onSuccess = { image ->
+                    val drawable = image.asDrawable(context.resources)
                     setImageDrawable(drawable)
                     (drawable as? Animatable)?.start()
                     isVisible = true
@@ -410,7 +415,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                 },
             )
             .listener(
-                onError = { _, result ->
+                onError = { _, result: ErrorResult ->
                     onImageLoadError(result.throwable)
                 },
             )
