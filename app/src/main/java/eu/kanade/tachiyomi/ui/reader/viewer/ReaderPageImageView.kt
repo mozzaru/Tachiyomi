@@ -301,7 +301,19 @@ open class ReaderPageImageView @JvmOverloads constructor(
                 isVisible = true
             }
             is BufferedSource -> {
-                if (!isWebtoon || alwaysDecodeLongStripWithSSIV) {
+                val isSafeToUseSSIV =
+                    if (isWebtoon && !alwaysDecodeLongStripWithSSIV) {
+                        val type = data.peek().inputStream().use { ImageUtil.findImageType(it) }
+                        type !in
+                            listOf(
+                                ImageUtil.ImageType.AVIF,
+                                ImageUtil.ImageType.JXL,
+                                ImageUtil.ImageType.HEIF,
+                            )
+                    } else {
+                        false
+                    }
+                if (!isWebtoon || alwaysDecodeLongStripWithSSIV || isSafeToUseSSIV) {
                     setHardwareConfig(ImageUtil.canUseHardwareBitmap(data))
                     setImage(ImageSource.inputStream(data.inputStream()))
                     isVisible = true
@@ -324,8 +336,6 @@ open class ReaderPageImageView @JvmOverloads constructor(
                             onImageLoadError(result.throwable)
                         },
                     )
-                    .size(ViewSizeResolver(this@ReaderPageImageView))
-                    .precision(Precision.INEXACT)
                     .cropBorders(config.cropBorders)
                     .customDecoder(true)
                     .crossfade(false)
