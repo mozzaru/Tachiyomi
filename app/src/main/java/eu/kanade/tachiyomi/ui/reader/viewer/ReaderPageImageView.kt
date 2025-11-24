@@ -33,8 +33,6 @@ import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView.EASE_IN_OUT_QUAD
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView.EASE_OUT_QUAD
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView.SCALE_TYPE_CENTER_INSIDE
-import com.davemorrissey.labs.subscaleview.decoder.ImageDecoder
-import com.davemorrissey.labs.subscaleview.decoder.ImageRegionDecoder
 import com.davemorrissey.labs.subscaleview.decoder.SkiaImageDecoder
 import com.davemorrissey.labs.subscaleview.decoder.SkiaImageRegionDecoder
 import com.github.chrisbanes.photoview.PhotoView
@@ -249,8 +247,10 @@ open class ReaderPageImageView @JvmOverloads constructor(
             setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
             setMinimumTileDpi(180)
-            setBitmapDecoderFactory { ARGB8888ImageDecoder() }
-            setRegionDecoderFactory { ARGB8888RegionDecoder() }
+            setBitmapDecoderClass(SkiaImageDecoder::class.java)
+            setRegionDecoderClass(SkiaImageRegionDecoder::class.java)
+            setBitmapDecoderConfig(android.graphics.Bitmap.Config.ARGB_8888)
+            setRegionDecoderConfig(android.graphics.Bitmap.Config.ARGB_8888)
             setOnStateChangedListener(
                 object : SubsamplingScaleImageView.OnStateChangedListener {
                     override fun onScaleChanged(newScale: Float, origin: Int) {
@@ -309,8 +309,10 @@ open class ReaderPageImageView @JvmOverloads constructor(
             }
             is BufferedSource -> {
                 if (!isWebtoon || alwaysDecodeLongStripWithSSIV) {
-                    setBitmapDecoderFactory { ARGB8888ImageDecoder() }
-                    setRegionDecoderFactory { ARGB8888RegionDecoder() }
+                    setBitmapDecoderClass(SkiaImageDecoder::class.java)
+                    setRegionDecoderClass(SkiaImageRegionDecoder::class.java)
+                    setBitmapDecoderConfig(android.graphics.Bitmap.Config.ARGB_8888)
+                    setRegionDecoderConfig(android.graphics.Bitmap.Config.ARGB_8888)
                     setImage(ImageSource.inputStream(data.inputStream()))
                     isVisible = true
                     return@apply
@@ -436,71 +438,6 @@ open class ReaderPageImageView @JvmOverloads constructor(
         LEFT,
         CENTER,
         RIGHT,
-    }
-
-    private class ARGB8888ImageDecoder : ImageDecoder {
-        override fun decode(context: Context, uri: android.net.Uri): android.graphics.Bitmap {
-            val stream = context.contentResolver.openInputStream(uri)
-            if (stream != null) {
-                try {
-                    val options = android.graphics.BitmapFactory.Options()
-                    options.inPreferredConfig = android.graphics.Bitmap.Config.ARGB_8888
-                    return android.graphics.BitmapFactory.decodeStream(stream, null, options)
-                        ?: throw RuntimeException("Skia image decoder returned null bitmap - image format may not be supported")
-                } finally {
-                    stream.close()
-                }
-            } else {
-                throw RuntimeException("Content resolver returned null stream")
-            }
-        }
-    }
-
-    private class ARGB8888RegionDecoder : ImageRegionDecoder {
-        private var decoder: android.graphics.BitmapRegionDecoder? = null
-        private val decoderLock = Any()
-
-        override fun init(context: Context, uri: android.net.Uri): android.graphics.Point {
-            val stream = context.contentResolver.openInputStream(uri)
-            if (stream != null) {
-                try {
-                    decoder = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                        android.graphics.BitmapRegionDecoder.newInstance(stream)
-                    } else {
-                        @Suppress("DEPRECATION")
-                        android.graphics.BitmapRegionDecoder.newInstance(stream, false)
-                    }
-                } finally {
-                    stream.close()
-                }
-            }
-            if (decoder == null) {
-                throw RuntimeException("Skia image region decoder returned null bitmap - image format may not be supported")
-            }
-            return android.graphics.Point(decoder!!.width, decoder!!.height)
-        }
-
-        override fun decodeRegion(sRect: android.graphics.Rect, sampleSize: Int): android.graphics.Bitmap {
-            synchronized(decoderLock) {
-                val options = android.graphics.BitmapFactory.Options()
-                options.inSampleSize = sampleSize
-                options.inPreferredConfig = android.graphics.Bitmap.Config.ARGB_8888
-                val bitmap = decoder?.decodeRegion(sRect, options)
-                if (bitmap == null) {
-                    throw RuntimeException("Skia image decoder returned null bitmap - image format may not be supported")
-                } else {
-                    return bitmap
-                }
-            }
-        }
-
-        override fun isReady(): Boolean {
-            return decoder != null && (decoder?.isRecycled == false)
-        }
-
-        override fun recycle() {
-            decoder?.recycle()
-        }
     }
 }
 
