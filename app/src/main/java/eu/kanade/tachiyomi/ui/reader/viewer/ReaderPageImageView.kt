@@ -24,6 +24,7 @@ import coil3.dispose
 import coil3.imageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
+import coil3.request.allowHardware
 import coil3.request.crossfade
 import coil3.size.Precision
 import coil3.size.ViewSizeResolver
@@ -244,6 +245,8 @@ open class ReaderPageImageView @JvmOverloads constructor(
             setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
             setMinimumTileDpi(180)
+            setBitmapDecoderConfig(android.graphics.Bitmap.Config.ARGB_8888)
+            setRegionDecoderConfig(android.graphics.Bitmap.Config.ARGB_8888)
             setOnStateChangedListener(
                 object : SubsamplingScaleImageView.OnStateChangedListener {
                     override fun onScaleChanged(newScale: Float, origin: Int) {
@@ -302,7 +305,8 @@ open class ReaderPageImageView @JvmOverloads constructor(
             }
             is BufferedSource -> {
                 if (!isWebtoon || alwaysDecodeLongStripWithSSIV) {
-                    setHardwareConfig(ImageUtil.canUseHardwareBitmap(data))
+                    setBitmapDecoderConfig(android.graphics.Bitmap.Config.ARGB_8888)
+                    setRegionDecoderConfig(android.graphics.Bitmap.Config.ARGB_8888)
                     setImage(ImageSource.inputStream(data.inputStream()))
                     isVisible = true
                     return@apply
@@ -328,6 +332,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                     .precision(Precision.INEXACT)
                     .cropBorders(config.cropBorders)
                     .customDecoder(true)
+                    .allowHardware(false)
                     .crossfade(false)
                     .build()
                     .let(context.imageLoader::enqueue)
