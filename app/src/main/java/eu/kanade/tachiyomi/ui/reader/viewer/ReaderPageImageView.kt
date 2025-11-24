@@ -247,10 +247,8 @@ open class ReaderPageImageView @JvmOverloads constructor(
             setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
             setMinimumTileDpi(180)
-            setBitmapDecoderClass(SkiaImageDecoder::class.java)
+            SubsamplingScaleImageView.setPreferredBitmapConfig(android.graphics.Bitmap.Config.ARGB_8888)
             setRegionDecoderClass(SkiaImageRegionDecoder::class.java)
-            setBitmapDecoderConfig(android.graphics.Bitmap.Config.ARGB_8888)
-            setRegionDecoderConfig(android.graphics.Bitmap.Config.ARGB_8888)
             setOnStateChangedListener(
                 object : SubsamplingScaleImageView.OnStateChangedListener {
                     override fun onScaleChanged(newScale: Float, origin: Int) {
@@ -309,10 +307,8 @@ open class ReaderPageImageView @JvmOverloads constructor(
             }
             is BufferedSource -> {
                 if (!isWebtoon || alwaysDecodeLongStripWithSSIV) {
-                    setBitmapDecoderClass(SkiaImageDecoder::class.java)
+                    SubsamplingScaleImageView.setPreferredBitmapConfig(android.graphics.Bitmap.Config.ARGB_8888)
                     setRegionDecoderClass(SkiaImageRegionDecoder::class.java)
-                    setBitmapDecoderConfig(android.graphics.Bitmap.Config.ARGB_8888)
-                    setRegionDecoderConfig(android.graphics.Bitmap.Config.ARGB_8888)
                     setImage(ImageSource.inputStream(data.inputStream()))
                     isVisible = true
                     return@apply
