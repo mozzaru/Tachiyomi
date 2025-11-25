@@ -175,18 +175,26 @@ class AppModule(val app: Application) : InjektModule {
 }
 
 fun initExpensiveComponents(app: Application) {
-    // Asynchronously init expensive components for a faster cold start
+    // 1. HIGH PRIORITY (Main Thread)
+    // This is mandatory so that Extension & Source are immediately read when the application is opened/reloaded.
+    // This process is quite lightweight, so it's safe on the Main Thread.
     ContextCompat.getMainExecutor(app).execute {
         Injekt.get<NetworkHelper>()
-
         Injekt.get<SourceManager>()
+        Injekt.get<ExtensionManager>()
+    }
 
-        Injekt.get<Database>()
+    // 2. LOW PRIORITY (Background Thread)
+    // The database is the main cause of LAG (Freeze/WAL Recovery).
+    // It must be separated into the background for a smooth UI.
+    Thread {
+        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND)
 
+        Injekt.get<Database>() // <-- Ini kunci agar tidak Lag
         Injekt.get<DownloadManager>()
 
         // SY -->
         Injekt.get<GetCustomMangaInfo>()
         // SY <--
-    }
+    }.start()
 }
