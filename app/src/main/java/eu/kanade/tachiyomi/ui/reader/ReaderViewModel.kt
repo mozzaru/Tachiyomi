@@ -147,6 +147,8 @@ class ReaderViewModel @JvmOverloads constructor(
     private val eventChannel = Channel<Event>()
     val eventFlow = eventChannel.receiveAsFlow()
 
+    private var savePageJob: kotlinx.coroutines.Job? = null
+
     /**
      * The manga loaded in the reader. It can be null when instantiated for a short time.
      */
@@ -192,86 +194,7 @@ class ReaderViewModel @JvmOverloads constructor(
      * Chapter list for the active manga. It's retrieved lazily and should be accessed for the first
      * time in a background thread to avoid blocking the UI.
      */
-    private val chapterList by lazy {
-        val manga = manga!!
-        // SY -->
-        val (chapters, mangaMap) = runBlocking {
-            if (manga.source == MERGED_SOURCE_ID) {
-                getMergedChaptersByMangaId.await(manga.id, applyScanlatorFilter = true) to
-                    getMergedMangaById.await(manga.id)
-                        .associateBy { it.id }
-            } else {
-                getChaptersByMangaId.await(manga.id, applyScanlatorFilter = true) to null
-            }
-        }
-        fun isChapterDownloaded(chapter: Chapter): Boolean {
-            val chapterManga = mangaMap?.get(chapter.mangaId) ?: manga
-            return downloadManager.isChapterDownloaded(
-                chapterName = chapter.name,
-                chapterScanlator = chapter.scanlator,
-                chapterUrl = chapter.url,
-                mangaTitle = chapterManga.ogTitle,
-                sourceId = chapterManga.source,
-            )
-        }
-        // SY <--
-
-        val selectedChapter = chapters.find { it.id == chapterId }
-            ?: error("Requested chapter of id $chapterId not found in chapter list")
-
-        val chaptersForReader = when {
-            (readerPreferences.skipRead().get() || readerPreferences.skipFiltered().get()) -> {
-                val filteredChapters = chapters.filterNot {
-                    when {
-                        readerPreferences.skipRead().get() && it.read -> true
-                        readerPreferences.skipFiltered().get() -> {
-                            (manga.unreadFilterRaw == Manga.CHAPTER_SHOW_READ && !it.read) ||
-                                (manga.unreadFilterRaw == Manga.CHAPTER_SHOW_UNREAD && it.read) ||
-                                // SY -->
-                                (
-                                    manga.downloadedFilterRaw == Manga.CHAPTER_SHOW_DOWNLOADED &&
-                                        !isChapterDownloaded(it)
-                                    ) ||
-                                (
-                                    manga.downloadedFilterRaw == Manga.CHAPTER_SHOW_NOT_DOWNLOADED &&
-                                        isChapterDownloaded(it)
-                                    ) ||
-                                // SY <--
-                                (manga.bookmarkedFilterRaw == Manga.CHAPTER_SHOW_BOOKMARKED && !it.bookmark) ||
-                                (manga.bookmarkedFilterRaw == Manga.CHAPTER_SHOW_NOT_BOOKMARKED && it.bookmark)
-                        }
-                        else -> false
-                    }
-                }
-
-                if (filteredChapters.any { it.id == chapterId }) {
-                    filteredChapters
-                } else {
-                    filteredChapters + listOf(selectedChapter)
-                }
-            }
-            else -> chapters
-        }
-
-        chaptersForReader
-            .sortedWith(getChapterSort(manga, sortDescending = false))
-            .run {
-                if (readerPreferences.skipDupe().get()) {
-                    removeDuplicates(selectedChapter)
-                } else {
-                    this
-                }
-            }
-            .run {
-                if (basePreferences.downloadedOnly().get()) {
-                    filterDownloaded(manga, mangaMap)
-                } else {
-                    this
-                }
-            }
-            .map { it.toDbChapter() }
-            .map(::ReaderChapter)
-    }
+    private var chapterList: List<ReaderChapter> = emptyList()
 
     private val incognitoMode: Boolean by lazy { getIncognitoState.await(manga?.source) }
     private val downloadAheadAmount = downloadPreferences.autoDownloadWhileReading().get()
@@ -358,27 +281,25 @@ class ReaderViewModel @JvmOverloads constructor(
                     } else {
                         null
                     }
+
                     val mergedReferences = if (source is MergedSource) {
-                        runBlocking {
-                            getMergedReferencesById.await(manga.id)
-                        }
+                        getMergedReferencesById.await(manga.id)
                     } else {
                         emptyList()
                     }
+
                     val mergedManga = if (source is MergedSource) {
-                        runBlocking {
-                            getMergedMangaById.await(manga.id)
-                        }.associateBy { it.id }
+                        getMergedMangaById.await(manga.id).associateBy { it.id }
                     } else {
                         emptyMap()
                     }
+                    
                     val relativeTime = uiPreferences.relativeTime().get()
                     val autoScrollFreq = readerPreferences.autoscrollInterval().get()
-                    // SY <--
+
                     mutableState.update {
                         it.copy(
                             manga = manga,
-                            /* SY --> */
                             meta = metadata,
                             mergedManga = mergedManga,
                             dateRelativeTime = relativeTime,
@@ -388,13 +309,85 @@ class ReaderViewModel @JvmOverloads constructor(
                                 autoScrollFreq.toString()
                             },
                             isAutoScrollEnabled = autoScrollFreq != -1f,
-                            /* SY <-- */
                         )
                     }
+                    // SY <--
+
                     if (chapterId == -1L) chapterId = initialChapterId
 
+                    val (chapters, mangaMap) = if (manga.source == MERGED_SOURCE_ID) {
+                        getMergedChaptersByMangaId.await(manga.id, applyScanlatorFilter = true) to mergedManga
+                    } else {
+                        getChaptersByMangaId.await(manga.id, applyScanlatorFilter = true) to null
+                    }
+
+                    fun isChapterDownloaded(chapter: Chapter): Boolean {
+                        val chapterManga = mangaMap?.get(chapter.mangaId) ?: manga
+                        return downloadManager.isChapterDownloaded(
+                            chapterName = chapter.name,
+                            chapterScanlator = chapter.scanlator,
+                            chapterUrl = chapter.url,
+                            mangaTitle = chapterManga.ogTitle,
+                            sourceId = chapterManga.source,
+                        )
+                    }
+
+                    val selectedChapter = chapters.find { it.id == chapterId }
+                        ?: error("Requested chapter of id $chapterId not found in chapter list")
+
+                    val chaptersForReader = when {
+                        (readerPreferences.skipRead().get() || readerPreferences.skipFiltered().get()) -> {
+                            val filteredChapters = chapters.filterNot {
+                                when {
+                                    readerPreferences.skipRead().get() && it.read -> true
+                                    readerPreferences.skipFiltered().get() -> {
+                                        (manga.unreadFilterRaw == Manga.CHAPTER_SHOW_READ && !it.read) ||
+                                            (manga.unreadFilterRaw == Manga.CHAPTER_SHOW_UNREAD && it.read) ||
+                                            // SY -->
+                                            (
+                                                manga.downloadedFilterRaw == Manga.CHAPTER_SHOW_DOWNLOADED &&
+                                                    !isChapterDownloaded(it)
+                                                ) ||
+                                            (
+                                                manga.downloadedFilterRaw == Manga.CHAPTER_SHOW_NOT_DOWNLOADED &&
+                                                    isChapterDownloaded(it)
+                                                ) ||
+                                            // SY <--
+                                            (manga.bookmarkedFilterRaw == Manga.CHAPTER_SHOW_BOOKMARKED && !it.bookmark) ||
+                                            (manga.bookmarkedFilterRaw == Manga.CHAPTER_SHOW_NOT_BOOKMARKED && it.bookmark)
+                                    }
+                                    else -> false
+                                }
+                            }
+
+                            if (filteredChapters.any { it.id == chapterId }) {
+                                filteredChapters
+                            } else {
+                                filteredChapters + listOf(selectedChapter)
+                            }
+                        }
+                        else -> chapters
+                    }
+                    chapterList = chaptersForReader
+                        .sortedWith(getChapterSort(manga, sortDescending = false))
+                        .run {
+                            if (readerPreferences.skipDupe().get()) {
+                                removeDuplicates(selectedChapter)
+                            } else {
+                                this
+                            }
+                        }
+                        .run {
+                            if (basePreferences.downloadedOnly().get()) {
+                                filterDownloaded(manga, mangaMap)
+                            } else {
+                                this
+                            }
+                        }
+                        .map { it.toDbChapter() }
+                        .map(::ReaderChapter)
+
                     val context = Injekt.get<Application>()
-                    // val source = sourceManager.getOrStub(manga.source)
                     loader = ChapterLoader(
                         context = context,
                         downloadManager = downloadManager,
@@ -406,7 +399,6 @@ class ReaderViewModel @JvmOverloads constructor(
                         mergedReferences = mergedReferences,
                         mergedManga = mergedManga, /* SY <-- */
                     )
-
                     loadChapter(
                         loader!!,
                         chapterList.first { chapterId == it.chapter.id },
@@ -591,28 +583,35 @@ class ReaderViewModel @JvmOverloads constructor(
         }
 
         // SY -->
-        mutableState.update { it.copy(currentPageText = currentPageText) }
-        // SY <--
-
-        val selectedChapter = page.chapter
-        val pages = selectedChapter.pages ?: return
-
-        // Save last page read and mark as read if needed
-        viewModelScope.launchNonCancellable {
-            updateChapterProgress(selectedChapter, page/* SY --> */, hasExtraPage/* SY <-- */)
-        }
-
-        if (selectedChapter != getCurrentChapter()) {
-            logcat { "Setting ${selectedChapter.chapter.url} as active" }
-            loadNewChapter(selectedChapter)
-        }
-
-        val inDownloadRange = page.number.toDouble() / pages.size > 0.25
-        if (inDownloadRange) {
-            downloadNextChapters()
+        mutableState.update { 
+            it.copy(
+                currentPageText = currentPageText,
+                currentPage = page.index + 1
+            ) 
         }
 
         eventChannel.trySend(Event.PageChanged)
+        // SY <--
+
+        savePageJob?.cancel()
+        savePageJob = viewModelScope.launchNonCancellable {
+            kotlinx.coroutines.delay(2000)
+
+            val selectedChapter = page.chapter
+            val pages = selectedChapter.pages ?: return@launchNonCancellable
+
+            updateChapterProgress(selectedChapter, page/* SY --> */, hasExtraPage/* SY <-- */)
+
+            if (selectedChapter != getCurrentChapter()) {
+                logcat { "Setting ${selectedChapter.chapter.url} as active" }
+                loadNewChapter(selectedChapter)
+            }
+
+            val inDownloadRange = page.number.toDouble() / pages.size > 0.25
+            if (inDownloadRange) {
+                downloadNextChapters()
+            }
+        }
     }
 
     private fun downloadNextChapters() {

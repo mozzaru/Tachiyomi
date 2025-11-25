@@ -88,4 +88,12 @@ abstract class WebViewClientCompat : WebViewClient() {
             request.isForMainFrame,
         )
     }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    override fun onRenderProcessGone(view: WebView, detail: android.webkit.RenderProcessGoneDetail?): Boolean {
+        // Returning true means we're handling this crash and the app should NOT be killed.
+        // Ideally, view.destroy() would be called in the Activity, but returning true here
+        // prevents the OS from killing the app immediately.
+        return true 
+    }
 }
