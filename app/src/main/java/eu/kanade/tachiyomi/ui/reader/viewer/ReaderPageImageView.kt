@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.reader.viewer
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.PointF
 import android.graphics.RectF
 import android.graphics.drawable.Animatable
@@ -24,9 +25,11 @@ import coil3.dispose
 import coil3.imageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
+import coil3.request.allowHardware
+import coil3.request.bitmapConfig
 import coil3.request.crossfade
 import coil3.size.Precision
-import coil3.size.ViewSizeResolver
+import coil3.size.Size
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView.EASE_IN_OUT_QUAD
@@ -243,7 +246,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
             setMaxTileSize(ImageUtil.hardwareBitmapThreshold)
             setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
-            setMinimumTileDpi(180)
+            setMinimumTileDpi(320)
             setOnStateChangedListener(
                 object : SubsamplingScaleImageView.OnStateChangedListener {
                     override fun onScaleChanged(newScale: Float, origin: Int) {
@@ -279,7 +282,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
     ) = (pageView as? SubsamplingScaleImageView)?.apply {
         setDoubleTapZoomDuration(config.zoomDuration.getSystemScaledDuration())
         setMinimumScaleType(config.minimumScaleType)
-        setMinimumDpi(1) // Just so that very small image will be fit for initial load
+        setMinimumDpi(160) // Just so that very small image will be fit for initial load
         setCropBorders(config.cropBorders)
         setOnImageEventListener(
             object : SubsamplingScaleImageView.DefaultOnImageEventListener() {
@@ -324,8 +327,9 @@ open class ReaderPageImageView @JvmOverloads constructor(
                             onImageLoadError(result.throwable)
                         },
                     )
-                    .size(ViewSizeResolver(this@ReaderPageImageView))
-                    .precision(Precision.INEXACT)
+                    .size(coil3.size.Size.ORIGINAL)
+                    .precision(coil3.size.Precision.EXACT)
+                    .bitmapConfig(android.graphics.Bitmap.Config.ARGB_8888)
                     .cropBorders(config.cropBorders)
                     .customDecoder(true)
                     .crossfade(false)

@@ -18,7 +18,6 @@ import androidx.lifecycle.lifecycleScope
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
-import coil3.request.allowRgb565
 import coil3.request.crossfade
 import coil3.util.DebugLogger
 import dev.mihon.injekt.patchInjekt
@@ -40,7 +39,6 @@ import eu.kanade.tachiyomi.di.PreferenceModule
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.NetworkPreferences
 import eu.kanade.tachiyomi.ui.base.delegate.SecureActivityDelegate
-import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.GLUtil
 import eu.kanade.tachiyomi.util.system.WebViewUtil
 import eu.kanade.tachiyomi.util.system.animatorDurationScale
@@ -185,7 +183,6 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
             }
 
             crossfade((300 * this@App.animatorDurationScale).toInt())
-            allowRgb565(DeviceUtil.isLowRamDevice(this@App))
             if (networkPreferences.verboseLogging().get()) logger(DebugLogger())
 
             // Coil spawns a new thread for every image load by default
