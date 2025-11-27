@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.PointF
 import android.graphics.RectF
 import android.graphics.drawable.Animatable
+import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
@@ -302,6 +303,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
             }
             is BufferedSource -> {
                 if (!isWebtoon || alwaysDecodeLongStripWithSSIV) {
+                    setBitmapDecoderConfig(Bitmap.Config.ARGB_8888)
                     setHardwareConfig(ImageUtil.canUseHardwareBitmap(data))
                     setImage(ImageSource.inputStream(data.inputStream()))
                     isVisible = true
