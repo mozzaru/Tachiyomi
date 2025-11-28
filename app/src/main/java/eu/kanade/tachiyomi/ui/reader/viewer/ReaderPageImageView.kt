@@ -5,6 +5,7 @@ import android.graphics.PointF
 import android.graphics.RectF
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.GestureDetector
@@ -244,6 +245,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
             setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
             setMinimumTileDpi(180)
+            overScrollMode = View.OVER_SCROLL_NEVER
             setOnStateChangedListener(
                 object : SubsamplingScaleImageView.OnStateChangedListener {
                     override fun onScaleChanged(newScale: Float, origin: Int) {
@@ -326,6 +328,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                     )
                     .size(ViewSizeResolver(this@ReaderPageImageView))
                     .precision(Precision.INEXACT)
+                    .bitmapConfig(Bitmap.Config.ARGB_8888)
                     .cropBorders(config.cropBorders)
                     .customDecoder(true)
                     .crossfade(false)
