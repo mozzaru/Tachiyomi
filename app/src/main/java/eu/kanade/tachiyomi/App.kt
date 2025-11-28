@@ -60,7 +60,6 @@ import eu.kanade.tachiyomi.ui.base.delegate.SecureActivityDelegate
 import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.GLUtil
 import eu.kanade.tachiyomi.util.system.WebViewUtil
-import eu.kanade.tachiyomi.util.system.animatorDurationScale
 import eu.kanade.tachiyomi.util.system.cancelNotification
 import eu.kanade.tachiyomi.util.system.notify
 import exh.log.CrashlyticsPrinter
@@ -247,7 +246,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
                 // SY <--
             }
 
-            crossfade((300 * this@App.animatorDurationScale).toInt())
+            crossfade(300)
             allowRgb565(DeviceUtil.isLowRamDevice(this@App))
             if (networkPreferences.verboseLogging().get()) logger(DebugLogger())
 
