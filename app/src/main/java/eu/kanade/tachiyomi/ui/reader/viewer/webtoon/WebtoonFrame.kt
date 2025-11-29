@@ -16,6 +16,10 @@ import android.widget.FrameLayout
  */
 class WebtoonFrame(context: Context) : FrameLayout(context) {
 
+    init {
+        overScrollMode = OVER_SCROLL_NEVER
+    }
+
     /**
      * Scale detector, either with pinch or quick scale.
      */
