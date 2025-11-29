@@ -4,7 +4,9 @@ import android.content.Context
 import android.graphics.PointF
 import android.graphics.RectF
 import android.graphics.drawable.Animatable
+import android.os.Build
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.GestureDetector
@@ -24,8 +26,10 @@ import coil3.dispose
 import coil3.imageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
+import coil3.request.bitmapConfig
 import coil3.request.crossfade
 import coil3.size.Precision
+import coil3.size.Size
 import coil3.size.ViewSizeResolver
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
@@ -244,6 +248,11 @@ open class ReaderPageImageView @JvmOverloads constructor(
             setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
             setMinimumTileDpi(180)
+            overScrollMode = View.OVER_SCROLL_NEVER
+            background = null
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                foreground = null
+            }
             setOnStateChangedListener(
                 object : SubsamplingScaleImageView.OnStateChangedListener {
                     override fun onScaleChanged(newScale: Float, origin: Int) {
@@ -324,8 +333,9 @@ open class ReaderPageImageView @JvmOverloads constructor(
                             onImageLoadError(result.throwable)
                         },
                     )
-                    .size(ViewSizeResolver(this@ReaderPageImageView))
-                    .precision(Precision.INEXACT)
+                    .size(Size.ORIGINAL)
+                    .precision(Precision.EXACT)
+                    .bitmapConfig(Bitmap.Config.ARGB_8888)
                     .cropBorders(config.cropBorders)
                     .customDecoder(true)
                     .crossfade(false)
@@ -348,6 +358,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
             PhotoView(context)
         }.apply {
             adjustViewBounds = true
+            overScrollMode = View.OVER_SCROLL_NEVER
 
             if (this is PhotoView) {
                 setScaleLevels(1F, 2F, MAX_ZOOM_SCALE)

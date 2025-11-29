@@ -23,6 +23,10 @@ class WebtoonRecyclerView @JvmOverloads constructor(
     defStyle: Int = 0,
 ) : RecyclerView(context, attrs, defStyle) {
 
+    init {
+        overScrollMode = OVER_SCROLL_NEVER
+    }
+
     private var isZooming = false
     private var atLastPosition = false
     private var atFirstPosition = false
