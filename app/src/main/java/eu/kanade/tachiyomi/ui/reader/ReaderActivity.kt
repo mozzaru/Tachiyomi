@@ -27,6 +27,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.AlertDialog
@@ -328,6 +329,20 @@ class ReaderActivity : BaseActivity() {
         super.onResume()
         viewModel.restartReadTimer()
         setMenuVisibility(viewModel.state.value.menuVisible)
+    }
+
+    override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean) {
+        // Prevent forced recreate from Realme ZoomWindow
+        return
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    override fun onMultiWindowModeChanged(
+        isInMultiWindowMode: Boolean,
+        newConfig: Configuration,
+    ) {
+        // Prevent forced recreate from Realme ZoomWindow
+        return
     }
 
     /**

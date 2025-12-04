@@ -66,7 +66,9 @@
             android:name=".ui.main.MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:theme="@style/Theme.Tachiyomi.SplashScreen">
+            android:theme="@style/Theme.Tachiyomi.SplashScreen"
+            android:persistableMode="persistAcrossReboots"
+            android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout|density|uiMode">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -152,7 +154,12 @@
         <activity
             android:name=".ui.reader.ReaderActivity"
             android:exported="false"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:persistableMode="persistAcrossReboots"
+            android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout|density|uiMode"
+            android:resizeableActivity="false"
+            android:supportsPictureInPicture="false"
+            android:stopWithTask="false">
             <intent-filter>
                 <action android:name="com.samsung.android.support.REMOTE_ACTION" />
             </intent-filter>
