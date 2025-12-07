@@ -5,7 +5,9 @@ on:
     types: [opened]
 
 permissions:
-  contents: write
+  contents: read
+  pull-requests: write
+  issues: write
 
 jobs:
   label_pr:
@@ -13,14 +15,14 @@ jobs:
 
     steps:
       - name: Check PR and Add Label
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
             const prAuthor = context.payload.pull_request.user.login;
 
             if (prAuthor === 'weblate') {
-              const labels = ['Translations'];
-              await github.issues.addLabels({
+              const labels = ['translations'];
+              await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.payload.pull_request.number,
