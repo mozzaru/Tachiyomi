@@ -154,10 +154,19 @@ class ReaderViewModel @JvmOverloads constructor(
         get() = state.value.manga
 
     /**
+     * The manga id of the currently loaded manga. Used to restore from process kill.
+     */
+    var mangaId = savedState.get<Long>("manga_id") ?: -1L
+        private set(value) {
+            savedState["manga_id"] = value
+            field = value
+        }
+
+    /**
      * The chapter id of the currently loaded chapter. Used to restore from process kill.
      */
-    private var chapterId = savedState.get<Long>("chapter_id") ?: -1L
-        set(value) {
+    var chapterId = savedState.get<Long>("chapter_id") ?: -1L
+        private set(value) {
             savedState["chapter_id"] = value
             field = value
         }
@@ -345,6 +354,7 @@ class ReaderViewModel @JvmOverloads constructor(
      */
     suspend fun init(mangaId: Long, initialChapterId: Long /* SY --> */, page: Int?/* SY <-- */): Result<Boolean> {
         if (!needsInit()) return Result.success(true)
+        this.mangaId = mangaId
         return withIOContext {
             try {
                 val manga = getManga.await(mangaId)

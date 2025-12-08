@@ -143,7 +143,10 @@ import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 import kotlin.math.floor
 
+import androidx.lifecycle.SavedStateHandle
+
 class MangaScreenModel(
+    private val savedStateHandle: SavedStateHandle,
     private val context: Context,
     private val lifecycle: Lifecycle,
     private val mangaId: Long,
@@ -258,6 +261,8 @@ class MangaScreenModel(
     }
 
     init {
+        savedStateHandle["mangaId"] = mangaId
+
         screenModelScope.launchIO {
             getMangaAndChapters.subscribe(mangaId, applyScanlatorFilter = true)
                 .distinctUntilChanged()

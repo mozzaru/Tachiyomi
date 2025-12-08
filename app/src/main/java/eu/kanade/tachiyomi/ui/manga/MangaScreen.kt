@@ -18,8 +18,9 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.core.net.toUri
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.LocalSavedStateHandle
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
@@ -109,8 +110,16 @@ class MangaScreen(
         val haptic = LocalHapticFeedback.current
         val scope = rememberCoroutineScope()
         val lifecycleOwner = LocalLifecycleOwner.current
+        val savedStateHandle = LocalSavedStateHandle.current
         val screenModel = rememberScreenModel {
-            MangaScreenModel(context, lifecycleOwner.lifecycle, mangaId, fromSource, smartSearchConfig != null)
+            MangaScreenModel(
+                savedStateHandle = savedStateHandle,
+                context = context,
+                lifecycle = lifecycleOwner.lifecycle,
+                mangaId = savedStateHandle.get<Long>("mangaId") ?: mangaId,
+                isFromSource = fromSource,
+                smartSearched = smartSearchConfig != null,
+            )
         }
 
         val state by screenModel.state.collectAsStateWithLifecycle()

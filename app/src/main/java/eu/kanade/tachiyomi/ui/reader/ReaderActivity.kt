@@ -215,21 +215,24 @@ class ReaderActivity : BaseActivity() {
         binding.setComposeOverlay()
 
         if (viewModel.needsInit()) {
-            val manga = intent.extras?.getLong("manga", -1) ?: -1L
-            val chapter = intent.extras?.getLong("chapter", -1) ?: -1L
-            // SY -->
+            val mangaId = viewModel.mangaId.takeIf { it != -1L }
+                ?: intent.extras?.getLong("manga", -1)
+                ?: -1L
+            val chapterId = viewModel.chapterId.takeIf { it != -1L }
+                ?: intent.extras?.getLong("chapter", -1)
+                ?: -1L
             val page = intent.extras?.getInt("page", -1).takeUnless { it == -1 }
-            // SY <--
-            if (manga == -1L || chapter == -1L) {
+
+            if (mangaId == -1L || chapterId == -1L) {
                 finish()
                 return
             }
-            NotificationReceiver.dismissNotification(this, manga.hashCode(), Notifications.ID_NEW_CHAPTERS)
+            NotificationReceiver.dismissNotification(this, mangaId.hashCode(), Notifications.ID_NEW_CHAPTERS)
 
             lifecycleScope.launchNonCancellable {
-                val initResult = viewModel.init(manga, chapter/* SY --> */, page/* SY <-- */)
+                val initResult = viewModel.init(mangaId, chapterId, page)
                 if (!initResult.getOrDefault(false)) {
-                    val exception = initResult.exceptionOrNull() ?: IllegalStateException("Unknown err")
+                    val exception = initResult.exceptionOrNull() ?: IllegalStateException("Unknown error")
                     withUIContext {
                         setInitialChapterError(exception)
                     }
