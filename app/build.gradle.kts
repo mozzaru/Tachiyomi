@@ -43,7 +43,7 @@ android {
         }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-    
+
     buildTypes {
         named("debug") {
             versionNameSuffix = "-${getCommitCount()}"
@@ -65,7 +65,7 @@ android {
             buildConfigField("String", "BUILD_TIME", "\"${getBuildTime(useLastCommitTime = true)}\"")
         }
     }
-    
+
     packaging {
         resources.excludes.addAll(
             listOf(

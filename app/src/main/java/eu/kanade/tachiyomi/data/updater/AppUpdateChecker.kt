@@ -57,4 +57,3 @@ val RELEASE_TAG: String by lazy {
 }
 
 val RELEASE_URL = "https://github.com/$GITHUB_REPO/releases/tag/${RELEASE_TAG}"
-

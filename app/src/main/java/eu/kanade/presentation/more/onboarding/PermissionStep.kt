@@ -115,7 +115,7 @@ internal class PermissionStep : OnboardingStep {
                     }
                     context.startActivity(intent)
                 },
-            )            
+            )
         }
     }
 

@@ -166,3 +166,6 @@ fun Context.launchRequestPackageInstallsPermission() {
     }
     startActivity(intent)
 }
+
+val Context.isSy: Boolean
+    get() = packageName.endsWith(".sy")

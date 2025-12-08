@@ -74,7 +74,7 @@ object SettingsSecurityScreen : SearchableSettings {
         val securityPreferences = remember { Injekt.get<SecurityPreferences>() }
         val privacyPreferences = remember { Injekt.get<PrivacyPreferences>() }
         return listOf(
-            getSecurityGroup(securityPreferences),   
+            getSecurityGroup(securityPreferences),
         )
     }
 

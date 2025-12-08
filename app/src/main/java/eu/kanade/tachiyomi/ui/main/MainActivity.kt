@@ -161,12 +161,11 @@ class MainActivity : BaseActivity() {
 
         super.onCreate(savedInstanceState)
 
-        val didMigration = if (isLaunch) { 
+        val didMigration = if (isLaunch) {
             Migrator.awaitAndRelease()
         } else {
             false
         }
-
 
         // SY -->
         @Suppress("KotlinConstantConditions")
