@@ -18,8 +18,9 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.core.net.toUri
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.LocalSavedStateHandle
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
@@ -109,13 +110,24 @@ class MangaScreen(
         val haptic = LocalHapticFeedback.current
         val scope = rememberCoroutineScope()
         val lifecycleOwner = LocalLifecycleOwner.current
-
+        val savedStateHandle = LocalSavedStateHandle.current
         val screenModel = rememberScreenModel {
-            val manga = runBlocking { Injekt.get<GetManga>().await(mangaId) }!!
-            MangaScreenModel(context, lifecycleOwner.lifecycle, manga, fromSource, smartSearchConfig != null)
+            MangaScreenModel(
+                savedStateHandle = savedStateHandle,
+                context = context,
+                lifecycle = lifecycleOwner.lifecycle,
+                mangaId = savedStateHandle.get<Long>("mangaId") ?: mangaId,
+                isFromSource = fromSource,
+                smartSearched = smartSearchConfig != null,
+            )
         }
 
         val state by screenModel.state.collectAsStateWithLifecycle()
+
+        if (state is MangaScreenModel.State.Loading) {
+            LoadingScreen()
+            return
+        }
 
         val successState = state as MangaScreenModel.State.Success
         val isHttpSource = remember { successState.source is HttpSource }

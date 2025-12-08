@@ -93,14 +93,13 @@ data class BrowseSourceScreen(
             return
         }
 
-        val screenModel = rememberScreenModel(sourceId.toString()) {
+        val screenModel = rememberScreenModel {
             BrowseSourceScreenModel(
                 sourceId = sourceId,
                 listingQuery = listingQuery,
                 // SY -->
                 filtersJson = filtersJson,
                 savedSearch = savedSearch,
-                savedStateHandle = it,
                 // SY <--
             )
         }

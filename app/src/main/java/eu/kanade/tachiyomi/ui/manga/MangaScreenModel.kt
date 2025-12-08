@@ -143,10 +143,13 @@ import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
 import kotlin.math.floor
 
+import androidx.lifecycle.SavedStateHandle
+
 class MangaScreenModel(
+    private val savedStateHandle: SavedStateHandle,
     private val context: Context,
     private val lifecycle: Lifecycle,
-    val manga: Manga,
+    private val mangaId: Long,
     private val isFromSource: Boolean,
     val smartSearched: Boolean,
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
@@ -192,28 +195,7 @@ class MangaScreenModel(
     private val mangaRepository: MangaRepository = Injekt.get(),
     private val filterChaptersForDownload: FilterChaptersForDownload = Injekt.get(),
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
-) : StateScreenModel<MangaScreenModel.State>(
-    State.Success(
-        manga = manga,
-        source = Injekt.get<SourceManager>().getOrStub(manga.source),
-        isFromSource = isFromSource,
-        chapters = emptyList(),
-        availableScanlators = emptySet<String>().toImmutableSet(),
-        excludedScanlators = emptySet<String>().toImmutableSet(),
-        isRefreshingData = true,
-        dialog = null,
-        showRecommendationsInOverflow = uiPreferences.recommendsInOverflow().get(),
-        showMergeInOverflow = uiPreferences.mergeInOverflow().get(),
-        showMergeWithAnother = smartSearched,
-        mergedData = null,
-        meta = null,
-        pagePreviewsState = PagePreviewState.Loading,
-        alwaysShowReadingProgress = false,
-        previewsRowCount = 0,
-    ),
-) {
-
-    private val mangaId: Long = manga.id
+) : StateScreenModel<MangaScreenModel.State>(State.Loading) {
 
     private val successState: State.Success?
         get() = state.value as? State.Success
@@ -279,6 +261,8 @@ class MangaScreenModel(
     }
 
     init {
+        savedStateHandle["mangaId"] = mangaId
+
         screenModelScope.launchIO {
             getMangaAndChapters.subscribe(mangaId, applyScanlatorFilter = true)
                 .distinctUntilChanged()
