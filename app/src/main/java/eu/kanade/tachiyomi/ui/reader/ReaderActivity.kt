@@ -214,6 +214,16 @@ class ReaderActivity : BaseActivity() {
         setContentView(binding.root)
         binding.setComposeOverlay()
 
+        if (savedInstanceState != null) {
+            viewModel.showMenus(savedInstanceState.getBoolean(::menuVisible.name))
+            viewModel.setLastShiftDoubleState(savedInstanceState.getBoolean(SHIFT_DOUBLE_PAGES)
+                .takeIf { savedInstanceState.containsKey(SHIFT_DOUBLE_PAGES) })
+            viewModel.setIndexPageToShift(savedInstanceState.getInt(SHIFTED_PAGE_INDEX, Int.MIN_VALUE)
+                .takeIf { it != Int.MIN_VALUE })
+            viewModel.setIndexChapterToShift(savedInstanceState.getLong(SHIFTED_CHAP_INDEX, Long.MIN_VALUE)
+                .takeIf { it != Long.MIN_VALUE })
+        }
+
         if (viewModel.needsInit()) {
             val manga = intent.extras?.getLong("manga", -1) ?: -1L
             val chapter = intent.extras?.getLong("chapter", -1) ?: -1L
@@ -453,6 +463,27 @@ class ReaderActivity : BaseActivity() {
             // SY <--
             null -> {}
         }
+    }
+
+    /**
+     * Called when the activity is saving instance state. Current progress is persisted if this
+     * activity isn't changing configurations.
+     */
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean(::menuVisible.name, viewModel.state.value.menuVisible)
+        (viewModel.state.value.viewer as? PagerViewer)?.let { pViewer ->
+            val config = pViewer.config
+            if (config.doublePages) {
+                outState.putBoolean(SHIFT_DOUBLE_PAGES, config.shiftDoublePage)
+            }
+            if (config.shiftDoublePage && config.doublePages) {
+                pViewer.getShiftedPage()?.let {
+                    outState.putInt(SHIFTED_PAGE_INDEX, it.index)
+                    outState.putLong(SHIFTED_CHAP_INDEX, it.chapter.chapter.id ?: 0L)
+                }
+            }
+        }
+        super.onSaveInstanceState(outState)
     }
 
     /**

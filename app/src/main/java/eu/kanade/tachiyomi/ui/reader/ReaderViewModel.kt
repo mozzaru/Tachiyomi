@@ -993,6 +993,10 @@ class ReaderViewModel @JvmOverloads constructor(
         mutableState.update { it.copy(menuVisible = visible) }
     }
 
+    fun setLastShiftDoubleState(lastShiftDoubleState: Boolean?) {
+        mutableState.update { it.copy(lastShiftDoubleState = lastShiftDoubleState) }
+    }
+
     // SY -->
     fun showEhUtils(visible: Boolean) {
         mutableState.update { it.copy(ehUtilsVisible = visible) }

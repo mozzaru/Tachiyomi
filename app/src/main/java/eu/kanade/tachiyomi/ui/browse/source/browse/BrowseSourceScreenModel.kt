@@ -82,11 +82,12 @@ import java.time.Instant
 import eu.kanade.tachiyomi.source.model.Filter as SourceModelFilter
 
 open class BrowseSourceScreenModel(
-    private val sourceId: Long,
+    val sourceId: Long,
     listingQuery: String?,
     // SY -->
     private val filtersJson: String? = null,
     private val savedSearch: Long? = null,
+    val savedStateHandle: SavedStateHandle,
     // SY <--
     private val sourceManager: SourceManager = Injekt.get(),
     sourcePreferences: SourcePreferences = Injekt.get(),
@@ -127,19 +128,21 @@ open class BrowseSourceScreenModel(
     // SY <--
 
     init {
+        val query: String? = savedStateHandle.get<String>(QUERY_KEY) ?: listingQuery
+        if (query != null) {
+            savedStateHandle[QUERY_KEY] = query
+        }
+
         if (source is CatalogueSource) {
+            val filters: FilterList = savedStateHandle.get<String>(FILTERS_KEY)?.let {
+                val deserializedFilters = Json.decodeFromString<JsonArray>(it)
+                filterSerializer.deserialize(source.getFilterList(), deserializedFilters)
+            } ?: source.getFilterList()
+
             mutableState.update {
-                var query: String? = null
-                var listing = it.listing
-
-                if (listing is Listing.Search) {
-                    query = listing.query
-                    listing = Listing.Search(query, source.getFilterList())
-                }
-
                 it.copy(
-                    listing = listing,
-                    filters = source.getFilterList(),
+                    listing = Listing.Search(query, filters),
+                    filters = filters,
                     toolbarQuery = query,
                 )
             }
@@ -251,6 +254,12 @@ open class BrowseSourceScreenModel(
 
     fun search(query: String? = null, filters: FilterList? = null) {
         if (source !is CatalogueSource) return
+
+        val newFilters = filters ?: state.value.filters
+        savedStateHandle[FILTERS_KEY] = runCatching {
+            filterSerializer.serialize(newFilters).let { Json.encodeToString(it) }
+        }.getOrNull()
+
         // SY -->
         if (filters != null && filters !== state.value.filters) {
             mutableState.update { state -> state.copy(filters = filters) }
@@ -556,3 +565,6 @@ open class BrowseSourceScreenModel(
     }
     // EXH <--
 }
+
+private const val QUERY_KEY = "query"
+private const val FILTERS_KEY = "filters"

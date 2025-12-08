@@ -146,7 +146,7 @@ import kotlin.math.floor
 class MangaScreenModel(
     private val context: Context,
     private val lifecycle: Lifecycle,
-    private val mangaId: Long,
+    val manga: Manga,
     private val isFromSource: Boolean,
     val smartSearched: Boolean,
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
@@ -192,7 +192,28 @@ class MangaScreenModel(
     private val mangaRepository: MangaRepository = Injekt.get(),
     private val filterChaptersForDownload: FilterChaptersForDownload = Injekt.get(),
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
-) : StateScreenModel<MangaScreenModel.State>(State.Loading) {
+) : StateScreenModel<MangaScreenModel.State>(
+    State.Success(
+        manga = manga,
+        source = Injekt.get<SourceManager>().getOrStub(manga.source),
+        isFromSource = isFromSource,
+        chapters = emptyList(),
+        availableScanlators = emptySet<String>().toImmutableSet(),
+        excludedScanlators = emptySet<String>().toImmutableSet(),
+        isRefreshingData = true,
+        dialog = null,
+        showRecommendationsInOverflow = uiPreferences.recommendsInOverflow().get(),
+        showMergeInOverflow = uiPreferences.mergeInOverflow().get(),
+        showMergeWithAnother = smartSearched,
+        mergedData = null,
+        meta = null,
+        pagePreviewsState = PagePreviewState.Loading,
+        alwaysShowReadingProgress = false,
+        previewsRowCount = 0,
+    ),
+) {
+
+    private val mangaId: Long = manga.id
 
     private val successState: State.Success?
         get() = state.value as? State.Success

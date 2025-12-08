@@ -109,16 +109,13 @@ class MangaScreen(
         val haptic = LocalHapticFeedback.current
         val scope = rememberCoroutineScope()
         val lifecycleOwner = LocalLifecycleOwner.current
+
         val screenModel = rememberScreenModel {
-            MangaScreenModel(context, lifecycleOwner.lifecycle, mangaId, fromSource, smartSearchConfig != null)
+            val manga = runBlocking { Injekt.get<GetManga>().await(mangaId) }!!
+            MangaScreenModel(context, lifecycleOwner.lifecycle, manga, fromSource, smartSearchConfig != null)
         }
 
         val state by screenModel.state.collectAsStateWithLifecycle()
-
-        if (state is MangaScreenModel.State.Loading) {
-            LoadingScreen()
-            return
-        }
 
         val successState = state as MangaScreenModel.State.Success
         val isHttpSource = remember { successState.source is HttpSource }
