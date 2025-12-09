@@ -10,6 +10,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.lifecycle.viewmodel.compose.LocalSavedStateHandleOwner
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -43,7 +44,12 @@ class MangaDexFollowsScreen(private val sourceId: Long) : Screen() {
         val navigator = LocalNavigator.currentOrThrow
         val scope = rememberCoroutineScope()
         val haptic = LocalHapticFeedback.current
-        val screenModel = rememberScreenModel { MangaDexFollowsScreenModel(sourceId) }
+        val savedStateHandle = LocalSavedStateHandleOwner.current.savedStateHandle
+        val screenModel = rememberScreenModel {
+            MangaDexFollowsScreenModel(savedStateHandle).also {
+                savedStateHandle["sourceId"] = sourceId
+            }
+        }
         val state by screenModel.state.collectAsState()
 
         val snackbarHostState = remember { SnackbarHostState() }

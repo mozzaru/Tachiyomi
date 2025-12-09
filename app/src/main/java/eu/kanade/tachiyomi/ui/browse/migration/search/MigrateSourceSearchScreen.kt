@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.lifecycle.viewmodel.compose.LocalSavedStateHandleOwner
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -58,7 +59,15 @@ data class MigrateSourceSearchScreen(
         val navigator = LocalNavigator.currentOrThrow
         val scope = rememberCoroutineScope()
 
-        val screenModel = rememberScreenModel { BrowseSourceScreenModel(sourceId, query) }
+        val savedStateHandle = LocalSavedStateHandleOwner.current.savedStateHandle
+        val screenModel = rememberScreenModel {
+            BrowseSourceScreenModel(
+                savedStateHandle = savedStateHandle,
+                listingQuery = query,
+            ).also {
+                savedStateHandle["sourceId"] = sourceId
+            }
+        }
         val state by screenModel.state.collectAsState()
 
         val snackbarHostState = remember { SnackbarHostState() }

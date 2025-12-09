@@ -223,33 +223,6 @@ class ReaderActivity : BaseActivity() {
         setContentView(binding.root)
         binding.setComposeOverlay()
 
-        if (viewModel.needsInit()) {
-            if (viewModel.mangaId == -1L || viewModel.chapterId == -1L) {
-                finish()
-                return
-            }
-            NotificationReceiver.dismissNotification(
-                this,
-                viewModel.mangaId.hashCode(),
-                Notifications.ID_NEW_CHAPTERS,
-            )
-
-            lifecycleScope.launchNonCancellable {
-                val initResult = viewModel.init(
-                    mangaId = viewModel.mangaId,
-                    initialChapterId = viewModel.chapterId,
-                    page = viewModel.chapterPageIndex.takeIf { it != -1 },
-                )
-                if (!initResult.getOrDefault(false)) {
-                    val exception = initResult.exceptionOrNull()
-                        ?: IllegalStateException("Unknown error")
-                    withUIContext {
-                        setInitialChapterError(exception)
-                    }
-                }
-            }
-        }
-
         config = ReaderConfig()
         setMenuVisibility(viewModel.state.value.menuVisible)
         enableExhAutoScroll()

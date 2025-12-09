@@ -1,5 +1,6 @@
 package exh.recs
 
+import androidx.lifecycle.SavedStateHandle
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreenModel
@@ -17,13 +18,11 @@ import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 
 class BrowseRecommendsScreenModel(
+    savedStateHandle: SavedStateHandle,
     private val args: BrowseRecommendsScreen.Args,
     private val getManga: GetManga = Injekt.get(),
 ) : BrowseSourceScreenModel(
-    sourceId = when (args) {
-        is BrowseRecommendsScreen.Args.SingleSourceManga -> args.sourceId
-        is BrowseRecommendsScreen.Args.MergedSourceMangas -> args.results.recAssociatedSourceId ?: -1
-    },
+    savedStateHandle = savedStateHandle,
     listingQuery = null,
 ) {
     val recommendationSource: RecommendationPagingSource

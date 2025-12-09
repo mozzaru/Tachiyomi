@@ -7,7 +7,9 @@ import androidx.annotation.IntRange
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.domain.chapter.interactor.SetReadStatus
 import eu.kanade.domain.chapter.model.toDbChapter
@@ -286,7 +288,7 @@ class ReaderViewModel @JvmOverloads constructor(
         if (mangaId != -1L) {
             viewModelScope.launch {
                 val manga = getManga.await(mangaId)
-                if (manga != null && manga.favorite) {
+                if (manga != null) {
                     init(mangaId, chapterId, chapterPageIndex)
                 }
             }

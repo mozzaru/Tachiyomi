@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.LocalSavedStateHandleOwner
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -47,7 +48,15 @@ class BrowseRecommendsScreen(
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
 
-        val screenModel = rememberScreenModel { BrowseRecommendsScreenModel(args) }
+        val savedStateHandle = LocalSavedStateHandleOwner.current.savedStateHandle
+        val screenModel = rememberScreenModel {
+            BrowseRecommendsScreenModel(savedStateHandle, args).also {
+                savedStateHandle["sourceId"] = when (args) {
+                    is BrowseRecommendsScreen.Args.SingleSourceManga -> args.sourceId
+                    is BrowseRecommendsScreen.Args.MergedSourceMangas -> args.results.recAssociatedSourceId ?: -1
+                }
+            }
+        }
         val snackbarHostState = remember { SnackbarHostState() }
 
         val onClickItem = { manga: Manga ->

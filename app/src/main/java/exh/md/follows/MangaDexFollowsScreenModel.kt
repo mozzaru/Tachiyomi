@@ -1,5 +1,6 @@
 package exh.md.follows
 
+import androidx.lifecycle.SavedStateHandle
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.source.online.all.MangaDex
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreenModel
@@ -11,7 +12,9 @@ import kotlinx.coroutines.flow.update
 import tachiyomi.data.source.BaseSourcePagingSource
 import tachiyomi.domain.manga.model.Manga
 
-class MangaDexFollowsScreenModel(sourceId: Long) : BrowseSourceScreenModel(sourceId, null) {
+class MangaDexFollowsScreenModel(
+    savedStateHandle: SavedStateHandle,
+) : BrowseSourceScreenModel(savedStateHandle, null) {
 
     override fun createSourcePagingSource(query: String, filters: FilterList): BaseSourcePagingSource {
         return MangaDexFollowsPagingSource(source.getMainSource() as MangaDex)
