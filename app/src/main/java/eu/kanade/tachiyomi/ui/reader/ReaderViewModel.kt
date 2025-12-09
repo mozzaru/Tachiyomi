@@ -153,10 +153,16 @@ class ReaderViewModel @JvmOverloads constructor(
     val manga: Manga?
         get() = state.value.manga
 
+    var mangaId = savedState.get<Long>("manga_id") ?: -1L
+        set(value) {
+            savedState["manga_id"] = value
+            field = value
+        }
+
     /**
      * The chapter id of the currently loaded chapter. Used to restore from process kill.
      */
-    private var chapterId = savedState.get<Long>("chapter_id") ?: -1L
+    var chapterId = savedState.get<Long>("chapter_id") ?: -1L
         set(value) {
             savedState["chapter_id"] = value
             field = value
@@ -165,7 +171,7 @@ class ReaderViewModel @JvmOverloads constructor(
     /**
      * The visible page index of the currently loaded chapter. Used to restore from process kill.
      */
-    private var chapterPageIndex = savedState.get<Int>("page_index") ?: -1
+    var chapterPageIndex = savedState.get<Int>("page_index") ?: -1
         set(value) {
             savedState["page_index"] = value
             field = value
@@ -277,6 +283,15 @@ class ReaderViewModel @JvmOverloads constructor(
     private val downloadAheadAmount = downloadPreferences.autoDownloadWhileReading().get()
 
     init {
+        if (mangaId != -1L) {
+            viewModelScope.launch {
+                val manga = getManga.await(mangaId)
+                if (manga != null && manga.favorite) {
+                    init(mangaId, chapterId, chapterPageIndex)
+                }
+            }
+        }
+
         // To save state
         state.map { it.viewerChapters?.currChapter }
             .distinctUntilChanged()
@@ -1414,5 +1429,24 @@ class ReaderViewModel @JvmOverloads constructor(
             val secondPage: ReaderPage? = null, /* SY <-- */
         ) : Event
         data class CopyImage(val uri: Uri) : Event
+    }
+
+    companion object {
+        @Suppress("UNCHECKED_CAST")
+        fun provideFactory(
+            mangaId: Long,
+            initialChapterId: Long,
+            initialPage: Int?,
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
+                val savedStateHandle = extras.createSavedStateHandle()
+                if (!savedStateHandle.contains("manga_id")) {
+                    savedStateHandle["manga_id"] = mangaId
+                    savedStateHandle["chapter_id"] = initialChapterId
+                    savedStateHandle["page_index"] = initialPage ?: -1
+                }
+                return ReaderViewModel(savedStateHandle) as T
+            }
+        }
     }
 }

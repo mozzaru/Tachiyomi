@@ -8,6 +8,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.util.fastAny
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.flowWithLifecycle
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
@@ -144,9 +145,9 @@ import uy.kohesive.injekt.injectLazy
 import kotlin.math.floor
 
 class MangaScreenModel(
+    val savedStateHandle: SavedStateHandle,
     private val context: Context,
     private val lifecycle: Lifecycle,
-    private val mangaId: Long,
     private val isFromSource: Boolean,
     val smartSearched: Boolean,
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
@@ -196,6 +197,8 @@ class MangaScreenModel(
 
     private val successState: State.Success?
         get() = state.value as? State.Success
+
+    val mangaId: Long = savedStateHandle["mangaId"]!!
 
     val manga: Manga?
         get() = successState?.manga

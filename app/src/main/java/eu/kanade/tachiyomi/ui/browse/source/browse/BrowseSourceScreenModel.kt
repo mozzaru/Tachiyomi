@@ -11,6 +11,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import androidx.paging.filter
 import androidx.paging.map
+import androidx.lifecycle.SavedStateHandle
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import dev.icerock.moko.resources.StringResource
@@ -82,7 +83,7 @@ import java.time.Instant
 import eu.kanade.tachiyomi.source.model.Filter as SourceModelFilter
 
 open class BrowseSourceScreenModel(
-    private val sourceId: Long,
+    private val savedStateHandle: SavedStateHandle,
     listingQuery: String?,
     // SY -->
     private val filtersJson: String? = null,
@@ -114,6 +115,7 @@ open class BrowseSourceScreenModel(
 
     var displayMode by sourcePreferences.sourceDisplayMode().asState(screenModelScope)
 
+    val sourceId: Long = savedStateHandle["sourceId"]!!
     val source = sourceManager.getOrStub(sourceId)
 
     // SY -->

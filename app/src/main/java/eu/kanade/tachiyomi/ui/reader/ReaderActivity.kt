@@ -49,8 +49,11 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.google.android.material.transition.platform.MaterialContainerTransform
 import com.hippo.unifile.UniFile
@@ -163,7 +166,13 @@ class ReaderActivity : BaseActivity() {
 
     lateinit var binding: ReaderActivityBinding
 
-    val viewModel by viewModels<ReaderViewModel>()
+    val viewModel by viewModels<ReaderViewModel> {
+        ReaderViewModel.provideFactory(
+            mangaId = intent.extras?.getLong("manga") ?: -1L,
+            initialChapterId = intent.extras?.getLong("chapter") ?: -1L,
+            initialPage = intent.extras?.getInt("page", -1)?.takeIf { it != -1 },
+        )
+    }
     private var assistUrl: String? = null
 
     // SY -->
@@ -215,21 +224,25 @@ class ReaderActivity : BaseActivity() {
         binding.setComposeOverlay()
 
         if (viewModel.needsInit()) {
-            val manga = intent.extras?.getLong("manga", -1) ?: -1L
-            val chapter = intent.extras?.getLong("chapter", -1) ?: -1L
-            // SY -->
-            val page = intent.extras?.getInt("page", -1).takeUnless { it == -1 }
-            // SY <--
-            if (manga == -1L || chapter == -1L) {
+            if (viewModel.mangaId == -1L || viewModel.chapterId == -1L) {
                 finish()
                 return
             }
-            NotificationReceiver.dismissNotification(this, manga.hashCode(), Notifications.ID_NEW_CHAPTERS)
+            NotificationReceiver.dismissNotification(
+                this,
+                viewModel.mangaId.hashCode(),
+                Notifications.ID_NEW_CHAPTERS,
+            )
 
             lifecycleScope.launchNonCancellable {
-                val initResult = viewModel.init(manga, chapter/* SY --> */, page/* SY <-- */)
+                val initResult = viewModel.init(
+                    mangaId = viewModel.mangaId,
+                    initialChapterId = viewModel.chapterId,
+                    page = viewModel.chapterPageIndex.takeIf { it != -1 },
+                )
                 if (!initResult.getOrDefault(false)) {
-                    val exception = initResult.exceptionOrNull() ?: IllegalStateException("Unknown err")
+                    val exception = initResult.exceptionOrNull()
+                        ?: IllegalStateException("Unknown error")
                     withUIContext {
                         setInitialChapterError(exception)
                     }

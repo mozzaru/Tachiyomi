@@ -33,6 +33,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewmodel.compose.LocalSavedStateHandleOwner
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -93,15 +95,18 @@ data class BrowseSourceScreen(
             return
         }
 
+        val savedStateHandle = LocalSavedStateHandleOwner.current.savedStateHandle
         val screenModel = rememberScreenModel {
             BrowseSourceScreenModel(
-                sourceId = sourceId,
+                savedStateHandle = savedStateHandle,
                 listingQuery = listingQuery,
                 // SY -->
                 filtersJson = filtersJson,
                 savedSearch = savedSearch,
                 // SY <--
-            )
+            ).also {
+                savedStateHandle["sourceId"] = sourceId
+            }
         }
         val state by screenModel.state.collectAsState()
 
