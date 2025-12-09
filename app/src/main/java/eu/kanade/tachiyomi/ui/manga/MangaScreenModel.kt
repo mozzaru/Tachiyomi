@@ -146,15 +146,16 @@ import kotlin.math.floor
 import androidx.lifecycle.SavedStateHandle
 
 class MangaScreenModel(
-    private val savedStateHandle: SavedStateHandle,
+    private val savedStateHandle: SavedStateHandle, // KMK: In order to save and restore state
     private val context: Context,
     private val lifecycle: Lifecycle,
-    private val mangaId: Long,
+    mangaId: Long,
     private val isFromSource: Boolean,
     val smartSearched: Boolean,
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
     private val trackPreferences: TrackPreferences = Injekt.get(),
     readerPreferences: ReaderPreferences = Injekt.get(),
+    private val mangaId: Long = savedStateHandle["mangaId"]!!,
     uiPreferences: UiPreferences = Injekt.get(),
     private val trackerManager: TrackerManager = Injekt.get(),
     private val trackChapter: TrackChapter = Injekt.get(),
