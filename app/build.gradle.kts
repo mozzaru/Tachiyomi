@@ -166,7 +166,7 @@ dependencies {
     implementation(androidx.annotation)
     implementation(androidx.appcompat)
     implementation(androidx.biometricktx)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
     implementation(androidx.constraintlayout)
     implementation(androidx.corektx)
     implementation(androidx.splashscreen)
