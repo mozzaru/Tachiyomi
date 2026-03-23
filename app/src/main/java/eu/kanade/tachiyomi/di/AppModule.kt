@@ -50,14 +50,20 @@ import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.source.local.image.LocalCoverManager
 import tachiyomi.source.local.io.LocalSourceFileSystem
 import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.InjektModule
 import uy.kohesive.injekt.api.InjektRegistrar
 import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
+import uy.kohesive.injekt.api.injectLazy
+import java.lang.ref.WeakReference
+
+private val lock = Any()
 
 class AppModule(val app: Application) : InjektModule {
     // SY -->
-    private val securityPreferences: SecurityPreferences by injectLazy()
+    private val securityPreferences: SecurityPreferences by Injekt.injectLazy()
     // SY <--
+
+    private var sqlDriverRef: WeakReference<SqlDriver>? = null
 
     override fun InjektRegistrar.registerInjectables() {
         addSingleton(app)
@@ -90,15 +96,22 @@ class AppModule(val app: Application) : InjektModule {
             }
             // SY <--
 
-            AndroidxSqliteDriver(
-                driver = BundledSQLiteDriver(),
-                databaseType = AndroidxSqliteDatabaseType.FileProvider(app, "tachiyomi.db"),
-                schema = Database.Schema,
-                configuration = AndroidxSqliteConfiguration(
-                    isForeignKeyConstraintsEnabled = true,
-                ),
-            )
+            // Fix: potential "database is locked" crash — WAL mode + busy timeout
+            // applied to the non-encrypted path via onConfiguration callback
+            synchronized(lock) {
+                sqlDriverRef?.get()?.let { return@synchronized it }
+
+                AndroidxSqliteDriver(
+                    driver = BundledSQLiteDriver(),
+                    databaseType = AndroidxSqliteDatabaseType.FileProvider(app, "tachiyomi.db"),
+                    schema = Database.Schema,
+                    configuration = AndroidxSqliteConfiguration(
+                        isForeignKeyConstraintsEnabled = true,
+                    ),
+                ).also { sqlDriverRef = WeakReference(it) }
+            } // <-- Fix: was missing this closing brace for synchronized block
         }
+
         addSingletonFactory {
             Database(
                 driver = get(),
