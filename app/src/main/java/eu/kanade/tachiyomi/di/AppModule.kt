@@ -52,12 +52,16 @@ import tachiyomi.source.local.io.LocalSourceFileSystem
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.InjektRegistrar
 import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
+import java.lang.ref.WeakReference
+
+private val lock = Any()
 
 class AppModule(val app: Application) : InjektModule {
     // SY -->
     private val securityPreferences: SecurityPreferences by injectLazy()
     // SY <--
+
+    private var sqlDriverRef: WeakReference<SqlDriver>? = null
 
     override fun InjektRegistrar.registerInjectables() {
         addSingleton(app)
@@ -89,6 +93,8 @@ class AppModule(val app: Application) : InjektModule {
                 )
             }
             // SY <--
+            synchronized(lock) {
+                sqlDriverRef?.get()?.let { return@synchronized it }
 
             AndroidxSqliteDriver(
                 driver = BundledSQLiteDriver(),
@@ -98,6 +104,8 @@ class AppModule(val app: Application) : InjektModule {
                     isForeignKeyConstraintsEnabled = true,
                 ),
             )
+                .also { sqlDriverRef = WeakRef
+erence(it) }
         }
         addSingletonFactory {
             Database(
