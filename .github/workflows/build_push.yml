@@ -2,7 +2,7 @@ name: Release Builder
 on:
   push:
    branches:
-    - 'release'
+    - 'tachisy-ori'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
