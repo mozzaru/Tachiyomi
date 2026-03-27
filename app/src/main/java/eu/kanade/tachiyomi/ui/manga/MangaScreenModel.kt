@@ -1697,6 +1697,19 @@ class MangaScreenModel(
         screenModelScope.launch { block() }
     }
 
+    fun fetchAssistUrl(manga: Manga?, source: Source?) {
+        screenModelScope.launchIO {
+            try {
+                val httpSource = source as? HttpSource ?: return@launchIO
+                val smanga = manga?.toSManga() ?: return@launchIO
+                val url = httpSource.getMangaUrl(smanga)
+                updateSuccessState { it.copy(assistUrl = url) }
+            } catch (e: Exception) {
+                logcat(LogPriority.ERROR, e) { "Failed to get manga URL" }
+            }
+        }
+    }
+
     fun showMigrateDialog(duplicate: Manga) {
         val manga = successState?.manga ?: return
         updateSuccessState { it.copy(dialog = Dialog.Migrate(target = manga, current = duplicate)) }
@@ -1759,6 +1772,7 @@ class MangaScreenModel(
             val pagePreviewsState: PagePreviewState,
             val alwaysShowReadingProgress: Boolean,
             val previewsRowCount: Int,
+            val assistUrl: String? = null,
             // SY <--
         ) : State {
             val processedChapters by lazy {
