@@ -398,6 +398,17 @@ open class BrowseSourceScreenModel(
         return getDuplicateLibraryManga.invoke(manga)
     }
 
+    fun onMangaLongClick(manga: Manga) {
+        screenModelScope.launchIO {
+            val duplicates = getDuplicateLibraryManga(manga)
+            when {
+                manga.favorite -> setDialog(Dialog.RemoveManga(manga))
+                duplicates.isNotEmpty() -> setDialog(Dialog.AddDuplicateManga(manga, duplicates))
+                else -> addFavorite(manga)
+            }
+        }
+    }
+
     private fun moveMangaToCategories(manga: Manga, vararg categories: Category) {
         moveMangaToCategories(manga, categories.filter { it.id != 0L }.map { it.id })
     }

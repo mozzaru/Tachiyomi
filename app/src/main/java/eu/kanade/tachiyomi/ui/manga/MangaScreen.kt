@@ -10,7 +10,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -106,7 +105,6 @@ class MangaScreen(
         val navigator = LocalNavigator.currentOrThrow
         val context = LocalContext.current
         val haptic = LocalHapticFeedback.current
-        val scope = rememberCoroutineScope()
         val lifecycleOwner = LocalLifecycleOwner.current
         val screenModel = rememberScreenModel {
             MangaScreenModel(context, lifecycleOwner.lifecycle, mangaId, fromSource, smartSearchConfig != null)
@@ -192,11 +190,11 @@ class MangaScreen(
                     screenModel.showTrackDialog()
                 }
             },
-            onTagSearch = { scope.launch { performGenreSearch(navigator, it, screenModel.source!!) } },
+            onTagSearch = { screenModel.launchSearch { performGenreSearch(navigator, it, screenModel.source!!) } },
             onFilterButtonClicked = screenModel::showSettingsDialog,
             onRefresh = screenModel::fetchAllFromSource,
             onContinueReading = { continueReading(context, screenModel.getNextUnreadChapter()) },
-            onSearch = { query, global -> scope.launch { performSearch(navigator, query, global) } },
+            onSearch = { query, global -> screenModel.launchSearch { performSearch(navigator, query, global) } },
             onCoverClicked = screenModel::showCoverDialog,
             onShareClicked = { shareManga(context, screenModel.manga, screenModel.source) }.takeIf { isHttpSource },
             onDownloadActionClicked = screenModel::runDownloadAction.takeIf { !successState.source.isLocalOrStub() },

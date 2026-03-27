@@ -1693,6 +1693,10 @@ class MangaScreenModel(
         updateSuccessState { it.copy(dialog = Dialog.FullCover) }
     }
 
+    fun launchSearch(block: suspend () -> Unit) {
+        screenModelScope.launch { block() }
+    }
+
     fun showMigrateDialog(duplicate: Manga) {
         val manga = successState?.manga ?: return
         updateSuccessState { it.copy(dialog = Dialog.Migrate(target = manga, current = duplicate)) }
