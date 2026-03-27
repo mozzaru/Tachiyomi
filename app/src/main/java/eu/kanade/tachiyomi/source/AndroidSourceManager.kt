@@ -111,8 +111,18 @@ class AndroidSourceManager(
                         }
                     }
                     sourcesMapFlow.value = mutableMap
-                    _isInitialized.value = true
+                    // Only set initialized after ExtensionManager has finished loading
+                    if (extensionManager.isInitialized.value) {
+                        _isInitialized.value = true
+                    }
                 }
+        }
+
+        scope.launch {
+            extensionManager.isInitialized
+                .filter { it }
+                .first()
+            _isInitialized.value = true
         }
 
         scope.launch {
