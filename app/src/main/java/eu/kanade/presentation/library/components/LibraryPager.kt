@@ -47,13 +47,15 @@ fun LibraryPager(
         modifier = Modifier.fillMaxSize(),
         state = state,
         verticalAlignment = Alignment.Top,
+        key = { it },
+        beyondViewportPageCount = 1,
     ) { page ->
         if (page !in ((state.currentPage - 1)..(state.currentPage + 1))) {
             // To make sure only one offscreen page is being composed
             return@HorizontalPager
         }
         val category = getCategoryForPage(page)
-        val items = getItemsForCategory(category)
+        val items = remember(category) { getItemsForCategory(category) }
 
         if (items.isEmpty()) {
             LibraryPagerEmptyScreen(
