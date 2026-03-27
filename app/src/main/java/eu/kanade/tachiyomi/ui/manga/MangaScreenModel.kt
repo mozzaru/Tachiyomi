@@ -1697,6 +1697,10 @@ class MangaScreenModel(
         screenModelScope.launch { block() }
     }
 
+    fun setAssistUrl(url: String?) {
+        updateSuccessState { it.copy(assistUrl = url) }
+    }
+
     fun showMigrateDialog(duplicate: Manga) {
         val manga = successState?.manga ?: return
         updateSuccessState { it.copy(dialog = Dialog.Migrate(target = manga, current = duplicate)) }
@@ -1759,6 +1763,7 @@ class MangaScreenModel(
             val pagePreviewsState: PagePreviewState,
             val alwaysShowReadingProgress: Boolean,
             val previewsRowCount: Int,
+            val assistUrl: String? = null,
             // SY <--
         ) : State {
             val processedChapters by lazy {

@@ -91,9 +91,12 @@ class MangaScreen(
     private val smartSearchConfig: SourcesScreen.SmartSearchConfig? = null,
 ) : Screen(), AssistContentScreen {
 
-    private var assistUrl: String? = null
+    @Transient
+    private var _screenModel: MangaScreenModel? = null
 
-    override fun onProvideAssistUrl() = assistUrl
+    override fun onProvideAssistUrl(): String? {
+        return (_screenModel?.state?.value as? MangaScreenModel.State.Success)?.assistUrl
+    }
 
     @Composable
     override fun Content() {
@@ -109,6 +112,7 @@ class MangaScreen(
         val screenModel = rememberScreenModel {
             MangaScreenModel(context, lifecycleOwner.lifecycle, mangaId, fromSource, smartSearchConfig != null)
         }
+        _screenModel = screenModel
 
         val state by screenModel.state.collectAsStateWithLifecycle()
 
@@ -122,13 +126,8 @@ class MangaScreen(
 
         LaunchedEffect(successState.manga, screenModel.source) {
             if (isHttpSource) {
-                try {
-                    withIOContext {
-                        assistUrl = getMangaUrl(screenModel.manga, screenModel.source)
-                    }
-                } catch (e: Exception) {
-                    logcat(LogPriority.ERROR, e) { "Failed to get manga URL" }
-                }
+                val url = getMangaUrl(screenModel.manga, screenModel.source)
+                screenModel.setAssistUrl(url)
             }
         }
 
