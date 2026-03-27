@@ -46,6 +46,7 @@ class BackupNotifier(private val context: Context) {
         context.notify(id, build())
     }
 
+    @Synchronized
     fun showBackupProgress(): NotificationCompat.Builder {
         val builder = with(progressNotificationBuilder) {
             setContentTitle(context.stringResource(MR.strings.creating_backup))
@@ -87,6 +88,7 @@ class BackupNotifier(private val context: Context) {
         }
     }
 
+    @Synchronized
     fun showRestoreProgress(
         content: String = "",
         progress: Int = 0,
