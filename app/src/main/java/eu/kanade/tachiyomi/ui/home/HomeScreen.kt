@@ -52,8 +52,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import soup.compose.material.motion.animation.materialFadeThroughIn
-import soup.compose.material.motion.animation.materialFadeThroughOut
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.NavigationBar
@@ -68,9 +69,6 @@ object HomeScreen : Screen() {
     private val librarySearchEvent = Channel<String>()
     private val openTabEvent = Channel<Tab>()
     private val showBottomNavEvent = Channel<Boolean>()
-
-    @Suppress("ConstPropertyName")
-    private const val TabFadeDuration = 200
 
     @Suppress("ConstPropertyName")
     private const val TabNavigatorKey = "HomeTabs"
@@ -146,8 +144,8 @@ object HomeScreen : Screen() {
                         AnimatedContent(
                             targetState = tabNavigator.current,
                             transitionSpec = {
-                                materialFadeThroughIn(initialScale = 1f, durationMillis = TabFadeDuration) togetherWith
-                                    materialFadeThroughOut(durationMillis = TabFadeDuration)
+                                fadeIn(animationSpec = tween(100)) togetherWith
+                                    fadeOut(animationSpec = tween(100))
                             },
                             label = "tabContent",
                         ) {

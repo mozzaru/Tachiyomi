@@ -150,7 +150,7 @@ data object LibraryTab : Tab {
                     onClickRefresh = { onClickRefresh(state.activeCategory) },
                     onClickGlobalUpdate = { onClickRefresh(null) },
                     onClickOpenRandomManga = {
-                        scope.launch {
+                        screenModel.launchIO {
                             val randomItem = screenModel.getRandomLibraryItemForCurrentCategory()
                             if (randomItem != null) {
                                 navigator.push(MangaScreen(randomItem.libraryManga.manga.id))
@@ -245,7 +245,7 @@ data object LibraryTab : Tab {
                         onChangeCurrentPage = screenModel::updateActiveCategoryIndex,
                         onClickManga = { navigator.push(MangaScreen(it)) },
                         onContinueReadingClicked = { it: LibraryManga ->
-                            scope.launchIO {
+                            screenModel.launchIO {
                                 val chapter = screenModel.getNextUnreadChapter(it.manga)
                                 if (chapter != null) {
                                     context.startActivity(

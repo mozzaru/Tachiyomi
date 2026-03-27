@@ -998,6 +998,10 @@ class LibraryScreenModel(
             .asState(screenModelScope)
     }
 
+    fun launchIO(block: suspend () -> Unit) {
+        screenModelScope.launchIO { block() }
+    }
+
     fun getRandomLibraryItemForCurrentCategory(): LibraryItem? {
         val state = state.value
         return state.getItemsForCategoryId(state.activeCategory?.id).randomOrNull()
