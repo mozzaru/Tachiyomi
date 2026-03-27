@@ -36,6 +36,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -111,8 +113,18 @@ class AndroidSourceManager(
                         }
                     }
                     sourcesMapFlow.value = mutableMap
-                    _isInitialized.value = true
+                    // Only set initialized after ExtensionManager has finished loading
+                    if (extensionManager.isInitialized.value) {
+                        _isInitialized.value = true
+                    }
                 }
+        }
+
+        scope.launch {
+            extensionManager.isInitialized
+                .filter { it }
+                .first()
+            _isInitialized.value = true
         }
 
         scope.launch {
