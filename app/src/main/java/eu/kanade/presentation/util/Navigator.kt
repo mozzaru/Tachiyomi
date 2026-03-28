@@ -4,11 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ContentTransform
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -27,6 +22,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.plus
+import soup.compose.material.motion.animation.materialSharedAxisX
+import soup.compose.material.motion.animation.rememberSlideDistance
 
 /**
  * For invoking back press to the parent activity
@@ -68,11 +65,14 @@ fun DefaultNavigatorScreenTransition(
     navigator: Navigator,
     modifier: Modifier = Modifier,
 ) {
+    val slideDistance = rememberSlideDistance()
     ScreenTransition(
         navigator = navigator,
         transition = {
-            fadeIn(tween(200)) + slideInVertically(tween(200)) { it / 8 } togetherWith
-                fadeOut(tween(150))
+            materialSharedAxisX(
+                forward = navigator.lastEvent != StackEvent.Pop,
+                slideDistance = slideDistance,
+            )
         },
         modifier = modifier,
     )
