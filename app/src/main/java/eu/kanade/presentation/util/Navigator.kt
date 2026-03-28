@@ -7,6 +7,8 @@ import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidableCompositionLocal
@@ -70,8 +72,8 @@ fun DefaultNavigatorScreenTransition(
     ScreenTransition(
         navigator = navigator,
         transition = {
-            fadeIn(animationSpec = tween(100)) togetherWith
-                fadeOut(animationSpec = tween(100))
+            fadeIn(tween(200)) + scaleIn(tween(200), initialScale = 0.95f) togetherWith
+                fadeOut(tween(150)) + scaleOut(tween(150), targetScale = 0.95f)
         },
         modifier = modifier,
     )
