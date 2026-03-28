@@ -60,6 +60,7 @@ import exh.util.defaultReaderType
 import exh.util.mangaType
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -99,6 +100,7 @@ import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.interactor.GetMergedMangaById
 import tachiyomi.domain.manga.interactor.GetMergedReferencesById
 import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.source.model.StubSource
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
@@ -359,7 +361,17 @@ class ReaderViewModel @JvmOverloads constructor(
                 if (manga != null) {
                     // SY -->
                     sourceManager.isInitialized.first { it }
-                    val source = sourceManager.getOrStub(manga.source)
+                    // Retry until source is not SubSource
+                    var source = sourceManager.getOrStub(manga.source)
+                    if (source is StubSource) {
+                        // Wait a moment and try again — race condition window
+                        var retries = 0
+                        while (source is StubSource && retries < 10) {
+                            delay(200)
+                            source = sourceManager.getOrStub(manga.source)
+                            retries++
+                        }
+                    }
                     val metadataSource = source.getMainSource<MetadataSource<*, *>>()
                     val metadata = if (metadataSource != null) {
                         getFlatMetadataById.await(mangaId)?.raise(metadataSource.metaClass)
