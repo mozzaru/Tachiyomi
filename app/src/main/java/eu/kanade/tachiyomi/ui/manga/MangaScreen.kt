@@ -92,10 +92,10 @@ class MangaScreen(
 ) : Screen(), AssistContentScreen {
 
     @Transient
-    private var _screenModel: MangaScreenModel? = null
+    private var cachedScreenModel: MangaScreenModel? = null
 
     override fun onProvideAssistUrl(): String? {
-        return (_screenModel?.state?.value as? MangaScreenModel.State.Success)?.assistUrl
+        return (cachedScreenModel?.state?.value as? MangaScreenModel.State.Success)?.assistUrl
     }
 
     @Composable
@@ -112,7 +112,7 @@ class MangaScreen(
         val screenModel = rememberScreenModel {
             MangaScreenModel(context, lifecycleOwner.lifecycle, mangaId, fromSource, smartSearchConfig != null)
         }
-        _screenModel = screenModel
+        cachedScreenModel = screenModel
 
         val state by screenModel.state.collectAsStateWithLifecycle()
 
