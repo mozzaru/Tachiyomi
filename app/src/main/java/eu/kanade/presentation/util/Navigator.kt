@@ -4,9 +4,9 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidableCompositionLocal
@@ -71,7 +71,7 @@ fun DefaultNavigatorScreenTransition(
         navigator = navigator,
         transition = {
             fadeIn(animationSpec = tween(100)) togetherWith
-            fadeOut(animationSpec = tween(100))
+                fadeOut(animationSpec = tween(100))
         },
         modifier = modifier,
     )
