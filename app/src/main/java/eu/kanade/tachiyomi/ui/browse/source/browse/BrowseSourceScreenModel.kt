@@ -409,6 +409,10 @@ open class BrowseSourceScreenModel(
         }
     }
 
+    fun launchNavigation(block: suspend () -> Unit) {
+        screenModelScope.launch { block() }
+    }
+
     private fun moveMangaToCategories(manga: Manga, vararg categories: Category) {
         moveMangaToCategories(manga, categories.filter { it.id != 0L }.map { it.id })
     }

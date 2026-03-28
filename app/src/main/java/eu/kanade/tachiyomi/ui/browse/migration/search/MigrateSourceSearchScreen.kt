@@ -155,7 +155,7 @@ data class MigrateSourceSearchScreen(
                     onClickTitle = { navigator.push(MangaScreen(dialog.target.id)) },
                     onDismissRequest = onDismissRequest,
                     onComplete = {
-                        scope.launch {
+                        screenModel.launchNavigation {
                             navigator.popUntilRoot()
                             HomeScreen.openTab(HomeScreen.Tab.Browse())
                             navigator.push(MangaScreen(dialog.target.id))

@@ -257,17 +257,8 @@ data class BrowseSourceScreen(
                 onLocalSourceHelpClick = onHelpClick,
                 onMangaClick = { navigator.push(MangaScreen(it.id, true, smartSearchConfig)) },
                 onMangaLongClick = { manga ->
-                    scope.launchIO {
-                        val duplicates = screenModel.getDuplicateLibraryManga(manga)
-                        when {
-                            manga.favorite -> screenModel.setDialog(BrowseSourceScreenModel.Dialog.RemoveManga(manga))
-                            duplicates.isNotEmpty() -> screenModel.setDialog(
-                                BrowseSourceScreenModel.Dialog.AddDuplicateManga(manga, duplicates),
-                            )
-                            else -> screenModel.addFavorite(manga)
-                        }
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    }
+                    screenModel.onMangaLongClick(manga)
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 },
             )
         }
