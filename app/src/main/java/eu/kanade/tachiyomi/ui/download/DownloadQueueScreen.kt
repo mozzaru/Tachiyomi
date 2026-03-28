@@ -259,14 +259,10 @@ object DownloadQueueScreen : Screen() {
 
                         ViewCompat.setNestedScrollingEnabled(screenModel.controllerBinding.root, true)
 
-                        scope.launchUI {
-                            screenModel.getDownloadStatusFlow()
-                                .collect(screenModel::onStatusChange)
-                        }
-                        scope.launchUI {
-                            screenModel.getDownloadProgressFlow()
-                                .collect(screenModel::onUpdateDownloadedPages)
-                        }
+                        screenModel.startDownloadFlowCollection(
+                            onStatusChange = screenModel::onStatusChange,
+                            onProgressChange = screenModel::onUpdateDownloadedPages,
+                        )
 
                         screenModel.controllerBinding.root
                     },
