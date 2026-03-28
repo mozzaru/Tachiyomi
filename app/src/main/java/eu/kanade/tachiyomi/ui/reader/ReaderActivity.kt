@@ -220,10 +220,15 @@ class ReaderActivity : BaseActivity() {
         binding.setComposeOverlay()
 
         if (viewModel.needsInit()) {
-            val manga = intent.extras?.getLong("manga", -1) ?: -1L
-            val chapter = intent.extras?.getLong("chapter", -1) ?: -1L
+            val manga = savedInstanceState?.getLong("manga", -1L)
+                ?.takeUnless { it == -1L }
+                ?: intent.extras?.getLong("manga", -1) ?: -1L
+            val chapter = savedInstanceState?.getLong("chapter", -1L)
+                ?.takeUnless { it == -1L }
+                ?: intent.extras?.getLong("chapter", -1) ?: -1L
             // SY -->
-            val page = intent.extras?.getInt("page", -1).takeUnless { it == -1 }
+            val page = savedInstanceState?.getInt("page", -1).takeUnless { it == -1 }
+                ?: intent.extras?.getInt("page", -1).takeUnless { it == -1 }
             // SY <--
             if (manga == -1L || chapter == -1L) {
                 finish()
@@ -484,6 +489,13 @@ class ReaderActivity : BaseActivity() {
             viewModel.updateHistory()
         }
         super.onPause()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putLong("manga", viewModel.manga?.id ?: -1L)
+        outState.putLong("chapter", viewModel.state.value.currentChapter?.chapter?.id ?: -1L)
+        outState.putInt("page", viewModel.state.value.currentPage)
     }
 
     /**
