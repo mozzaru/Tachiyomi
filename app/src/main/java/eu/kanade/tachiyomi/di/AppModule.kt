@@ -61,6 +61,7 @@ private val lock = Any()
 
 class AppModule(val app: Application) : InjektModule {
     private var sqlDriverRef: WeakReference<SqlDriver>? = null
+
     // SY -->
     private val securityPreferences: SecurityPreferences by injectLazy()
     // SY <--
