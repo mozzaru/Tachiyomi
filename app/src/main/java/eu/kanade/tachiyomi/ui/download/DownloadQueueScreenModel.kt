@@ -145,6 +145,18 @@ class DownloadQueueScreenModel(
     fun getDownloadStatusFlow() = downloadManager.statusFlow()
     fun getDownloadProgressFlow() = downloadManager.progressFlow()
 
+    fun startDownloadFlowCollection(
+        onStatusChange: (Download) -> Unit,
+        onProgressChange: (Download) -> Unit,
+    ) {
+        screenModelScope.launch {
+            getDownloadStatusFlow().collect(onStatusChange)
+        }
+        screenModelScope.launch {
+            getDownloadProgressFlow().collect(onProgressChange)
+        }
+    }
+
     fun startDownloads() {
         downloadManager.startDownloads()
     }
