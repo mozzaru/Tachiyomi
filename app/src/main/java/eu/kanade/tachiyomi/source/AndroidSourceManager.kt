@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -77,13 +78,15 @@ class AndroidSourceManager(
 
     init {
         scope.launch {
-            extensionManager.installedExtensionsFlow
-                // SY -->
-                .combine(exhPreferences.enableExhentai().changes()) { extensions, enableExhentai ->
-                    extensions to enableExhentai
-                }
-                // SY <--
-                .collectLatest { (extensions, enableExhentai) ->
+            combine(
+                extensionManager.installedExtensionsFlow,
+                extensionManager.isInitialized,
+                exhPreferences.enableExhentai().changes(),
+            ) { extensions, isInitialized, enableExhentai ->
+                Triple(extensions, isInitialized, enableExhentai)
+            }
+                .filter { it.second }
+                .collectLatest { (extensions, _, enableExhentai) ->
                     val mutableMap = ConcurrentHashMap<Long, Source>(
                         mapOf(
                             LocalSource.ID to LocalSource(

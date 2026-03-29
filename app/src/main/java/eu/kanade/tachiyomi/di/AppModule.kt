@@ -28,6 +28,10 @@ import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.source.AndroidSourceManager
 import eu.kanade.tachiyomi.util.storage.CbzCrypto
 import exh.eh.EHentaiUpdateHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
@@ -183,7 +187,7 @@ class AppModule(val app: Application) : InjektModule {
 
 fun initExpensiveComponents(app: Application) {
     // Asynchronously init expensive components for a faster cold start
-    ContextCompat.getMainExecutor(app).execute {
+    CoroutineScope(Job() + Dispatchers.IO).launch {
         Injekt.get<NetworkHelper>()
 
         Injekt.get<SourceManager>()

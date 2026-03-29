@@ -21,6 +21,7 @@ import exh.source.EH_SOURCE_ID
 import exh.source.EXH_SOURCE_ID
 import exh.source.MERGED_SOURCE_ID
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -141,7 +142,7 @@ class ExtensionManager(
      * Loads and registers the installed extensions.
      */
     private fun initExtensions() {
-        scope.launch {
+        scope.launch(Dispatchers.IO) {
             val extensions = ExtensionLoader.loadExtensions(context)
 
             installedExtensionMapFlow.value = extensions
