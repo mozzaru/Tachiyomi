@@ -141,7 +141,8 @@ internal object ExtensionLoader {
 
                 val path = it.absolutePath
                 pkgManager.getPackageArchiveInfo(path, PACKAGE_FLAGS)
-                    ?.apply { applicationInfo!!.fixBasePaths(path) }
+                    ?.apply { applicationInfo?.fixBasePaths(path)
+                    ?: return@mapNotNull null }
             }
             ?.filter { isPackageAnExtension(it) }
             ?.map { ExtensionInfo(packageInfo = it, isShared = false) }
@@ -191,7 +192,8 @@ internal object ExtensionLoader {
             context.packageManager.getPackageArchiveInfo(privateExtensionFile.absolutePath, PACKAGE_FLAGS)
                 ?.takeIf { isPackageAnExtension(it) }
                 ?.let {
-                    it.applicationInfo!!.fixBasePaths(privateExtensionFile.absolutePath)
+                    it.applicationInfo?.fixBasePaths(privateExtensionFile.absolutePath)
+                        ?: return null
                     ExtensionInfo(
                         packageInfo = it,
                         isShared = false,
@@ -226,7 +228,10 @@ internal object ExtensionLoader {
     private suspend fun loadExtension(context: Context, extensionInfo: ExtensionInfo): LoadResult {
         val pkgManager = context.packageManager
         val pkgInfo = extensionInfo.packageInfo
-        val appInfo = pkgInfo.applicationInfo!!
+        val appInfo = pkgInfo.applicationInfo ?: run {
+            logcat(LogPriority.ERROR) { "Missing applicationInfo for $pkgName" }
+            return LoadResult.Error
+        }
         val pkgName = pkgInfo.packageName
 
         val extName = pkgManager.getApplicationLabel(appInfo).toString().substringAfter("Tachiyomi: ")
@@ -243,7 +248,8 @@ internal object ExtensionLoader {
         if (libVersion == null || libVersion < LIB_VERSION_MIN || libVersion > LIB_VERSION_MAX) {
             logcat(LogPriority.WARN) {
                 "Lib version is $libVersion, while only versions " +
-                    "$LIB_VERSION_MIN to $LIB_VERSION_MAX are allowed"
+                    "$LIB_VERSION_MIN to $LIB_VERSION_MAX are allowed. " +
+                    "Extension $extName ($pkgName) needs update."
             }
             return LoadResult.Error
         }
@@ -339,9 +345,11 @@ internal object ExtensionLoader {
             shared == null && private == null -> return null
         }
 
-        return if (PackageInfoCompat.getLongVersionCode(shared!!.packageInfo) >=
-            PackageInfoCompat.getLongVersionCode(private!!.packageInfo)
-        ) {
+        return if (PackageInfoCompat.getLongVersionCode(
+            (shared ?: return private).packageInfo
+        ) >= PackageInfoCompat.getLongVersionCode(
+            (private ?: return shared).packageInfo
+        )) {
             shared
         } else {
             private

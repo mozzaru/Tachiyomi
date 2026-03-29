@@ -228,7 +228,7 @@ private fun DuplicateMangaListItem(
 
         if (!manga.author.isNullOrBlank()) {
             MangaDetailRow(
-                text = manga.author!!,
+                text = manga.author ?: "",
                 iconImageVector = Icons.Filled.PersonOutline,
                 maxLines = 2,
             )
@@ -236,7 +236,7 @@ private fun DuplicateMangaListItem(
 
         if (!manga.artist.isNullOrBlank() && manga.author != manga.artist) {
             MangaDetailRow(
-                text = manga.artist!!,
+                text = manga.artist ?: "",
                 iconImageVector = Icons.Filled.Brush,
                 maxLines = 2,
             )
@@ -371,15 +371,8 @@ private fun calculateMangaCardHeight(
 ): Dp {
     val titleHeight = textMeasurer.measureHeight(manga.title, typography.titleSmall, 2, constraints)
     val authorHeight = if (!manga.author.isNullOrBlank()) {
-        textMeasurer.measureHeight(manga.author!!, typography.bodySmall, 2, detailsConstraints)
-    } else {
-        0
-    }
-    val artistHeight = if (!manga.artist.isNullOrBlank() && manga.author != manga.artist) {
-        textMeasurer.measureHeight(manga.artist!!, typography.bodySmall, 2, detailsConstraints)
-    } else {
-        0
-    }
+        manga.author?.let { textMeasurer.measureHeight(it, typography.bodySmall, 2, detailsConstraints) } ?: 0
+        manga.artist?.let { textMeasurer.measureHeight(it, typography.bodySmall, 2, detailsConstraints) } ?: 0
     val statusHeight = textMeasurer.measureHeight("", typography.bodySmall, 2, detailsConstraints)
     val sourceHeight = textMeasurer.measureHeight("", typography.labelSmall, 1, constraints)
 

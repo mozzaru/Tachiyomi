@@ -256,11 +256,11 @@ private fun ExtensionContent(
     if (trustState != null) {
         ExtensionTrustDialog(
             onClickConfirm = {
-                onTrustExtension(trustState!!)
+                trustState?.let { onTrustExtension(it) }
                 trustState = null
             },
             onClickDismiss = {
-                onUninstallExtension(trustState!!)
+                trustState?.let { onUninstallExtension(it) }
                 trustState = null
             },
             onDismissRequest = {

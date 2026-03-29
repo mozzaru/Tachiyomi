@@ -92,7 +92,7 @@ fun SavedSearchCreateDialog(
     saveSearch: (String) -> Unit,
 ) {
     var textFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(""))
+        remember { mutableStateOf(TextFieldValue("")) }
     }
     val context = LocalContext.current
     AlertDialog(

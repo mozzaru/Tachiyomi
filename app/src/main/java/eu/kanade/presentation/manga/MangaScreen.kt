@@ -345,7 +345,7 @@ private fun MangaScreenSmallImpl(
     // SY -->
     val metadataDescription = metadataDescription(state.source)
     var maxWidth by remember {
-        mutableStateOf(Dp.Hairline)
+        remember { mutableStateOf(Dp.Hairline) }
     }
     // SY <--
 

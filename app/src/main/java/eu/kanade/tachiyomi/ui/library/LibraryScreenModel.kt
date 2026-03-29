@@ -157,6 +157,10 @@ class LibraryScreenModel(
     private var recommendationSearchJob: Job? = null
     // SY <--
 
+    // SY -->
+    val mergedMangaCache = mutableMapOf<Long, List<Manga>>()
+    // SY <--
+
     init {
         mutableState.update { state ->
             state.copy(activeCategoryIndex = libraryPreferences.lastUsedCategory().get())
@@ -649,9 +653,10 @@ class LibraryScreenModel(
                     downloadCount = if (preferences.downloadBadge) {
                         // SY -->
                         if (manga.manga.source == MERGED_SOURCE_ID) {
-                            runBlocking {
+                            val mergedList = mergedMangaCache.getOrPut(manga.manga.id) {
                                 getMergedMangaById.await(manga.manga.id)
-                            }.sumOf { downloadManager.getDownloadCount(it) }.toLong()
+                            }
+                            mergedList.sumOf { downloadManager.getDownloadCount(it) }.toLong()
                         } else {
                             downloadManager.getDownloadCount(manga.manga).toLong()
                         }
@@ -1337,7 +1342,7 @@ class LibraryScreenModel(
         val context = preferences.context
         return when (groupType) {
             LibraryGroup.BY_TRACK_STATUS -> {
-                val tracks = runBlocking { getTracks.await() }.groupBy { it.mangaId }
+                val tracks = getTracks.await().groupBy { it.mangaId }
                 groupBy { item ->
                     val status = tracks[item.libraryManga.manga.id]?.firstNotNullOfOrNull { track ->
                         TrackStatus.parseTrackerStatus(trackerManager, track.trackerId, track.status)

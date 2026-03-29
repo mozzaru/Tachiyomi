@@ -137,7 +137,7 @@ data class TrackInfoDialogHomeScreen(
                     onStatusClick = {
                         navigator.push(
                             TrackStatusSelectorScreen(
-                                track = it.track!!,
+                                track = it.track ?: return@let,
                                 serviceId = it.tracker.id,
                             ),
                         )
@@ -145,7 +145,7 @@ data class TrackInfoDialogHomeScreen(
                     onChapterClick = {
                         navigator.push(
                             TrackChapterSelectorScreen(
-                                track = it.track!!,
+                                track = it.track ?: return@let,
                                 serviceId = it.tracker.id,
                             ),
                         )
@@ -153,7 +153,7 @@ data class TrackInfoDialogHomeScreen(
                     onScoreClick = {
                         navigator.push(
                             TrackScoreSelectorScreen(
-                                track = it.track!!,
+                                track = it.track ?: return@let,
                                 serviceId = it.tracker.id,
                             ),
                         )
@@ -161,7 +161,7 @@ data class TrackInfoDialogHomeScreen(
                     onStartDateEdit = {
                         navigator.push(
                             TrackDateSelectorScreen(
-                                track = it.track!!,
+                                track = it.track ?: return@let,
                                 serviceId = it.tracker.id,
                                 start = true,
                             ),
@@ -170,7 +170,7 @@ data class TrackInfoDialogHomeScreen(
                     onEndDateEdit = {
                         navigator.push(
                             TrackDateSelectorScreen(
-                                track = it.track!!,
+                                track = it.track ?: return@let,
                                 serviceId = it.tracker.id,
                                 start = false,
                             ),
@@ -190,7 +190,7 @@ data class TrackInfoDialogHomeScreen(
                         navigator.push(
                             TrackerRemoveScreen(
                                 mangaId = mangaId,
-                                track = it.track!!,
+                                track = it.track ?: return@let,
                                 serviceId = it.tracker.id,
                             ),
                         )

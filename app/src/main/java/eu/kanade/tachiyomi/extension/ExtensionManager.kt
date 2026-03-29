@@ -68,7 +68,7 @@ class ExtensionManager(
      */
     private val installer by lazy { ExtensionInstaller(context) }
 
-    private val iconMap = mutableMapOf<String, Drawable>()
+    private val iconMap = ConcurrentHashMap<String, Drawable>()
 
     private val installedExtensionMapFlow = MutableStateFlow(emptyMap<String, Extension.Installed>())
     val installedExtensionsFlow = installedExtensionMapFlow.mapExtensions(scope)
@@ -110,9 +110,23 @@ class ExtensionManager(
         val pkgName = getExtensionPackage(sourceId)
 
         if (pkgName != null) {
-            return iconMap[pkgName] ?: iconMap.getOrPut(pkgName) {
-                ExtensionLoader.getExtensionPackageInfoFromPkgName(context, pkgName)!!.applicationInfo!!
-                    .loadIcon(context.packageManager)
+            return iconMap[pkgName] ?: run {
+                val pkgInfo = ExtensionLoader.getExtensionPackageInfoFromPkgName(context, pkgName)
+                val appInfo = pkgInfo?.applicationInfo
+                if (appInfo != null) {
+                    val icon = appInfo.loadIcon(context.packageManager)
+                    iconMap[pkgName] = icon
+                    icon
+                } else {
+                    // SY -->
+                    when (sourceId) {
+                        EH_SOURCE_ID -> ContextCompat.getDrawable(context, R.mipmap.ic_ehentai_source)
+                        EXH_SOURCE_ID -> ContextCompat.getDrawable(context, R.mipmap.ic_exhentai_source)
+                        MERGED_SOURCE_ID -> ContextCompat.getDrawable(context, R.mipmap.ic_merged_source)
+                        else -> null
+                    }
+                    // SY <--
+                }
             }
         }
 

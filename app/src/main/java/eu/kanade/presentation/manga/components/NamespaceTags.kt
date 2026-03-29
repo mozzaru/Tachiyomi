@@ -212,7 +212,8 @@ fun NamespaceTagsPreview() {
                                 ),
                             ),
                         )
-                    }.let { SearchMetadataChips(it, EXH_SOURCE_ID, emptyList()) }!!
+                    }.let { SearchMetadataChips(it, EXH_SOURCE_ID, emptyList()) }
+                        ?: return
                 },
                 onClick = {},
             )

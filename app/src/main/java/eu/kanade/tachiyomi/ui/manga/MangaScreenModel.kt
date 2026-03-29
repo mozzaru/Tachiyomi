@@ -1613,7 +1613,8 @@ class MangaScreenModel(
                 trackerManager.loggedInTrackersFlow(),
             ) { mangaTracks, loggedInTrackers ->
                 // Show only if the service supports this manga's source
-                val supportedTrackers = loggedInTrackers.filter { (it as? EnhancedTracker)?.accept(source!!) ?: true }
+                val currentSource = source ?: return
+                val supportedTrackers = loggedInTrackers.filter { (it as? EnhancedTracker)?.accept(currentSource) ?: true }
                 val supportedTrackerIds = supportedTrackers.map { it.id }.toHashSet()
                 val supportedTrackerTracks = mangaTracks.filter { it.trackerId in supportedTrackerIds }
                 // SY -->
@@ -1639,12 +1640,12 @@ class MangaScreenModel(
 
     // SY -->
     private suspend fun createMdListTrack(): Track {
-        val state = successState!!
+        val state = successState ?: return
         val mdManga = state.manga.takeIf { it.source in mangaDexSourceIds }
             ?: state.mergedData?.manga?.values?.find { it.source in mangaDexSourceIds }
             ?: throw IllegalArgumentException("Could not create initial track")
         val track = trackerManager.mdList.createInitialTracker(state.manga, mdManga)
-            .toDomainTrack(false)!!
+            .toDomainTrack(false) ?: throw IllegalStateException("Failed to convert track")
         insertTrack.await(track)
         return getTracks.await(mangaId).first { it.trackerId == trackerManager.mdList.id }
     }

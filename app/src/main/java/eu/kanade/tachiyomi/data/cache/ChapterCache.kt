@@ -41,7 +41,7 @@ class ChapterCache(
 ) {
 
     // --> EH
-    private val scope = CoroutineScope(Job() + Dispatchers.Main)
+    private val scope = CoroutineScope(Job() + Dispatchers.IO)
 
     /** Cache class used for cache management.  */
     private var diskCache = setupDiskCache(readerPreferences.cacheSize().get().toLong())

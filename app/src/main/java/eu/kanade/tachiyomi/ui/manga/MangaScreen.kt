@@ -314,9 +314,9 @@ class MangaScreen(
                         sm.editCover(context, it)
                     }
                     MangaCoverDialog(
-                        manga = manga!!,
+                        manga = manga ?: return,
                         snackbarHostState = sm.snackbarHostState,
-                        isCustomCover = remember(manga) { manga!!.hasCustomCover() },
+                        isCustomCover = remember(manga) { manga?.hasCustomCover() == true },
                         onShareClick = { sm.shareCover(context) },
                         onSaveClick = { sm.saveCover(context) },
                         onEditClick = {
@@ -523,7 +523,9 @@ class MangaScreen(
         launchUI {
             try {
                 val mergedManga = withNonCancellableContext {
-                    smartSearchMerge(manga, smartSearchConfig?.origMangaId!!)
+                    val origMangaId = smartSearchConfig?.origMangaId 
+                        ?: return@launch
+                        smartSearchMerge(manga, origMangaId)
                 }
 
                 navigator.popUntil { it is SourcesScreen }

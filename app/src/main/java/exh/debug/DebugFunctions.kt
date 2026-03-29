@@ -55,7 +55,7 @@ object DebugFunctions {
         val migrationJobFactory = MigrationJobFactory(migrationContext, Migrator.scope)
         val migrationStrategyFactory = MigrationStrategyFactory(migrationJobFactory, {})
         val strategy = migrationStrategyFactory.create(1, BuildConfig.VERSION_CODE)
-        return runBlocking { strategy(migrations).await() }
+        return strategy(migrations).await()
     }
 
     fun forceSetupJobs(): Boolean {

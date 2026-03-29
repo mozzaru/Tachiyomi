@@ -142,7 +142,10 @@ open class SourceFeedScreenModel(
                 },
                 SourceFeedUI.Browse(null),
             ) + feedSavedSearch
-                .map { SourceFeedUI.SourceSavedSearch(it, savedSearches[it.savedSearch]!!, null) }
+                .mapNotNull { feedSavedSearch ->
+                    val search = savedSearches[feedSavedSearch.savedSearch] ?: return@mapNotNull null
+                    SourceFeedUI.SourceSavedSearch(feedSavedSearch, search, null)
+                }
             )
             .toImmutableList()
     }

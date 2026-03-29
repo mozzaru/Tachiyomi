@@ -87,7 +87,7 @@ fun WebViewScreenContent(
         )
     }
 
-    val currentWindow = windowStack.lastItemOrNull!!
+    val currentWindow = windowStack.lastItemOrNull ?: return
     val navigator = currentWindow.navigator
 
     val uriHandler = LocalUriHandler.current

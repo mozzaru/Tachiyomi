@@ -181,7 +181,11 @@ class AndroidSourceManager(
 
     override fun getOrStub(sourceKey: Long): Source {
         return sourcesMapFlow.value[sourceKey] ?: stubSourcesMap.getOrPut(sourceKey) {
-            runBlocking { createStubSource(sourceKey) }
+            StubSource(
+                id = sourceKey,
+                lang = "",
+                name = sourceKey.toString(),
+            )
         }
     }
 

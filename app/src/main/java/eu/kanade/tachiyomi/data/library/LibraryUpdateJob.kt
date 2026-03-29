@@ -455,7 +455,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
         // may don't like it and they could ban the user.
         // SY -->
         if (manga.source == MERGED_SOURCE_ID) {
-            val downloadingManga = runBlocking { getMergedMangaForDownloading.await(manga.id) }
+            val downloadingManga = getMergedMangaForDownloading.await(manga.id)
                 .associateBy { it.id }
             chapters.groupBy { it.mangaId }
                 .forEach {

@@ -215,7 +215,8 @@ class DownloadQueueScreenModel(
                 delay(50)
             }
 
-            val progressFlows = download.pages!!.map(Page::progressFlow)
+            val progressFlows = download.pages?.map(Page::progressFlow)
+                ?: return@map null
             combine(progressFlows, Array<Int>::sum)
                 .distinctUntilChanged()
                 .debounce(50)

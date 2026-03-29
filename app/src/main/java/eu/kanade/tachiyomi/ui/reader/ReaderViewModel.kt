@@ -367,11 +367,14 @@ class ReaderViewModel @JvmOverloads constructor(
                         null
                     }
                     val mergedReferences = if (source is MergedSource) {
-                        runBlocking {
-                            getMergedReferencesById.await(manga.id)
-                        }
+                        getMergedReferencesById.await(manga.id)
                     } else {
                         emptyList()
+                    }
+                    val mergedManga = if (source is MergedSource) {
+                        getMergedMangaById.await(manga.id).associateBy { it.id }
+                    } else {
+                        emptyMap()
                     }
                     val mergedManga = if (source is MergedSource) {
                         runBlocking {
