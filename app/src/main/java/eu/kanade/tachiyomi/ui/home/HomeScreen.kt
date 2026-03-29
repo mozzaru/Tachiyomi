@@ -29,6 +29,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -160,6 +161,11 @@ object HomeScreen : Screen() {
             val goToLibraryTab = { tabNavigator.current = LibraryTab }
 
             BackHandler(enabled = tabNavigator.current != LibraryTab, onBack = goToLibraryTab)
+
+            val context = LocalContext.current
+            BackHandler(enabled = tabNavigator.current == LibraryTab) {
+                (context as? android.app.Activity)?.moveTaskToBack(true)
+            }
 
             LaunchedEffect(Unit) {
                 launch {

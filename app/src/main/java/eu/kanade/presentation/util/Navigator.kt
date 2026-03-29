@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.ScreenModelStore
 import cafe.adriel.voyager.core.screen.Screen
@@ -97,5 +98,15 @@ fun ScreenTransition(
         }
     }
 
-    BackHandler(enabled = navigator.canPop, onBack = navigator::pop)
+    val context = LocalContext.current
+    BackHandler(
+        enabled = true,
+        onBack = {
+            if (navigator.canPop) {
+                navigator.pop()
+            } else {
+                (context as? android.app.Activity)?.moveTaskToBack(true)
+            }
+        },
+    )
 }
