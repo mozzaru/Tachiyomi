@@ -28,7 +28,11 @@ import eu.kanade.tachiyomi.util.system.cancelNotification
 import eu.kanade.tachiyomi.util.system.getBitmapOrNull
 import eu.kanade.tachiyomi.util.system.notificationBuilder
 import eu.kanade.tachiyomi.util.system.notify
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import tachiyomi.core.common.Constants
 import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.core.common.i18n.stringResource
@@ -211,16 +215,19 @@ class LibraryUpdateNotifier(
 
         // Per-manga notification
         if (!securityPreferences.hideNotificationContent().get()) {
-            launchUI {
-                context.notify(
-                    updates.map { (manga, chapters) ->
-                        NotificationManagerCompat.NotificationWithIdAndTag(
-                            manga.id.hashCode(),
-                            createNewChaptersNotification(manga, chapters),
-                        )
-                    },
-                )
+            // SY -->
+            CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+                val notifications = updates.map { (manga, chapters) ->
+                    NotificationManagerCompat.NotificationWithIdAndTag(
+                        manga.id.hashCode(),
+                        createNewChaptersNotification(manga, chapters),
+                    )
+                }
+                launchUI {
+                    context.notify(notifications)
+                }
             }
+            // SY <--
         }
     }
 
