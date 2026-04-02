@@ -212,7 +212,8 @@ class HistoryScreenModel(
             }
 
             // Sync with tracking services if applicable
-            addTracks.bindEnhancedTrackers(manga, sourceManager.getOrStub(manga.source))
+            val source = sourceManager.getOrStub(manga.source)
+            addTracks.bindEnhancedTrackers(manga, source)
         }
     }
 

@@ -69,6 +69,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import logcat.LogPriority
 import mihon.feature.migration.config.MigrationConfigScreen
 import mihon.feature.migration.dialog.MigrateMangaDialog
@@ -482,7 +483,7 @@ class MangaScreen(
     private fun openMergedMangaWebview(context: Context, navigator: Navigator, mergedMangaData: MergedMangaData) {
         val sourceManager: SourceManager = Injekt.get()
         val mergedManga = mergedMangaData.manga.values.filterNot { it.source == MERGED_SOURCE_ID }
-        val sources = mergedManga.map { sourceManager.getOrStub(it.source) }
+        val sources = mergedManga.map { sourceManager.get(it.source) ?: runBlocking { sourceManager.getOrStub(it.source) } }
         MaterialAlertDialogBuilder(context)
             .setTitle(MR.strings.action_open_in_web_view.getString(context))
             .setSingleChoiceItems(

@@ -210,7 +210,7 @@ class ReaderViewModel @JvmOverloads constructor(
                 getChaptersByMangaId.await(manga.id, applyScanlatorFilter = true) to null
             }
 
-        fun isChapterDownloaded(chapter: Chapter): Boolean {
+        suspend fun isChapterDownloaded(chapter: Chapter): Boolean {
             val chapterManga = mangaMap?.get(chapter.mangaId) ?: manga
             return downloadManager.isChapterDownloaded(
                 chapterName = chapter.name,
@@ -330,6 +330,9 @@ class ReaderViewModel @JvmOverloads constructor(
                 downloadManager.addDownloadsToStartOfQueue(listOf(it))
             }
         }
+        chapterListCache?.forEach { it.unref() }
+        chapterListCache = null
+        unfilteredChapterListCache = null
     }
 
     /**
@@ -367,16 +370,12 @@ class ReaderViewModel @JvmOverloads constructor(
                         null
                     }
                     val mergedReferences = if (source is MergedSource) {
-                        runBlocking {
-                            getMergedReferencesById.await(manga.id)
-                        }
+                        getMergedReferencesById.await(mangaId)
                     } else {
                         emptyList()
                     }
                     val mergedManga = if (source is MergedSource) {
-                        runBlocking {
-                            getMergedMangaById.await(manga.id)
-                        }.associateBy { it.id }
+                        getMergedMangaById.await(manga.id).associateBy { it.id }
                     } else {
                         emptyMap()
                     }
@@ -833,7 +832,7 @@ class ReaderViewModel @JvmOverloads constructor(
         return state.value.currentChapter
     }
 
-    fun getSource() = manga?.source?.let { sourceManager.getOrStub(it) } as? HttpSource
+    fun getSource() = manga?.source?.let { sourceManager.get(it) ?: runBlocking { sourceManager.getOrStub(it) } } as? HttpSource
 
     fun getChapterUrl(): String? {
         val sChapter = getCurrentChapter()?.chapter ?: return null

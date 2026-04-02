@@ -13,7 +13,7 @@ interface SourceManager {
 
     fun get(sourceKey: Long): Source?
 
-    fun getOrStub(sourceKey: Long): Source
+    suspend fun getOrStub(sourceKey: Long): Source
 
     fun getOnlineSources(): List<HttpSource>
 

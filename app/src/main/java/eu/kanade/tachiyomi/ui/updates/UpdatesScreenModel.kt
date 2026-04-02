@@ -169,7 +169,7 @@ class UpdatesScreenModel(
         }
     }
 
-    private fun List<UpdatesWithRelations>.toUpdateItems(): List<UpdatesItem> {
+    private suspend fun List<UpdatesWithRelations>.toUpdateItems(): List<UpdatesItem> {
         return this
             .map { update ->
                 val activeDownload = downloadManager.getQueuedDownloadOrNull(update.chapterId)

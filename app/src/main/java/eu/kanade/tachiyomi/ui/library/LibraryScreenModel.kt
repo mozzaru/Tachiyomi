@@ -97,7 +97,9 @@ import tachiyomi.domain.library.model.sort
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.interactor.GetIdsOfFavoriteMangaWithMetadata
 import tachiyomi.domain.manga.interactor.GetLibraryManga
+import tachiyomi.domain.manga.interactor.GetMergedManga
 import tachiyomi.domain.manga.interactor.GetMergedMangaById
+import tachiyomi.domain.manga.interactor.GetMergedMangaForDownloading
 import tachiyomi.domain.manga.interactor.GetSearchTags
 import tachiyomi.domain.manga.interactor.GetSearchTitles
 import tachiyomi.domain.manga.interactor.SetCustomMangaInfo
@@ -145,6 +147,8 @@ class LibraryScreenModel(
     private val searchEngine: SearchEngine = Injekt.get(),
     private val setCustomMangaInfo: SetCustomMangaInfo = Injekt.get(),
     private val getMergedChaptersByMangaId: GetMergedChaptersByMangaId = Injekt.get(),
+    private val getMergedManga: GetMergedManga = Injekt.get<GetMergedManga>(),
+    private val getMergedMangaForDownloading: GetMergedMangaForDownloading = Injekt.get<GetMergedMangaForDownloading>(),
 
     syncPreferences: SyncPreferences = Injekt.get(),
     // SY <--
@@ -233,6 +237,7 @@ class LibraryScreenModel(
                             data.showSystemCategory,
                             // SY -->
                             groupType,
+                            data.tracksMap,
                             // SY <--
                         )
                         .applySort(
@@ -433,6 +438,7 @@ class LibraryScreenModel(
         showSystemCategory: Boolean,
         // SY -->
         groupType: Int,
+        tracksMap: Map<Long, List<Track>>,
         // <-- SY
     ): Map<Category, List</* LibraryItem */ Long>> {
         // SY -->
@@ -465,6 +471,7 @@ class LibraryScreenModel(
             else -> {
                 return getGroupedMangaItems(
                     groupType = groupType,
+                    tracksMap = tracksMap,
                 )
             }
         }
@@ -642,16 +649,18 @@ class LibraryScreenModel(
             getLibraryManga.subscribe(),
             getLibraryItemPreferencesFlow(),
             downloadCache.changes,
-        ) { libraryManga, preferences, _ ->
+            getMergedManga.subscribe(),
+            getMergedMangaForDownloading.subscribe(),
+        ) { libraryManga, preferences, _, mergedManga, mergedMangaForDownloading ->
+            val mergedMangaMap = (mergedManga + mergedMangaForDownloading).distinctBy { it.id }.groupBy { it.id }
             libraryManga.map { manga ->
                 LibraryItem(
                     libraryManga = manga,
                     downloadCount = if (preferences.downloadBadge) {
                         // SY -->
                         if (manga.manga.source == MERGED_SOURCE_ID) {
-                            runBlocking {
-                                getMergedMangaById.await(manga.manga.id)
-                            }.sumOf { downloadManager.getDownloadCount(it) }.toLong()
+                            mergedMangaMap[manga.manga.id].orEmpty()
+                                .sumOf { downloadManager.getDownloadCount(it) }.toLong()
                         } else {
                             downloadManager.getDownloadCount(manga.manga).toLong()
                         }
@@ -670,7 +679,7 @@ class LibraryScreenModel(
                         false
                     },
                     sourceLanguage = if (preferences.languageBadge) {
-                        sourceManager.getOrStub(manga.manga.source).lang
+                        sourceManager.get(manga.manga.source)?.lang ?: ""
                     } else {
                         ""
                     },
@@ -953,7 +962,7 @@ class LibraryScreenModel(
                             val mergedMangas = getMergedMangaById.await(manga.id)
                             val sources = mergedMangas.distinctBy {
                                 it.source
-                            }.map { sourceManager.getOrStub(it.source) }
+                            }.map { sourceManager.get(it.source) ?: runBlocking { sourceManager.getOrStub(it.source) } }
                             mergedMangas.forEach merge@{ mergedManga ->
                                 val mergedSource =
                                     sources.firstOrNull { mergedManga.source == it.id } as? HttpSource ?: return@merge
@@ -1333,13 +1342,13 @@ class LibraryScreenModel(
 
     private fun List<LibraryItem>.getGroupedMangaItems(
         groupType: Int,
+        tracksMap: Map<Long, List<Track>>,
     ): Map<Category, List</* LibraryItem */ Long>> {
         val context = preferences.context
         return when (groupType) {
             LibraryGroup.BY_TRACK_STATUS -> {
-                val tracks = runBlocking { getTracks.await() }.groupBy { it.mangaId }
                 groupBy { item ->
-                    val status = tracks[item.libraryManga.manga.id]?.firstNotNullOfOrNull { track ->
+                    val status = tracksMap[item.libraryManga.manga.id]?.firstNotNullOfOrNull { track ->
                         TrackStatus.parseTrackerStatus(trackerManager, track.trackerId, track.status)
                     } ?: TrackStatus.OTHER
 
@@ -1366,7 +1375,7 @@ class LibraryScreenModel(
                 }.also {
                     sources = it.keys
                         .map {
-                            sourceManager.getOrStub(it)
+                            sourceManager.get(it) ?: runBlocking { sourceManager.getOrStub(it) }
                         }
                         .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name.ifBlank { it.id.toString() } })
                         .map { it.id }
@@ -1376,7 +1385,7 @@ class LibraryScreenModel(
                         name = if (it.key == LocalSource.ID) {
                             context.stringResource(MR.strings.local_source)
                         } else {
-                            val source = sourceManager.getOrStub(it.key)
+                            val source = sourceManager.get(it.key) ?: runBlocking { sourceManager.getOrStub(it.key) }
                             source.name.ifBlank { source.id.toString() }
                         },
                         order = sources.indexOf(it.key).takeUnless { it == -1 }?.toLong() ?: Long.MAX_VALUE,
@@ -1447,6 +1456,11 @@ class LibraryScreenModel(
                 },
             )
         }
+    }
+
+    override fun onDispose() {
+        super.onDispose()
+        favoritesSync.dispose()
     }
 // SY <--
 

@@ -179,6 +179,13 @@ class MainActivity : BaseActivity() {
             LaunchedEffect(Unit) {
                 addAnalytics()
                 didMigration = Migrator.awaitAndRelease()
+
+                // SY -->
+                firstPaint = true
+                while (iuuQueue.isNotEmpty()) {
+                    iuuQueue.poll()?.invoke()
+                }
+                // SY <--
             }
 
             val context = LocalContext.current

@@ -37,6 +37,14 @@ FROM (
 JOIN mangas
 ON mangas._id = M.manga_id;
 
+selectAllMergedMangasForDownloading:
+SELECT mangas.*
+FROM (
+    SELECT manga_id FROM merged WHERE download_chapters = 1
+) AS M
+JOIN mangas
+ON mangas._id = M.manga_id;
+
 selectMergedMangasForDownloadingById:
 SELECT mangas.*
 FROM (

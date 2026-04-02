@@ -118,9 +118,8 @@ class AndroidSourceManager(
         scope.launch {
             sourceRepository.subscribeAll()
                 .collectLatest { sources ->
-                    val mutableMap = stubSourcesMap.toMutableMap()
                     sources.forEach {
-                        mutableMap[it.id] = it
+                        stubSourcesMap[it.id] = it
                     }
                 }
         }
@@ -179,10 +178,8 @@ class AndroidSourceManager(
         return sourcesMapFlow.value[sourceKey]
     }
 
-    override fun getOrStub(sourceKey: Long): Source {
-        return sourcesMapFlow.value[sourceKey] ?: stubSourcesMap.getOrPut(sourceKey) {
-            runBlocking { createStubSource(sourceKey) }
-        }
+    override suspend fun getOrStub(sourceKey: Long): Source {
+        return sourcesMapFlow.value[sourceKey] ?: stubSourcesMap[sourceKey] ?: createStubSource(sourceKey)
     }
 
     override fun getOnlineSources() = sourcesMapFlow.value.values.filterIsInstance<HttpSource>()
@@ -227,13 +224,17 @@ class AndroidSourceManager(
 
     private suspend fun createStubSource(id: Long): StubSource {
         sourceRepository.getStubSource(id)?.let {
+            stubSourcesMap[id] = it
             return it
         }
         extensionManager.getSourceData(id)?.let {
             registerStubSource(it)
+            stubSourcesMap[id] = it
             return it
         }
-        return StubSource(id = id, lang = "", name = "")
+        return StubSource(id = id, lang = "", name = "").also {
+            stubSourcesMap[id] = it
+        }
     }
 
     // SY -->

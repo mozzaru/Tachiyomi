@@ -63,6 +63,7 @@ import eu.kanade.presentation.more.settings.LocalPreferenceMinHeight
 import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.SManga
+import kotlinx.coroutines.runBlocking
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MangaWithChapterCount
 import tachiyomi.domain.source.model.StubSource
@@ -127,7 +128,7 @@ fun DuplicateMangaDialog(
                 ) {
                     DuplicateMangaListItem(
                         duplicate = it,
-                        getSource = { sourceManager.getOrStub(it.manga.source) },
+                        getSource = { sourceManager.get(it.manga.source) ?: runBlocking { sourceManager.getOrStub(it.manga.source) } },
                         onMigrate = { onMigrate(it.manga) },
                         onDismissRequest = onDismissRequest,
                         onOpenManga = { onOpenManga(it.manga) },

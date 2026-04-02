@@ -147,8 +147,8 @@ class BackupCreator(
         return mangaBackupCreator(mangas, options)
     }
 
-    fun backupSources(mangas: List<BackupManga>): List<BackupSource> {
-        return sourcesBackupCreator(mangas)
+    suspend fun backupSources(mangas: List<BackupManga>): List<BackupSource> {
+        return sourcesBackupCreator.invoke(mangas)
     }
 
     fun backupAppPreferences(options: BackupOptions): List<BackupPreference> {

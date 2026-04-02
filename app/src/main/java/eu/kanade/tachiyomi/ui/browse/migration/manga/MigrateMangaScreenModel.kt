@@ -35,8 +35,9 @@ class MigrateMangaScreenModel(
 
     init {
         screenModelScope.launch {
+            val source = sourceManager.getOrStub(sourceId)
             mutableState.update { state ->
-                state.copy(source = sourceManager.getOrStub(sourceId))
+                state.copy(source = source)
             }
 
             getFavorites.subscribe(sourceId)

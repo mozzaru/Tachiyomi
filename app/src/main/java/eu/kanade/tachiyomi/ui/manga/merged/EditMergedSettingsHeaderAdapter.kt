@@ -95,7 +95,7 @@ class EditMergedSettingsHeaderAdapter(private val state: EditMergedSettingsState
                 itemView.context,
                 android.R.layout.simple_spinner_item,
                 mergedMangas.map {
-                    sourceManager.getOrStub(it.second.mangaSourceId).toString() + " " + it.first?.title
+                    (sourceManager.get(it.second.mangaSourceId) ?: it.second.mangaSourceId).toString() + " " + it.first?.title
                 },
             )
             mangaInfoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)

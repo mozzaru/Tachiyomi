@@ -29,6 +29,7 @@ import eu.kanade.tachiyomi.source.online.MetadataSource
 import eu.kanade.tachiyomi.source.online.all.MangaDex
 import eu.kanade.tachiyomi.util.removeCovers
 import exh.metadata.metadata.RaisedSearchMetadata
+import exh.recs.batch.RecommendationSearchHelper
 import exh.source.ExhPreferences
 import exh.source.getMainSource
 import exh.source.mangaDexSourceIds
@@ -109,12 +110,14 @@ open class BrowseSourceScreenModel(
     private val deleteSavedSearchById: DeleteSavedSearchById = Injekt.get(),
     private val insertSavedSearch: InsertSavedSearch = Injekt.get(),
     private val getExhSavedSearch: GetExhSavedSearch = Injekt.get(),
+    // SY -->
+    private val recommendationSearch: RecommendationSearchHelper = Injekt.get(),
     // SY <--
 ) : StateScreenModel<BrowseSourceScreenModel.State>(State(Listing.valueOf(listingQuery))) {
 
     var displayMode by sourcePreferences.sourceDisplayMode().asState(screenModelScope)
 
-    val source = sourceManager.getOrStub(sourceId)
+    val source = runBlocking { sourceManager.get(sourceId) ?: sourceManager.getOrStub(sourceId) }
 
     // SY -->
     val ehentaiBrowseDisplayMode by exhPreferences.enhancedEHentaiView().asState(screenModelScope)
@@ -127,52 +130,54 @@ open class BrowseSourceScreenModel(
     // SY <--
 
     init {
-        if (source is CatalogueSource) {
-            mutableState.update {
-                var query: String? = null
-                var listing = it.listing
+        screenModelScope.launch {
+            if (source is CatalogueSource) {
+                mutableState.update {
+                    var query: String? = null
+                    var listing = it.listing
 
-                if (listing is Listing.Search) {
-                    query = listing.query
-                    listing = Listing.Search(query, source.getFilterList())
+                    if (listing is Listing.Search) {
+                        query = listing.query
+                        listing = Listing.Search(query, source.getFilterList())
+                    }
+
+                    it.copy(
+                        listing = listing,
+                        filters = source.getFilterList(),
+                        toolbarQuery = query,
+                    )
                 }
-
-                it.copy(
-                    listing = listing,
-                    filters = source.getFilterList(),
-                    toolbarQuery = query,
-                )
             }
-        }
 
-        if (!getIncognitoState.await(source.id)) {
-            sourcePreferences.lastUsedSource().set(source.id)
-        }
-
-        // SY -->
-        val savedSearchFilters = savedSearch
-        val jsonFilters = filtersJson
-        val filters = state.value.filters
-        if (savedSearchFilters != null) {
-            val savedSearch = runBlocking { getExhSavedSearch.awaitOne(savedSearchFilters) { filters } }
-            if (savedSearch != null) {
-                search(query = savedSearch.query, filters = savedSearch.filterList)
+            if (!getIncognitoState.await(source.id)) {
+                sourcePreferences.lastUsedSource().set(source.id)
             }
-        } else if (jsonFilters != null) {
-            runCatching {
-                val filtersJson = Json.decodeFromString<JsonArray>(jsonFilters)
-                filterSerializer.deserialize(filters, filtersJson)
-                search(filters = filters)
-            }
-        }
 
-        if (source is CatalogueSource) {
-            getExhSavedSearch.subscribe(source.id, source::getFilterList)
-                .map { it.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER, EXHSavedSearch::name)) }
-                .onEach { savedSearches ->
-                    mutableState.update { it.copy(savedSearches = savedSearches.toImmutableList()) }
+            // SY -->
+            val savedSearchFilters = savedSearch
+            val jsonFilters = filtersJson
+            val filters = state.value.filters
+            if (savedSearchFilters != null) {
+                val savedSearch = getExhSavedSearch.awaitOne(savedSearchFilters) { filters }
+                if (savedSearch != null) {
+                    search(query = savedSearch.query, filters = savedSearch.filterList)
                 }
-                .launchIn(screenModelScope)
+            } else if (jsonFilters != null) {
+                runCatching {
+                    val filtersJson = Json.decodeFromString<JsonArray>(jsonFilters)
+                    filterSerializer.deserialize(filters, filtersJson)
+                    search(filters = filters)
+                }
+            }
+
+            if (source is CatalogueSource) {
+                getExhSavedSearch.subscribe(source.id, source::getFilterList)
+                    .map { it.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER, EXHSavedSearch::name)) }
+                    .onEach { savedSearches ->
+                        mutableState.update { it.copy(savedSearches = savedSearches.toImmutableList()) }
+                    }
+                    .launchIn(screenModelScope)
+            }
         }
         // SY <--
     }
@@ -553,6 +558,11 @@ open class BrowseSourceScreenModel(
                 ?: return@launchIO
             onRandomFound(random)
         }
+    }
+
+    override fun onDispose() {
+        super.onDispose()
+        recommendationSearch.dispose()
     }
     // EXH <--
 }

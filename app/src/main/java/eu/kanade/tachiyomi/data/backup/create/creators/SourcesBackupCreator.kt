@@ -11,14 +11,13 @@ class SourcesBackupCreator(
     private val sourceManager: SourceManager = Injekt.get(),
 ) {
 
-    operator fun invoke(mangas: List<BackupManga>): List<BackupSource> {
+    suspend fun invoke(mangas: List<BackupManga>): List<BackupSource> {
         return mangas
             .asSequence()
             .map(BackupManga::source)
             .distinct()
-            .map(sourceManager::getOrStub)
-            .map { it.toBackupSource() }
             .toList()
+            .map { sourceManager.getOrStub(it).toBackupSource() }
     }
 }
 

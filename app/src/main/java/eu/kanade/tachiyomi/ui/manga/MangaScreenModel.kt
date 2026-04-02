@@ -84,6 +84,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import logcat.LogPriority
 import mihon.domain.chapter.interactor.FilterChaptersForDownload
 import tachiyomi.core.common.i18n.stringResource
@@ -314,7 +315,7 @@ class MangaScreenModel(
                                 references,
                                 manga.associateBy { it.id },
                                 references.map { it.mangaSourceId }.distinct()
-                                    .map { sourceManager.getOrStub(it) },
+                                    .map { sourceManager.get(it) ?: runBlocking { sourceManager.getOrStub(it) } },
                             )
                         } else {
                             null
@@ -388,7 +389,7 @@ class MangaScreenModel(
                     references,
                     getMergedMangaById.await(mangaId).associateBy { it.id },
                     references.map { it.mangaSourceId }.distinct()
-                        .map { sourceManager.getOrStub(it) },
+                        .map { sourceManager.get(it) ?: runBlocking { sourceManager.getOrStub(it) } },
                 )
             }
             val chapters = (
@@ -412,8 +413,8 @@ class MangaScreenModel(
             val needRefreshChapter = chapters.isEmpty()
 
             // Show what we have earlier
+            val source = sourceManager.getOrStub(manga.source)
             mutableState.update {
-                val source = sourceManager.getOrStub(manga.source)
                 State.Success(
                     manga = manga,
                     source = source,
@@ -871,7 +872,7 @@ class MangaScreenModel(
         val state = successState ?: return
         // SY -->
         if (state.source is MergedSource) {
-            val mergedManga = state.mergedData?.manga?.map { it.value to sourceManager.getOrStub(it.value.source) }
+            val mergedManga = state.mergedData?.manga?.map { it.value to (sourceManager.get(it.value.source) ?: runBlocking { sourceManager.getOrStub(it.value.source) }) }
             mergedManga?.forEach { (manga, source) ->
                 downloadManager.deleteManga(manga, source)
             }
@@ -996,7 +997,7 @@ class MangaScreenModel(
         }
     }
 
-    private fun List<Chapter>.toChapterListItems(
+    private suspend fun List<Chapter>.toChapterListItems(
         manga: Manga,
         mergedData: MergedMangaData?,
     ): List<ChapterList.Item> {

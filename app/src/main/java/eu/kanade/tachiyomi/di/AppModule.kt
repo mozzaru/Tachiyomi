@@ -1,7 +1,6 @@
 package eu.kanade.tachiyomi.di
 
 import android.app.Application
-import androidx.core.content.ContextCompat
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import app.cash.sqldelight.db.SqlDriver
@@ -28,6 +27,9 @@ import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.source.AndroidSourceManager
 import eu.kanade.tachiyomi.util.storage.CbzCrypto
 import exh.eh.EHentaiUpdateHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
@@ -61,6 +63,7 @@ private val lock = Any()
 
 class AppModule(val app: Application) : InjektModule {
     private var sqlDriverRef: WeakReference<SqlDriver>? = null
+
     // SY -->
     private val securityPreferences: SecurityPreferences by injectLazy()
     // SY <--
@@ -183,7 +186,7 @@ class AppModule(val app: Application) : InjektModule {
 
 fun initExpensiveComponents(app: Application) {
     // Asynchronously init expensive components for a faster cold start
-    ContextCompat.getMainExecutor(app).execute {
+    CoroutineScope(Dispatchers.IO).launch {
         Injekt.get<NetworkHelper>()
 
         Injekt.get<SourceManager>()
