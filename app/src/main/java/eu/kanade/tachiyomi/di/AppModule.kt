@@ -35,6 +35,7 @@ import nl.adaptivity.xmlutil.core.XmlVersion
 import nl.adaptivity.xmlutil.serialization.XML
 import tachiyomi.core.common.storage.AndroidStorageFolderProvider
 import tachiyomi.core.common.storage.UniFileTempFileManager
+import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.data.AndroidDatabaseHandler
 import tachiyomi.data.Database
 import tachiyomi.data.DatabaseHandler
@@ -45,7 +46,6 @@ import tachiyomi.data.StringListColumnAdapter
 import tachiyomi.data.UpdateStrategyColumnAdapter
 import tachiyomi.domain.manga.interactor.GetCustomMangaInfo
 import tachiyomi.domain.source.service.SourceManager
-import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.source.local.image.LocalCoverManager
 import tachiyomi.source.local.io.LocalSourceFileSystem
@@ -61,6 +61,7 @@ private val lock = Any()
 
 class AppModule(val app: Application) : InjektModule {
     private var sqlDriverRef: WeakReference<SqlDriver>? = null
+
     // SY -->
     private val securityPreferences: SecurityPreferences by injectLazy()
     // SY <--
