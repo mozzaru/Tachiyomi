@@ -19,7 +19,7 @@ class GetMergedMangaById(
         }
     }
 
-    suspend fun subscribe(id: Long): Flow<List<Manga>> {
+    fun subscribe(id: Long): Flow<List<Manga>> {
         return mangaMergeRepository.subscribeMergedMangaById(id)
     }
 }

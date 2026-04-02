@@ -73,7 +73,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
-import kotlinx.coroutines.runBlocking
 import mihon.core.common.utils.mutate
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.CheckboxState
@@ -233,6 +232,7 @@ class LibraryScreenModel(
                             data.showSystemCategory,
                             // SY -->
                             groupType,
+                            data.tracksMap,
                             // SY <--
                         )
                         .applySort(
@@ -433,6 +433,7 @@ class LibraryScreenModel(
         showSystemCategory: Boolean,
         // SY -->
         groupType: Int,
+        tracks: Map<Long, List<Track>>,
         // <-- SY
     ): Map<Category, List</* LibraryItem */ Long>> {
         // SY -->
@@ -465,6 +466,7 @@ class LibraryScreenModel(
             else -> {
                 return getGroupedMangaItems(
                     groupType = groupType,
+                    tracks = tracks,
                 )
             }
         }
@@ -649,9 +651,8 @@ class LibraryScreenModel(
                     downloadCount = if (preferences.downloadBadge) {
                         // SY -->
                         if (manga.manga.source == MERGED_SOURCE_ID) {
-                            runBlocking {
-                                getMergedMangaById.await(manga.manga.id)
-                            }.sumOf { downloadManager.getDownloadCount(it) }.toLong()
+                            getMergedMangaById.await(manga.manga.id)
+                                .sumOf { downloadManager.getDownloadCount(it) }.toLong()
                         } else {
                             downloadManager.getDownloadCount(manga.manga).toLong()
                         }
@@ -1333,11 +1334,11 @@ class LibraryScreenModel(
 
     private fun List<LibraryItem>.getGroupedMangaItems(
         groupType: Int,
+        tracks: Map<Long, List<Track>> = emptyMap(),
     ): Map<Category, List</* LibraryItem */ Long>> {
         val context = preferences.context
         return when (groupType) {
             LibraryGroup.BY_TRACK_STATUS -> {
-                val tracks = runBlocking { getTracks.await() }.groupBy { it.mangaId }
                 groupBy { item ->
                     val status = tracks[item.libraryManga.manga.id]?.firstNotNullOfOrNull { track ->
                         TrackStatus.parseTrackerStatus(trackerManager, track.trackerId, track.status)
