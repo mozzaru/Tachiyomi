@@ -48,7 +48,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import tachiyomi.core.common.preference.CheckboxState
@@ -154,9 +153,11 @@ open class BrowseSourceScreenModel(
         val jsonFilters = filtersJson
         val filters = state.value.filters
         if (savedSearchFilters != null) {
-            val savedSearch = runBlocking { getExhSavedSearch.awaitOne(savedSearchFilters) { filters } }
-            if (savedSearch != null) {
-                search(query = savedSearch.query, filters = savedSearch.filterList)
+            screenModelScope.launchIO {
+                val savedSearch = getExhSavedSearch.awaitOne(savedSearchFilters) { filters }
+                if (savedSearch != null) {
+                    search(query = savedSearch.query, filters = savedSearch.filterList)
+                }
             }
         } else if (jsonFilters != null) {
             runCatching {

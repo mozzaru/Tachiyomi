@@ -72,7 +72,6 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.runBlocking
 import logcat.LogPriority
 import tachiyomi.core.common.preference.toggle
 import tachiyomi.core.common.storage.UniFileTempFileManager
@@ -367,16 +366,12 @@ class ReaderViewModel @JvmOverloads constructor(
                         null
                     }
                     val mergedReferences = if (source is MergedSource) {
-                        runBlocking {
-                            getMergedReferencesById.await(manga.id)
-                        }
+                        getMergedReferencesById.await(manga.id)
                     } else {
                         emptyList()
                     }
                     val mergedManga = if (source is MergedSource) {
-                        runBlocking {
-                            getMergedMangaById.await(manga.id)
-                        }.associateBy { it.id }
+                        getMergedMangaById.await(manga.id).associateBy { it.id }
                     } else {
                         emptyMap()
                     }
