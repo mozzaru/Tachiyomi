@@ -1,7 +1,6 @@
 package eu.kanade.tachiyomi.di
 
 import android.app.Application
-import androidx.core.content.ContextCompat
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import app.cash.sqldelight.db.SqlDriver
@@ -46,6 +45,7 @@ import tachiyomi.data.StringListColumnAdapter
 import tachiyomi.data.UpdateStrategyColumnAdapter
 import tachiyomi.domain.manga.interactor.GetCustomMangaInfo
 import tachiyomi.domain.source.service.SourceManager
+import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.source.local.image.LocalCoverManager
 import tachiyomi.source.local.io.LocalSourceFileSystem
@@ -183,7 +183,9 @@ class AppModule(val app: Application) : InjektModule {
 
 fun initExpensiveComponents(app: Application) {
     // Asynchronously init expensive components for a faster cold start
-    ContextCompat.getMainExecutor(app).execute {
+    // SY -->
+    launchIO {
+        // SY <--
         Injekt.get<NetworkHelper>()
 
         Injekt.get<SourceManager>()
@@ -194,6 +196,6 @@ fun initExpensiveComponents(app: Application) {
 
         // SY -->
         Injekt.get<GetCustomMangaInfo>()
-        // SY <--
     }
+    // SY <--
 }

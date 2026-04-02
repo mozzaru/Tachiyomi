@@ -152,6 +152,17 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    private fun onFirstPaint() {
+        if (firstPaint) return
+
+        firstPaint = true
+
+        while (iuuQueue.isNotEmpty()) {
+            val task = iuuQueue.removeFirst()
+            task()
+        }
+    }
+
     private var runExhConfigureDialog by mutableStateOf(false)
     // SY <--
 
@@ -179,6 +190,7 @@ class MainActivity : BaseActivity() {
             LaunchedEffect(Unit) {
                 addAnalytics()
                 didMigration = Migrator.awaitAndRelease()
+                onFirstPaint()
             }
 
             val context = LocalContext.current

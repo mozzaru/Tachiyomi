@@ -279,6 +279,18 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         SecureActivityDelegate.onApplicationStopped()
     }
 
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        if (level >= TRIM_MEMORY_COMPLETE) {
+            SingletonImageLoader.get(this).memoryCache?.clear()
+        }
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        SingletonImageLoader.get(this).memoryCache?.clear()
+    }
+
     override fun getPackageName(): String {
         // This causes freezes in Android 6/7 for some reason
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
