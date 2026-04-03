@@ -219,7 +219,12 @@ object ImageUtil {
         viewHeight: Int,
         backgroundContext: Context,
     ): BufferedSource {
-        val imageBitmap = ImageDecoder.newInstance(imageSource.inputStream())?.decode()!!
+        val decoder = ImageDecoder.newInstance(imageSource.inputStream())
+        val imageBitmap = try {
+            decoder?.decode()!!
+        } finally {
+            decoder?.recycle()
+        }
         val height = imageBitmap.height
         val width = imageBitmap.width
 

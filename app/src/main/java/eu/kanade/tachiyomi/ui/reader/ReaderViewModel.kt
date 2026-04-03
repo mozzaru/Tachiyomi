@@ -1165,8 +1165,20 @@ class ReaderViewModel @JvmOverloads constructor(
         ImageUtil.findImageType(stream1) ?: throw Exception("Not an image")
         val stream2 = page2.stream!!
         ImageUtil.findImageType(stream2) ?: throw Exception("Not an image")
-        val imageBitmap = ImageDecoder.newInstance(stream1())?.decode()!!
-        val imageBitmap2 = ImageDecoder.newInstance(stream2())?.decode()!!
+
+        val decoder1 = ImageDecoder.newInstance(stream1())
+        val imageBitmap = try {
+            decoder1?.decode()!!
+        } finally {
+            decoder1?.recycle()
+        }
+
+        val decoder2 = ImageDecoder.newInstance(stream2())
+        val imageBitmap2 = try {
+            decoder2?.decode()!!
+        } finally {
+            decoder2?.recycle()
+        }
 
         val chapter = page1.chapter.chapter
 
