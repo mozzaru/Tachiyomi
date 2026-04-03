@@ -142,7 +142,7 @@ class DownloadCache(
      * @param sourceId the id of the source of the chapter.
      * @param skipCache whether to skip the directory cache and check in the filesystem.
      */
-    fun isChapterDownloaded(
+    suspend fun isChapterDownloaded(
         chapterName: String,
         chapterScanlator: String?,
         chapterUrl: String,

@@ -15,6 +15,7 @@ import eu.kanade.presentation.reader.ChapterTransition
 import eu.kanade.presentation.theme.TachiyomiTheme
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.ui.reader.model.ChapterTransition
+import tachiyomi.core.common.util.lang.launchUI
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.source.local.isLocal
 
@@ -28,24 +29,30 @@ class ReaderTransitionView @JvmOverloads constructor(context: Context, attrs: At
     }
 
     fun bind(transition: ChapterTransition, downloadManager: DownloadManager, manga: Manga?) {
-        data = if (manga != null) {
-            Data(
-                transition = transition,
-                currChapterDownloaded = transition.from.pageLoader?.isLocal == true,
-                goingToChapterDownloaded = manga.isLocal() ||
-                    transition.to?.chapter?.let { goingToChapter ->
+        if (manga != null) {
+            val currChapterDownloaded = transition.from.pageLoader?.isLocal == true
+            val isMangaLocal = manga.isLocal()
+            val toChapter = transition.to?.chapter
+            launchUI {
+                val goingToChapterDownloaded = isMangaLocal ||
+                    toChapter?.let { goingToChapter ->
                         downloadManager.isChapterDownloaded(
                             chapterName = goingToChapter.name,
                             chapterScanlator = goingToChapter.scanlator,
                             chapterUrl = goingToChapter.url,
-                            mangaTitle = /* SY --> */ manga.ogTitle, /* SY <-- */
+                            mangaTitle = manga.ogTitle,
                             sourceId = manga.source,
                             skipCache = true,
                         )
-                    } ?: false,
-            )
+                    } ?: false
+                data = Data(
+                    transition = transition,
+                    currChapterDownloaded = currChapterDownloaded,
+                    goingToChapterDownloaded = goingToChapterDownloaded,
+                )
+            }
         } else {
-            null
+            data = null
         }
     }
 

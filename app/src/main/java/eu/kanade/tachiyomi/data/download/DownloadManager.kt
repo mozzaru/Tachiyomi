@@ -193,7 +193,7 @@ class DownloadManager(
      * @param sourceId the id of the source of the chapter.
      * @param skipCache whether to skip the directory cache and check in the filesystem.
      */
-    fun isChapterDownloaded(
+    suspend fun isChapterDownloaded(
         chapterName: String,
         chapterScanlator: String?,
         chapterUrl: String,
@@ -517,7 +517,7 @@ class DownloadManager(
             )
         }
 
-    fun renameMangaDir(oldTitle: String, newTitle: String, source: Long) {
+    suspend fun renameMangaDir(oldTitle: String, newTitle: String, source: Long) {
         val sourceDir = provider.findSourceDir(sourceManager.getOrStub(source)) ?: return
         val mangaDir = sourceDir.findFile(DiskUtil.buildValidFilename(oldTitle)) ?: return
         mangaDir.renameTo(DiskUtil.buildValidFilename(newTitle))

@@ -70,7 +70,7 @@ open class SourceFeedScreenModel(
     private val getExhSavedSearch: GetExhSavedSearch = Injekt.get(),
 ) : StateScreenModel<SourceFeedState>(SourceFeedState()) {
 
-    val source = sourceManager.getOrStub(sourceId)
+    lateinit var source: CatalogueSource
 
     val sourceIsMangaDex = sourceId in mangaDexSourceIds
 
@@ -79,25 +79,26 @@ open class SourceFeedScreenModel(
     val startExpanded by uiPreferences.expandFilters().asState(screenModelScope)
 
     init {
-        if (source is CatalogueSource) {
-            setFilters(source.getFilterList())
+        screenModelScope.launch {
+            source = (sourceManager.get(sourceId) ?: sourceManager.getOrStub(sourceId)) as CatalogueSource
+            if (source is CatalogueSource) {
+                setFilters(source.getFilterList())
 
-            screenModelScope.launchIO {
                 val searches = loadSearches()
                 mutableState.update { it.copy(savedSearches = searches) }
-            }
 
-            getFeedSavedSearchBySourceId.subscribe(source.id)
-                .onEach {
-                    val items = getSourcesToGetFeed(it)
-                    mutableState.update { state ->
-                        state.copy(
-                            items = items,
-                        )
+                getFeedSavedSearchBySourceId.subscribe(source.id)
+                    .onEach {
+                        val items = getSourcesToGetFeed(it)
+                        mutableState.update { state ->
+                            state.copy(
+                                items = items,
+                            )
+                        }
+                        getFeed(items)
                     }
-                    getFeed(items)
-                }
-                .launchIn(screenModelScope)
+                    .launchIn(screenModelScope)
+            }
         }
     }
 

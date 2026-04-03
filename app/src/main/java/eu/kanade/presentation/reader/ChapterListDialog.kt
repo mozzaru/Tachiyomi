@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -68,16 +69,16 @@ fun ChapterListDialog(
                         .map { it.progress }
                         .collectAsState(0).value
                 } ?: 0
-                val downloaded = if (chapterItem.manga.isLocal()) {
-                    true
-                } else {
-                    downloadManager.isChapterDownloaded(
-                        chapterItem.chapter.name,
-                        chapterItem.chapter.scanlator,
-                        chapterItem.chapter.url,
-                        chapterItem.manga.ogTitle,
-                        chapterItem.manga.source,
-                    )
+                val downloaded by produceState(initialValue = chapterItem.manga.isLocal(), key1 = chapterItem.chapter.id) {
+                    if (!value) {
+                        value = downloadManager.isChapterDownloaded(
+                            chapterItem.chapter.name,
+                            chapterItem.chapter.scanlator,
+                            chapterItem.chapter.url,
+                            chapterItem.manga.ogTitle,
+                            chapterItem.manga.source,
+                        )
+                    }
                 }
                 val downloadState = when {
                     activeDownload != null -> activeDownload.status

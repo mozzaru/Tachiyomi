@@ -46,7 +46,8 @@ class EditMergedMangaHolder(view: View, val adapter: EditMergedMangaAdapter) : F
             }
         }
 
-        binding.title.text = Injekt.get<SourceManager>().getOrStub(item.mergedMangaReference.mangaSourceId).toString()
+        val sourceManager = Injekt.get<SourceManager>()
+        binding.title.text = (sourceManager.get(item.mergedMangaReference.mangaSourceId) ?: item.mergedMangaReference.mangaSourceId).toString()
         binding.subtitle.text = item.mergedManga?.title
         updateDownloadChaptersIcon(item.mergedMangaReference.downloadChapters)
         updateChapterUpdatesIcon(item.mergedMangaReference.getChapterUpdates)

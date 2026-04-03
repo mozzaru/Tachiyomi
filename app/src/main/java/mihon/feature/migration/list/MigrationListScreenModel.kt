@@ -81,11 +81,12 @@ class MigrationListScreenModel(
                     async {
                         val manga = getManga.await(it) ?: return@async null
                         val chapterInfo = getChapterInfo(it)
+                        val source = sourceManager.getOrStub(manga.source)
                         MigratingManga(
                             manga = manga,
                             chapterCount = chapterInfo.chapterCount,
                             latestChapter = chapterInfo.latestChapter,
-                            source = sourceManager.getOrStub(manga.source).getNameForMangaInfo(),
+                            source = source.getNameForMangaInfo(),
                             parentContext = screenModelScope.coroutineContext,
                         )
                     }
@@ -106,7 +107,7 @@ class MigrationListScreenModel(
 
     private suspend fun Manga.toSuccessSearchResult(): SearchResult.Success {
         val chapterInfo = getChapterInfo(id)
-        val source = sourceManager.getOrStub(source).getNameForMangaInfo()
+        val source = sourceManager.getOrStub(this.source).getNameForMangaInfo()
         return SearchResult.Success(
             manga = this,
             chapterCount = chapterInfo.chapterCount,
@@ -161,7 +162,8 @@ class MigrationListScreenModel(
 
             if (result != null && result.first.thumbnailUrl == null) {
                 try {
-                    val newManga = sourceManager.getOrStub(result.first.source).getMangaDetails(result.first.toSManga())
+                    val source = sourceManager.getOrStub(result.first.source)
+                    val newManga = source.getMangaDetails(result.first.toSManga())
                     updateManga.awaitUpdateFromSource(result.first, newManga, true)
                 } catch (e: CancellationException) {
                     throw e
@@ -265,7 +267,8 @@ class MigrationListScreenModel(
             }
 
             try {
-                val newManga = sourceManager.getOrStub(result.source).getMangaDetails(result.toSManga())
+                val source = sourceManager.getOrStub(result.source)
+                val newManga = source.getMangaDetails(result.toSManga())
                 updateManga.awaitUpdateFromSource(result, newManga, true)
             } catch (e: CancellationException) {
                 throw e

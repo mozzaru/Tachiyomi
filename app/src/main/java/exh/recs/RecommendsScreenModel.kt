@@ -54,9 +54,10 @@ open class RecommendsScreenModel(
                     val manga = getManga.await(args.mangaId)!!
                     mutableState.update { it.copy(title = manga.title) }
 
+                    val source = sourceManager.getOrStub(args.sourceId) as CatalogueSource
                     RecommendationPagingSource.createSources(
                         manga,
-                        sourceManager.getOrStub(args.sourceId) as CatalogueSource,
+                        source,
                     )
                 }
                 is RecommendsScreen.Args.MergedSourceMangas -> {

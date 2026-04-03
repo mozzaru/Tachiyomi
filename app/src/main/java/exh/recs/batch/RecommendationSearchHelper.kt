@@ -218,6 +218,13 @@ class RecommendationSearchHelper(val context: Context) {
             smartSearchEngine.smartSearch(libraryManga, manga.title) != null
         }
     }
+
+    fun dispose() {
+        ignore { wakeLock?.release() }
+        wakeLock = null
+        ignore { wifiLock?.release() }
+        wifiLock = null
+    }
 }
 
 // Contains the search results for a single source

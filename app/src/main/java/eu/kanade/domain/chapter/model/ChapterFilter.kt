@@ -13,7 +13,7 @@ import tachiyomi.source.local.isLocal
  * Applies the view filters to the list of chapters obtained from the database.
  * @return an observable of the list of chapters filtered and sorted.
  */
-fun List<Chapter>.applyFilters(
+suspend fun List<Chapter>.applyFilters(
     manga: Manga,
     downloadManager: DownloadManager, /* SY --> */
     mergedManga: Map<Long, Manga>, /* SY <-- */

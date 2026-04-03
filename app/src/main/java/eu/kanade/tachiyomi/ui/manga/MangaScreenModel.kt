@@ -314,7 +314,7 @@ class MangaScreenModel(
                                 references,
                                 manga.associateBy { it.id },
                                 references.map { it.mangaSourceId }.distinct()
-                                    .map { sourceManager.getOrStub(it) },
+                                    .map { sourceManager.get(it) ?: sourceManager.getOrStub(it) },
                             )
                         } else {
                             null
@@ -388,7 +388,7 @@ class MangaScreenModel(
                     references,
                     getMergedMangaById.await(mangaId).associateBy { it.id },
                     references.map { it.mangaSourceId }.distinct()
-                        .map { sourceManager.getOrStub(it) },
+                        .map { sourceManager.get(it) ?: sourceManager.getOrStub(it) },
                 )
             }
             val chapters = (
@@ -412,8 +412,8 @@ class MangaScreenModel(
             val needRefreshChapter = chapters.isEmpty()
 
             // Show what we have earlier
+            val source = sourceManager.getOrStub(manga.source)
             mutableState.update {
-                val source = sourceManager.getOrStub(manga.source)
                 State.Success(
                     manga = manga,
                     source = source,
@@ -871,9 +871,11 @@ class MangaScreenModel(
         val state = successState ?: return
         // SY -->
         if (state.source is MergedSource) {
-            val mergedManga = state.mergedData?.manga?.map { it.value to sourceManager.getOrStub(it.value.source) }
-            mergedManga?.forEach { (manga, source) ->
-                downloadManager.deleteManga(manga, source)
+            screenModelScope.launchIO {
+                val mergedManga = state.mergedData?.manga?.map { it.value to (sourceManager.get(it.value.source) ?: sourceManager.getOrStub(it.value.source)) }
+                mergedManga?.forEach { (manga, source) ->
+                    downloadManager.deleteManga(manga, source)
+                }
             }
         } else {
             /* SY <-- */ downloadManager.deleteManga(state.manga, state.source)
@@ -996,7 +998,7 @@ class MangaScreenModel(
         }
     }
 
-    private fun List<Chapter>.toChapterListItems(
+    private suspend fun List<Chapter>.toChapterListItems(
         manga: Manga,
         mergedData: MergedMangaData?,
     ): List<ChapterList.Item> {

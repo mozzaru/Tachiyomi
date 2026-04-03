@@ -357,7 +357,7 @@ data class TrackInfoDialogHomeScreen(
             }
         }
 
-        private fun List<Track>.mapToTrackItem(): List<TrackItem> {
+        private suspend fun List<Track>.mapToTrackItem(): List<TrackItem> {
             val loggedInTrackers = Injekt.get<TrackerManager>().loggedInTrackers()
             val source = Injekt.get<SourceManager>().getOrStub(sourceId)
             return loggedInTrackers

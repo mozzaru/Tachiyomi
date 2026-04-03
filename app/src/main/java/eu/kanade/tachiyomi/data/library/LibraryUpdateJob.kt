@@ -450,12 +450,12 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
         }
     }
 
-    private fun downloadChapters(manga: Manga, chapters: List<Chapter>) {
+    private suspend fun downloadChapters(manga: Manga, chapters: List<Chapter>) {
         // We don't want to start downloading while the library is updating, because websites
         // may don't like it and they could ban the user.
         // SY -->
         if (manga.source == MERGED_SOURCE_ID) {
-            val downloadingManga = runBlocking { getMergedMangaForDownloading.await(manga.id) }
+            val downloadingManga = getMergedMangaForDownloading.await(manga.id)
                 .associateBy { it.id }
             chapters.groupBy { it.mangaId }
                 .forEach {
@@ -681,7 +681,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                     errors.groupBy({ it.second }, { it.first }).forEach { (error, mangas) ->
                         out.write("\n! ${error}\n")
                         mangas.groupBy { it.source }.forEach { (srcId, mangas) ->
-                            val source = sourceManager.getOrStub(srcId)
+                            val source = sourceManager.get(srcId) ?: runBlocking { sourceManager.getOrStub(srcId) }
                             out.write("  # $source\n")
                             mangas.forEach {
                                 out.write("    - ${it.title}\n")

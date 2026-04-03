@@ -38,6 +38,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -127,7 +129,7 @@ fun DuplicateMangaDialog(
                 ) {
                     DuplicateMangaListItem(
                         duplicate = it,
-                        getSource = { sourceManager.getOrStub(it.manga.source) },
+                        sourceManager = sourceManager,
                         onMigrate = { onMigrate(it.manga) },
                         onDismissRequest = onDismissRequest,
                         onOpenManga = { onOpenManga(it.manga) },
@@ -171,12 +173,14 @@ fun DuplicateMangaDialog(
 @Composable
 private fun DuplicateMangaListItem(
     duplicate: MangaWithChapterCount,
-    getSource: () -> Source,
+    sourceManager: SourceManager,
     onDismissRequest: () -> Unit,
     onOpenManga: () -> Unit,
     onMigrate: () -> Unit,
 ) {
-    val source = getSource()
+    val source by produceState<Source?>(initialValue = null) {
+        value = sourceManager.get(duplicate.manga.source) ?: sourceManager.getOrStub(duplicate.manga.source)
+    }
     val manga = duplicate.manga
     Column(
         modifier = Modifier
@@ -278,7 +282,7 @@ private fun DuplicateMangaListItem(
                 )
             }
             Text(
-                text = source.name,
+                text = source?.name.orEmpty(),
                 style = MaterialTheme.typography.labelSmall,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,

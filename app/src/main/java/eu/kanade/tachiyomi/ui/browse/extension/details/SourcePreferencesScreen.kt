@@ -8,9 +8,11 @@ import androidx.appcompat.view.ContextThemeWrapper
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -39,6 +41,7 @@ import eu.kanade.tachiyomi.source.sourcePreferences
 import eu.kanade.tachiyomi.widget.TachiyomiTextInputEditText.Companion.setIncognito
 import exh.source.EnhancedHttpSource
 import exh.ui.ifSourcesLoaded
+import kotlinx.coroutines.runBlocking
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.screens.LoadingScreen
@@ -57,22 +60,34 @@ class SourcePreferencesScreen(val sourceId: Long) : Screen() {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
 
+        var title by remember { mutableStateOf(sourceId.toString()) }
+        var sourceReady by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            val source = Injekt.get<SourceManager>().getOrStub(sourceId)
+            title = source.toString()
+            sourceReady = true
+        }
+
         Scaffold(
             topBar = {
                 AppBar(
-                    title = Injekt.get<SourceManager>().getOrStub(sourceId).toString(),
+                    title = title,
                     navigateUp = navigator::pop,
                     scrollBehavior = it,
                 )
             },
         ) { contentPadding ->
-            FragmentContainer(
-                fragmentManager = (context as FragmentActivity).supportFragmentManager,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(contentPadding),
-            ) {
-                add(it, SourcePreferencesFragment.getInstance(sourceId), null)
+            if (sourceReady) {
+                FragmentContainer(
+                    fragmentManager = (context as FragmentActivity).supportFragmentManager,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(contentPadding),
+                ) {
+                    add(it, SourcePreferencesFragment.getInstance(sourceId), null)
+                }
+            } else {
+                LoadingScreen()
             }
         }
     }
@@ -134,8 +149,10 @@ class SourcePreferencesFragment : PreferenceFragmentCompat() {
     private fun populateScreen(): PreferenceScreen {
         val sourceId = requireArguments().getLong(SOURCE_ID)
         // SY -->
-        val source = Injekt.get<SourceManager>()
-            .getOrStub(sourceId)
+        val source = runBlocking {
+            Injekt.get<SourceManager>()
+                .getOrStub(sourceId)
+        }
             .let { source ->
                 if (source is EnhancedHttpSource) {
                     if (source.enhancedSource is ConfigurableSource) {

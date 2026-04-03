@@ -9,6 +9,7 @@ import exh.source.isEhBasedSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import tachiyomi.data.DatabaseHandler
 import tachiyomi.domain.source.model.SourceWithCount
 import tachiyomi.domain.source.model.StubSource
@@ -50,10 +51,13 @@ class SourceRepositoryImpl(
                 it.filterNot { it.source == MERGED_SOURCE_ID }
                     // SY <--
                     .map { (sourceId, count) ->
-                        val source = sourceManager.getOrStub(sourceId)
-                        val domainSource = mapSourceToDomainSource(source).copy(
-                            isStub = source is StubSource,
-                        )
+                        val source = sourceManager.get(sourceId)
+                        val domainSource = if (source != null) {
+                            mapSourceToDomainSource(source)
+                        } else {
+                            val stub = runBlocking { sourceManager.getOrStub(sourceId) }
+                            mapSourceToDomainSource(stub).copy(isStub = true)
+                        }
                         domainSource to count
                     }
             }
@@ -64,10 +68,13 @@ class SourceRepositoryImpl(
             handler.subscribeToList { mangasQueries.getSourceIdsWithNonLibraryManga() }
         return sourceIdWithNonLibraryManga.map { sourceId ->
             sourceId.map { (sourceId, count) ->
-                val source = sourceManager.getOrStub(sourceId)
-                val domainSource = mapSourceToDomainSource(source).copy(
-                    isStub = source is StubSource,
-                )
+                val source = sourceManager.get(sourceId)
+                val domainSource = if (source != null) {
+                    mapSourceToDomainSource(source)
+                } else {
+                    val stub = runBlocking { sourceManager.getOrStub(sourceId) }
+                    mapSourceToDomainSource(stub).copy(isStub = true)
+                }
                 SourceWithCount(domainSource, count)
             }
         }

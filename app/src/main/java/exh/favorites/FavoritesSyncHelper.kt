@@ -414,6 +414,13 @@ class FavoritesSyncHelper(val context: Context) {
 
     class IgnoredException(message: FavoritesSyncStatus.SyncError.GallerySyncError) : RuntimeException(message.toString())
 
+    fun dispose() {
+        ignore { wakeLock?.release() }
+        wakeLock = null
+        ignore { wifiLock?.release() }
+        wifiLock = null
+    }
+
     companion object {
         private val THROTTLE_WARN = 1.seconds
     }

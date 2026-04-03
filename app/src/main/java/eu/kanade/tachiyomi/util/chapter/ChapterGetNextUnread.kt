@@ -4,13 +4,14 @@ import eu.kanade.domain.chapter.model.applyFilters
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.ui.manga.ChapterList
 import exh.source.isEhBasedManga
+import kotlinx.coroutines.runBlocking
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.manga.model.Manga
 
 /**
  * Gets next unread chapter with filters and sorting applied
  */
-fun List<Chapter>.getNextUnread(
+suspend fun List<Chapter>.getNextUnread(
     manga: Manga,
     downloadManager: DownloadManager /* SY --> */,
     mergedManga: Map<Long, Manga>, /* SY <-- */
