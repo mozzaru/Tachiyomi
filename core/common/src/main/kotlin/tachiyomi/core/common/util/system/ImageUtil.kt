@@ -198,6 +198,8 @@ object ImageUtil {
 
         val output = Buffer()
         result.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+        imageBitmap.recycle()
+        result.recycle()
         return output
     }
 
@@ -240,6 +242,8 @@ object ImageUtil {
 
         val output = Buffer()
         result.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+        imageBitmap.recycle()
+        result.recycle()
         return output
     }
     // SY <--
@@ -797,6 +801,9 @@ object ImageUtil {
 
         val output = Buffer()
         result.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+        imageBitmap.recycle()
+        imageBitmap2.recycle()
+        result.recycle()
         progressCallback?.invoke(100)
         return output
     }
