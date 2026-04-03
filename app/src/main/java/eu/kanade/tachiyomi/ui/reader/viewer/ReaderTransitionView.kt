@@ -15,7 +15,6 @@ import eu.kanade.presentation.reader.ChapterTransition
 import eu.kanade.presentation.theme.TachiyomiTheme
 import eu.kanade.tachiyomi.data.download.DownloadManager
 import eu.kanade.tachiyomi.ui.reader.model.ChapterTransition
-import kotlinx.coroutines.runBlocking
 import tachiyomi.core.common.util.lang.launchUI
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.source.local.isLocal

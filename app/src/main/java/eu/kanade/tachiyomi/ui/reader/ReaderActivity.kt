@@ -36,6 +36,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -587,7 +588,9 @@ class ReaderActivity : BaseActivity() {
             return
         }
 
-        val isHttpSource = viewModel.getSource() is HttpSource
+        val isHttpSource by produceState(initialValue = false, key1 = state.manga) {
+            value = viewModel.getSource() is HttpSource
+        }
 
         val cropBorderPaged by readerPreferences.cropBorders().collectAsState()
         val cropBorderWebtoon by readerPreferences.cropBordersWebtoon().collectAsState()
@@ -932,10 +935,12 @@ class ReaderActivity : BaseActivity() {
 
     private fun openChapterInWebView() {
         val manga = viewModel.manga ?: return
-        val source = viewModel.getSource() ?: return
-        assistUrl?.let {
-            val intent = WebViewActivity.newIntent(this@ReaderActivity, it, source.id, manga.title)
-            startActivity(intent)
+        lifecycleScope.launch {
+            val source = viewModel.getSource() ?: return@launch
+            assistUrl?.let {
+                val intent = WebViewActivity.newIntent(this@ReaderActivity, it, source.id, manga.title)
+                startActivity(intent)
+            }
         }
     }
 
@@ -993,7 +998,7 @@ class ReaderActivity : BaseActivity() {
 
         viewModel.state.value.viewer?.setChapters(viewerChapters)
 
-        lifecycleScope.launchIO {
+        lifecycleScope.launch {
             viewModel.getChapterUrl()?.let { url ->
                 assistUrl = url
             }

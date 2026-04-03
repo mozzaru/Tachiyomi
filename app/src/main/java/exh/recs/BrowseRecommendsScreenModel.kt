@@ -1,16 +1,17 @@
 package exh.recs
 
+import cafe.adriel.voyager.core.model.screenModelScope
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreenModel
 import exh.metadata.metadata.RaisedSearchMetadata
 import exh.recs.sources.RecommendationPagingSource
 import exh.recs.sources.StaticResultPagingSource
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.runBlocking
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.model.Manga
 import uy.kohesive.injekt.Injekt
@@ -26,16 +27,7 @@ class BrowseRecommendsScreenModel(
     },
     listingQuery = null,
 ) {
-    val recommendationSource: RecommendationPagingSource
-        get() = when (args) {
-            is BrowseRecommendsScreen.Args.MergedSourceMangas -> StaticResultPagingSource(args.results)
-            is BrowseRecommendsScreen.Args.SingleSourceManga -> RecommendationPagingSource.createSources(
-                runBlocking { getManga.await(args.mangaId)!! },
-                source as CatalogueSource,
-            ).first {
-                it::class.qualifiedName == args.recommendationSourceName
-            }
-        }
+    lateinit var recommendationSource: RecommendationPagingSource
 
     override fun createSourcePagingSource(query: String, filters: FilterList) = recommendationSource
 
@@ -46,5 +38,16 @@ class BrowseRecommendsScreenModel(
 
     init {
         mutableState.update { it.copy(filterable = false) }
+        screenModelScope.launch {
+            recommendationSource = when (args) {
+                is BrowseRecommendsScreen.Args.MergedSourceMangas -> StaticResultPagingSource(args.results)
+                is BrowseRecommendsScreen.Args.SingleSourceManga -> RecommendationPagingSource.createSources(
+                    getManga.await(args.mangaId)!!,
+                    source as CatalogueSource,
+                ).first {
+                    it::class.qualifiedName == args.recommendationSourceName
+                }
+            }
+        }
     }
 }

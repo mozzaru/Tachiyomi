@@ -69,7 +69,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import logcat.LogPriority
 import mihon.feature.migration.config.MigrationConfigScreen
 import mihon.feature.migration.dialog.MigrateMangaDialog
@@ -483,18 +482,22 @@ class MangaScreen(
     private fun openMergedMangaWebview(context: Context, navigator: Navigator, mergedMangaData: MergedMangaData) {
         val sourceManager: SourceManager = Injekt.get()
         val mergedManga = mergedMangaData.manga.values.filterNot { it.source == MERGED_SOURCE_ID }
-        val sources = mergedManga.map { sourceManager.get(it.source) ?: runBlocking { sourceManager.getOrStub(it.source) } }
-        MaterialAlertDialogBuilder(context)
-            .setTitle(MR.strings.action_open_in_web_view.getString(context))
-            .setSingleChoiceItems(
-                Array(mergedManga.size) { index -> sources[index].toString() },
-                -1,
-            ) { dialog, index ->
-                dialog.dismiss()
-                openMangaInWebView(navigator, mergedManga[index], sources[index] as? HttpSource)
+        launchUI {
+            val sources = withIOContext {
+                mergedManga.map { sourceManager.get(it.source) ?: sourceManager.getOrStub(it.source) }
             }
-            .setNegativeButton(MR.strings.action_cancel.getString(context), null)
-            .show()
+            MaterialAlertDialogBuilder(context)
+                .setTitle(MR.strings.action_open_in_web_view.getString(context))
+                .setSingleChoiceItems(
+                    Array(mergedManga.size) { index -> sources[index].toString() },
+                    -1,
+                ) { dialog, index ->
+                    dialog.dismiss()
+                    openMangaInWebView(navigator, mergedManga[index], sources[index] as? HttpSource)
+                }
+                .setNegativeButton(MR.strings.action_cancel.getString(context), null)
+                .show()
+        }
     }
 
     private fun openMorePagePreviews(navigator: Navigator, manga: Manga) {

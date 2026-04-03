@@ -73,7 +73,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
-import kotlinx.coroutines.runBlocking
 import mihon.core.common.utils.mutate
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.CheckboxState
@@ -433,7 +432,7 @@ class LibraryScreenModel(
         }
     }
 
-    private fun List<LibraryItem>.applyGrouping(
+    private suspend fun List<LibraryItem>.applyGrouping(
         categories: List<Category>,
         showSystemCategory: Boolean,
         // SY -->
@@ -960,9 +959,8 @@ class LibraryScreenModel(
                     if (source != null) {
                         if (source is MergedSource) {
                             val mergedMangas = getMergedMangaById.await(manga.id)
-                            val sources = mergedMangas.distinctBy {
-                                it.source
-                            }.map { sourceManager.get(it.source) ?: runBlocking { sourceManager.getOrStub(it.source) } }
+                            val sources = mergedMangas.distinctBy { it.source }
+                                .map { sourceManager.get(it.source) ?: sourceManager.getOrStub(it.source) }
                             mergedMangas.forEach merge@{ mergedManga ->
                                 val mergedSource =
                                     sources.firstOrNull { mergedManga.source == it.id } as? HttpSource ?: return@merge
@@ -1340,7 +1338,7 @@ class LibraryScreenModel(
         return getNextChapters.await(manga.id).firstOrNull()
     }
 
-    private fun List<LibraryItem>.getGroupedMangaItems(
+    private suspend fun List<LibraryItem>.getGroupedMangaItems(
         groupType: Int,
         tracksMap: Map<Long, List<Track>>,
     ): Map<Category, List</* LibraryItem */ Long>> {
@@ -1375,7 +1373,7 @@ class LibraryScreenModel(
                 }.also {
                     sources = it.keys
                         .map {
-                            sourceManager.get(it) ?: runBlocking { sourceManager.getOrStub(it) }
+                            sourceManager.get(it) ?: sourceManager.getOrStub(it)
                         }
                         .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name.ifBlank { it.id.toString() } })
                         .map { it.id }
@@ -1385,7 +1383,7 @@ class LibraryScreenModel(
                         name = if (it.key == LocalSource.ID) {
                             context.stringResource(MR.strings.local_source)
                         } else {
-                            val source = sourceManager.get(it.key) ?: runBlocking { sourceManager.getOrStub(it.key) }
+                            val source = sourceManager.get(it.key) ?: sourceManager.getOrStub(it.key)
                             source.name.ifBlank { source.id.toString() }
                         },
                         order = sources.indexOf(it.key).takeUnless { it == -1 }?.toLong() ?: Long.MAX_VALUE,

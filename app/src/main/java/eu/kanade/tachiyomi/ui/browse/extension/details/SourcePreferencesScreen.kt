@@ -61,8 +61,11 @@ class SourcePreferencesScreen(val sourceId: Long) : Screen() {
         val navigator = LocalNavigator.currentOrThrow
 
         var title by remember { mutableStateOf(sourceId.toString()) }
+        var sourceReady by remember { mutableStateOf(false) }
         LaunchedEffect(Unit) {
-            title = Injekt.get<SourceManager>().getOrStub(sourceId).toString()
+            val source = Injekt.get<SourceManager>().getOrStub(sourceId)
+            title = source.toString()
+            sourceReady = true
         }
 
         Scaffold(
@@ -74,13 +77,17 @@ class SourcePreferencesScreen(val sourceId: Long) : Screen() {
                 )
             },
         ) { contentPadding ->
-            FragmentContainer(
-                fragmentManager = (context as FragmentActivity).supportFragmentManager,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(contentPadding),
-            ) {
-                add(it, SourcePreferencesFragment.getInstance(sourceId), null)
+            if (sourceReady) {
+                FragmentContainer(
+                    fragmentManager = (context as FragmentActivity).supportFragmentManager,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(contentPadding),
+                ) {
+                    add(it, SourcePreferencesFragment.getInstance(sourceId), null)
+                }
+            } else {
+                LoadingScreen()
             }
         }
     }

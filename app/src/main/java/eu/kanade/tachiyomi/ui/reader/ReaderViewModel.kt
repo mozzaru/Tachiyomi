@@ -832,9 +832,9 @@ class ReaderViewModel @JvmOverloads constructor(
         return state.value.currentChapter
     }
 
-    fun getSource() = manga?.source?.let { sourceManager.get(it) ?: runBlocking { sourceManager.getOrStub(it) } } as? HttpSource
+    suspend fun getSource() = manga?.source?.let { sourceManager.get(it) ?: sourceManager.getOrStub(it) } as? HttpSource
 
-    fun getChapterUrl(): String? {
+    suspend fun getChapterUrl(): String? {
         val sChapter = getCurrentChapter()?.chapter ?: return null
         val source = getSource() ?: return null
 

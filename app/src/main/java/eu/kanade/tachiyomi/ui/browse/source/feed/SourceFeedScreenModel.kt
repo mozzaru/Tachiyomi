@@ -30,7 +30,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import mihon.domain.manga.model.toDomainManga
@@ -71,7 +70,7 @@ open class SourceFeedScreenModel(
     private val getExhSavedSearch: GetExhSavedSearch = Injekt.get(),
 ) : StateScreenModel<SourceFeedState>(SourceFeedState()) {
 
-    val source = sourceManager.get(sourceId) ?: runBlocking { sourceManager.getOrStub(sourceId) }
+    lateinit var source: CatalogueSource
 
     val sourceIsMangaDex = sourceId in mangaDexSourceIds
 
@@ -81,6 +80,7 @@ open class SourceFeedScreenModel(
 
     init {
         screenModelScope.launch {
+            source = (sourceManager.get(sourceId) ?: sourceManager.getOrStub(sourceId)) as CatalogueSource
             if (source is CatalogueSource) {
                 setFilters(source.getFilterList())
 
