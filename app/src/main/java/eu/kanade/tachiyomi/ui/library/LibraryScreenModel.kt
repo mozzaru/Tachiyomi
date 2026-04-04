@@ -1459,6 +1459,7 @@ class LibraryScreenModel(
     override fun onDispose() {
         super.onDispose()
         favoritesSync.dispose()
+        recommendationSearch.dispose()
     }
 // SY <--
 

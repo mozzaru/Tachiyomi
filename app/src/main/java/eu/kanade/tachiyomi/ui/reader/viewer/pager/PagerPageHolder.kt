@@ -23,6 +23,8 @@ import kotlinx.coroutines.supervisorScope
 import logcat.LogPriority
 import okio.Buffer
 import okio.BufferedSource
+import okio.buffer
+import okio.source
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withIOContext
@@ -172,6 +174,26 @@ class PagerPageHolder(
 
         try {
             val (source, isAnimated, background) = withIOContext {
+                val isProcessingNeeded = extraPage != null ||
+                    viewer.config.dualPageSplit ||
+                    viewer.config.dualPageRotateToFit ||
+                    (
+                        ImageUtil.isWideImage(streamFn().source().buffer().use { it }) &&
+                            viewer.config.centerMarginType and PagerConfig.CenterMarginType.WIDE_PAGE_CENTER_MARGIN > 0 &&
+                            !viewer.config.imageCropBorders
+                        )
+
+                if (!isProcessingNeeded) {
+                    val itemSource = streamFn().source().buffer()
+                    val isAnimated = ImageUtil.isAnimatedAndSupported(itemSource)
+                    val background = if (!isAnimated && viewer.config.automaticBackground) {
+                        ImageUtil.chooseBackground(context, itemSource.peek())
+                    } else {
+                        null
+                    }
+                    return@withIOContext Triple(itemSource, isAnimated, background)
+                }
+
                 streamFn().buffered(16).use { source ->
                     // SY -->
                     if (extraPage != null) {
@@ -333,11 +355,14 @@ class PagerPageHolder(
     }
 
     private fun decodeImage(imageSource: BufferedSource): Bitmap? {
+        val decoder = ImageDecoder.newInstance(imageSource.inputStream())
         return try {
-            ImageDecoder.newInstance(imageSource.inputStream())?.decode()
+            decoder?.decode()
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, e) { "Cannot decode image" }
             null
+        } finally {
+            decoder?.recycle()
         }
     }
 

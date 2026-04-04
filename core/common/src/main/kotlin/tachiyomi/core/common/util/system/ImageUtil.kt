@@ -198,6 +198,8 @@ object ImageUtil {
 
         val output = Buffer()
         result.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+        imageBitmap.recycle()
+        result.recycle()
         return output
     }
 
@@ -217,7 +219,12 @@ object ImageUtil {
         viewHeight: Int,
         backgroundContext: Context,
     ): BufferedSource {
-        val imageBitmap = ImageDecoder.newInstance(imageSource.inputStream())?.decode()!!
+        val decoder = ImageDecoder.newInstance(imageSource.inputStream())
+        val imageBitmap = try {
+            decoder?.decode()!!
+        } finally {
+            decoder?.recycle()
+        }
         val height = imageBitmap.height
         val width = imageBitmap.width
 
@@ -240,6 +247,8 @@ object ImageUtil {
 
         val output = Buffer()
         result.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+        imageBitmap.recycle()
+        result.recycle()
         return output
     }
     // SY <--
@@ -249,7 +258,7 @@ object ImageUtil {
      *
      * @return true if the height:width ratio is greater than 3.
      */
-    private fun isTallImage(imageSource: BufferedSource): Boolean {
+    fun isTallImage(imageSource: BufferedSource): Boolean {
         val options = extractImageOptions(imageSource)
 
         return (options.outHeight / options.outWidth) > 3
@@ -797,6 +806,9 @@ object ImageUtil {
 
         val output = Buffer()
         result.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+        imageBitmap.recycle()
+        imageBitmap2.recycle()
+        result.recycle()
         progressCallback?.invoke(100)
         return output
     }
