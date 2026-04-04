@@ -117,9 +117,10 @@ data class BrowseSourceScreen(
         val context = LocalContext.current
         // SY <--
 
-        if (screenModel.source is StubSource) {
+        val source = screenModel.source
+        if (source is StubSource) {
             MissingSourceScreen(
-                source = screenModel.source,
+                source = source,
                 navigateUp = navigateUp,
             )
             return

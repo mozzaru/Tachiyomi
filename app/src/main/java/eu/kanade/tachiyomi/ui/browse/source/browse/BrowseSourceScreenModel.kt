@@ -117,7 +117,8 @@ open class BrowseSourceScreenModel(
 
     var displayMode by sourcePreferences.sourceDisplayMode().asState(screenModelScope)
 
-    val source = runBlocking { sourceManager.get(sourceId) ?: sourceManager.getOrStub(sourceId) }
+    private var _source: CatalogueSource? = null
+    val source: CatalogueSource? get() = _source
 
     // SY -->
     val ehentaiBrowseDisplayMode by exhPreferences.enhancedEHentaiView().asState(screenModelScope)
@@ -131,7 +132,9 @@ open class BrowseSourceScreenModel(
 
     init {
         screenModelScope.launch {
-            if (source is CatalogueSource) {
+            _source = (sourceManager.get(sourceId) ?: sourceManager.getOrStub(sourceId)) as? CatalogueSource
+            val source = _source
+            if (source != null) {
                 mutableState.update {
                     var query: String? = null
                     var listing = it.listing
@@ -149,7 +152,7 @@ open class BrowseSourceScreenModel(
                 }
             }
 
-            if (!getIncognitoState.await(source.id)) {
+            if (source != null && !getIncognitoState.await(source.id)) {
                 sourcePreferences.lastUsedSource().set(source.id)
             }
 
@@ -170,7 +173,7 @@ open class BrowseSourceScreenModel(
                 }
             }
 
-            if (source is CatalogueSource) {
+            if (source != null) {
                 getExhSavedSearch.subscribe(source.id, source::getFilterList)
                     .map { it.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER, EXHSavedSearch::name)) }
                     .onEach { savedSearches ->
@@ -220,7 +223,7 @@ open class BrowseSourceScreenModel(
 
     // SY -->
     open fun Flow<Manga>.combineMetadata(metadata: RaisedSearchMetadata?): Flow<Pair<Manga, RaisedSearchMetadata?>> {
-        val metadataSource = source.getMainSource<MetadataSource<*, *>>()
+        val metadataSource = source?.getMainSource<MetadataSource<*, *>>()
         return flatMapLatest { manga ->
             if (metadataSource != null) {
                 getFlatMetadataById.subscribe(manga.id)
@@ -235,7 +238,7 @@ open class BrowseSourceScreenModel(
     // SY <--
 
     fun resetFilters() {
-        if (source !is CatalogueSource) return
+        val source = source ?: return
 
         mutableState.update { it.copy(filters = source.getFilterList()) }
     }
@@ -245,7 +248,7 @@ open class BrowseSourceScreenModel(
     }
 
     fun setFilters(filters: FilterList) {
-        if (source !is CatalogueSource) return
+        if (source == null) return
 
         mutableState.update {
             it.copy(
@@ -255,7 +258,7 @@ open class BrowseSourceScreenModel(
     }
 
     fun search(query: String? = null, filters: FilterList? = null) {
-        if (source !is CatalogueSource) return
+        val source = source ?: return
         // SY -->
         if (filters != null && filters !== state.value.filters) {
             mutableState.update { state -> state.copy(filters = filters) }
@@ -276,7 +279,7 @@ open class BrowseSourceScreenModel(
     }
 
     fun searchGenre(genreName: String) {
-        if (source !is CatalogueSource) return
+        val source = source ?: return
 
         val defaultFilters = source.getFilterList()
         var genreExists = false
@@ -339,7 +342,7 @@ open class BrowseSourceScreenModel(
                 new = new.removeCovers(coverCache)
             } else {
                 setMangaDefaultChapterFlags.await(manga)
-                addTracks.bindEnhancedTrackers(manga, source)
+                source?.let { addTracks.bindEnhancedTrackers(manga, it) }
             }
 
             updateManga.await(new.toMangaUpdate())
@@ -490,7 +493,7 @@ open class BrowseSourceScreenModel(
         onToast: (StringResource) -> Unit,
     ) {
         screenModelScope.launchIO {
-            if (source !is CatalogueSource) return@launchIO
+            val source = source ?: return@launchIO
 
             if (search.filterList == null && state.value.filters.isNotEmpty()) {
                 withUIContext {
@@ -526,7 +529,7 @@ open class BrowseSourceScreenModel(
     fun saveSearch(
         name: String,
     ) {
-        if (source !is CatalogueSource) return
+        val source = source ?: return
         screenModelScope.launchNonCancellable {
             val query = state.value.toolbarQuery?.takeUnless {
                 it.isBlank() || it == GetRemoteManga.QUERY_POPULAR || it == GetRemoteManga.QUERY_LATEST
@@ -554,7 +557,7 @@ open class BrowseSourceScreenModel(
 
     fun onMangaDexRandom(onRandomFound: (String) -> Unit) {
         screenModelScope.launchIO {
-            val random = source.getMainSource<MangaDex>()?.fetchRandomMangaUrl()
+            val random = source?.getMainSource<MangaDex>()?.fetchRandomMangaUrl()
                 ?: return@launchIO
             onRandomFound(random)
         }

@@ -668,7 +668,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
     /**
      * Writes basic file of update errors to cache dir.
      */
-    private fun writeErrorFile(errors: List<Pair<Manga, String?>>): File {
+    private suspend fun writeErrorFile(errors: List<Pair<Manga, String?>>): File {
         try {
             if (errors.isNotEmpty()) {
                 val file = context.createFileInCacheDir("mihon_update_errors.txt")
@@ -681,7 +681,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                     errors.groupBy({ it.second }, { it.first }).forEach { (error, mangas) ->
                         out.write("\n! ${error}\n")
                         mangas.groupBy { it.source }.forEach { (srcId, mangas) ->
-                            val source = sourceManager.get(srcId) ?: runBlocking { sourceManager.getOrStub(srcId) }
+                            val source = sourceManager.get(srcId) ?: sourceManager.getOrStub(srcId)
                             out.write("  # $source\n")
                             mangas.forEach {
                                 out.write("    - ${it.title}\n")

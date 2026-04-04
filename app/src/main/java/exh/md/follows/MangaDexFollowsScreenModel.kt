@@ -14,7 +14,7 @@ import tachiyomi.domain.manga.model.Manga
 class MangaDexFollowsScreenModel(sourceId: Long) : BrowseSourceScreenModel(sourceId, null) {
 
     override fun createSourcePagingSource(query: String, filters: FilterList): BaseSourcePagingSource {
-        return MangaDexFollowsPagingSource(source.getMainSource() as MangaDex)
+        return MangaDexFollowsPagingSource(source!!.getMainSource() as MangaDex)
     }
 
     override fun Flow<Manga>.combineMetadata(metadata: RaisedSearchMetadata?): Flow<Pair<Manga, RaisedSearchMetadata?>> {
