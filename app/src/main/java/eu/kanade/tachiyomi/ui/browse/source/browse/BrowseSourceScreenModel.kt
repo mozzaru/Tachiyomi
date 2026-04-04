@@ -24,6 +24,7 @@ import eu.kanade.domain.ui.UiPreferences
 import eu.kanade.presentation.util.ioCoroutineScope
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.source.CatalogueSource
+import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.source.online.MetadataSource
 import eu.kanade.tachiyomi.source.online.all.MangaDex
@@ -49,7 +50,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import tachiyomi.core.common.preference.CheckboxState
@@ -117,7 +117,7 @@ open class BrowseSourceScreenModel(
 
     var displayMode by sourcePreferences.sourceDisplayMode().asState(screenModelScope)
 
-    val source = runBlocking { sourceManager.get(sourceId) ?: sourceManager.getOrStub(sourceId) }
+    lateinit var source: Source
 
     // SY -->
     val ehentaiBrowseDisplayMode by exhPreferences.enhancedEHentaiView().asState(screenModelScope)
@@ -131,6 +131,8 @@ open class BrowseSourceScreenModel(
 
     init {
         screenModelScope.launch {
+            source = sourceManager.get(sourceId) ?: sourceManager.getOrStub(sourceId)
+            val source = source
             if (source is CatalogueSource) {
                 mutableState.update {
                     var query: String? = null
@@ -235,6 +237,7 @@ open class BrowseSourceScreenModel(
     // SY <--
 
     fun resetFilters() {
+        val source = source
         if (source !is CatalogueSource) return
 
         mutableState.update { it.copy(filters = source.getFilterList()) }
@@ -245,6 +248,7 @@ open class BrowseSourceScreenModel(
     }
 
     fun setFilters(filters: FilterList) {
+        val source = source
         if (source !is CatalogueSource) return
 
         mutableState.update {
@@ -255,6 +259,7 @@ open class BrowseSourceScreenModel(
     }
 
     fun search(query: String? = null, filters: FilterList? = null) {
+        val source = source
         if (source !is CatalogueSource) return
         // SY -->
         if (filters != null && filters !== state.value.filters) {
@@ -276,6 +281,7 @@ open class BrowseSourceScreenModel(
     }
 
     fun searchGenre(genreName: String) {
+        val source = source
         if (source !is CatalogueSource) return
 
         val defaultFilters = source.getFilterList()
@@ -490,6 +496,7 @@ open class BrowseSourceScreenModel(
         onToast: (StringResource) -> Unit,
     ) {
         screenModelScope.launchIO {
+            val source = source
             if (source !is CatalogueSource) return@launchIO
 
             if (search.filterList == null && state.value.filters.isNotEmpty()) {
@@ -526,6 +533,7 @@ open class BrowseSourceScreenModel(
     fun saveSearch(
         name: String,
     ) {
+        val source = source
         if (source !is CatalogueSource) return
         screenModelScope.launchNonCancellable {
             val query = state.value.toolbarQuery?.takeUnless {

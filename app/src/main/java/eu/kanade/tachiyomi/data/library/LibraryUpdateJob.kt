@@ -678,13 +678,13 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                     // ! Error
                     //   # Source
                     //     - Manga
-                    errors.groupBy({ it.second }, { it.first }).forEach { (error, mangas) ->
+                    for ((error, mangas) in errors.groupBy({ it.second }, { it.first })) {
                         out.write("\n! ${error}\n")
-                        mangas.groupBy { it.source }.forEach { (srcId, mangas) ->
+                        for ((srcId, mangasInSource) in mangas.groupBy { it.source }) {
                             val source = sourceManager.get(srcId) ?: runBlocking { sourceManager.getOrStub(srcId) }
                             out.write("  # $source\n")
-                            mangas.forEach {
-                                out.write("    - ${it.title}\n")
+                            for (manga in mangasInSource) {
+                                out.write("    - ${manga.title}\n")
                             }
                         }
                     }

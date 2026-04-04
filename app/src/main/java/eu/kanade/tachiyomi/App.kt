@@ -282,7 +282,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
         if (level >= TRIM_MEMORY_COMPLETE) {
-            Injekt.get<ImageLoader>().memoryCache?.clear()
+            SingletonImageLoader.get(this).memoryCache?.clear()
         }
     }
 
