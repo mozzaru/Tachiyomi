@@ -3,14 +3,14 @@ package tachiyomi.domain.manga.interactor
 import kotlinx.coroutines.flow.Flow
 import logcat.LogPriority
 import tachiyomi.core.common.util.system.logcat
-import tachiyomi.domain.manga.model.Manga
+import tachiyomi.domain.manga.model.MergedManga
 import tachiyomi.domain.manga.repository.MangaMergeRepository
 
 class GetMergedManga(
     private val mangaMergeRepository: MangaMergeRepository,
 ) {
 
-    suspend fun await(): List<Manga> {
+    suspend fun await(): List<MergedManga> {
         return try {
             mangaMergeRepository.getMergedManga()
         } catch (e: Exception) {
@@ -19,7 +19,7 @@ class GetMergedManga(
         }
     }
 
-    suspend fun subscribe(): Flow<List<Manga>> {
+    suspend fun subscribe(): Flow<List<MergedManga>> {
         return mangaMergeRepository.subscribeMergedManga()
     }
 }

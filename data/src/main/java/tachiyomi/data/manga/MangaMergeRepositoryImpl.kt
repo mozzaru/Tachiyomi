@@ -6,6 +6,7 @@ import tachiyomi.core.common.util.system.logcat
 import tachiyomi.data.DatabaseHandler
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MergeMangaSettingsUpdate
+import tachiyomi.domain.manga.model.MergedManga
 import tachiyomi.domain.manga.model.MergedMangaReference
 import tachiyomi.domain.manga.repository.MangaMergeRepository
 
@@ -13,12 +14,80 @@ class MangaMergeRepositoryImpl(
     private val handler: DatabaseHandler,
 ) : MangaMergeRepository {
 
-    override suspend fun getMergedManga(): List<Manga> {
-        return handler.awaitList { mergedQueries.selectAllMergedMangas(MangaMapper::mapManga) }
+    override suspend fun getMergedManga(): List<MergedManga> {
+        return handler.awaitList {
+            mergedQueries.selectAllMergedMangas { merge_id, id, source, url, artist, author, description, genre, title, status, thumbnailUrl, favorite, last_update, next_update, initialized, viewer, chapter_flags, cover_last_modified, date_added, filtered_scanlators, update_strategy, calculate_interval, last_modified_at, favorite_modified_at, version, is_syncing, notes ->
+                MergedManga(
+                    manga = MangaMapper.mapManga(
+                        id,
+                        source,
+                        url,
+                        artist,
+                        author,
+                        description,
+                        genre,
+                        title,
+                        status,
+                        thumbnailUrl,
+                        favorite,
+                        last_update,
+                        next_update,
+                        initialized,
+                        viewer,
+                        chapter_flags,
+                        cover_last_modified,
+                        date_added,
+                        filtered_scanlators,
+                        update_strategy,
+                        calculate_interval,
+                        last_modified_at,
+                        favorite_modified_at,
+                        version,
+                        is_syncing,
+                        notes,
+                    ),
+                    mergeId = merge_id,
+                )
+            }
+        }
     }
 
-    override suspend fun subscribeMergedManga(): Flow<List<Manga>> {
-        return handler.subscribeToList { mergedQueries.selectAllMergedMangas(MangaMapper::mapManga) }
+    override suspend fun subscribeMergedManga(): Flow<List<MergedManga>> {
+        return handler.subscribeToList {
+            mergedQueries.selectAllMergedMangas { merge_id, id, source, url, artist, author, description, genre, title, status, thumbnailUrl, favorite, last_update, next_update, initialized, viewer, chapter_flags, cover_last_modified, date_added, filtered_scanlators, update_strategy, calculate_interval, last_modified_at, favorite_modified_at, version, is_syncing, notes ->
+                MergedManga(
+                    manga = MangaMapper.mapManga(
+                        id,
+                        source,
+                        url,
+                        artist,
+                        author,
+                        description,
+                        genre,
+                        title,
+                        status,
+                        thumbnailUrl,
+                        favorite,
+                        last_update,
+                        next_update,
+                        initialized,
+                        viewer,
+                        chapter_flags,
+                        cover_last_modified,
+                        date_added,
+                        filtered_scanlators,
+                        update_strategy,
+                        calculate_interval,
+                        last_modified_at,
+                        favorite_modified_at,
+                        version,
+                        is_syncing,
+                        notes,
+                    ),
+                    mergeId = merge_id,
+                )
+            }
+        }
     }
 
     override suspend fun getMergedMangaById(id: Long): List<Manga> {

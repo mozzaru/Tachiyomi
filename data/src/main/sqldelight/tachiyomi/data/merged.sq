@@ -54,9 +54,9 @@ JOIN mangas
 ON mangas._id = M.manga_id;
 
 selectAllMergedMangas:
-SELECT mangas.*
+SELECT M.merge_id, mangas.*
 FROM (
-    SELECT manga_id FROM merged
+    SELECT merge_id, manga_id FROM merged
 ) AS M
 JOIN mangas
 ON mangas._id = M.manga_id;

@@ -154,9 +154,11 @@ open class BrowseSourceScreenModel(
         val jsonFilters = filtersJson
         val filters = state.value.filters
         if (savedSearchFilters != null) {
-            val savedSearch = runBlocking { getExhSavedSearch.awaitOne(savedSearchFilters) { filters } }
-            if (savedSearch != null) {
-                search(query = savedSearch.query, filters = savedSearch.filterList)
+            screenModelScope.launchIO {
+                val savedSearch = getExhSavedSearch.awaitOne(savedSearchFilters) { filters }
+                if (savedSearch != null) {
+                    search(query = savedSearch.query, filters = savedSearch.filterList)
+                }
             }
         } else if (jsonFilters != null) {
             runCatching {

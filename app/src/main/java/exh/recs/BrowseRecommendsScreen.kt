@@ -66,10 +66,15 @@ class BrowseRecommendsScreen(
             }
         }
 
+        val recSource = screenModel.recommendationSource
+        if (recSource == null) {
+            LoadingScreen()
+            return
+        }
+
         Scaffold(
             topBar = { scrollBehavior ->
                 val title = remember {
-                    val recSource = screenModel.recommendationSource
                     "${recSource.name} (${recSource.category.getString(context)})"
                 }
 

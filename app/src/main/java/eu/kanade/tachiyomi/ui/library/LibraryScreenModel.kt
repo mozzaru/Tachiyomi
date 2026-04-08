@@ -97,8 +97,10 @@ import tachiyomi.domain.library.model.sort
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.interactor.GetIdsOfFavoriteMangaWithMetadata
 import tachiyomi.domain.manga.interactor.GetLibraryManga
+import tachiyomi.domain.manga.interactor.GetMergedManga
 import tachiyomi.domain.manga.interactor.GetMergedMangaById
 import tachiyomi.domain.manga.interactor.GetSearchTags
+import tachiyomi.domain.manga.model.MergedManga
 import tachiyomi.domain.manga.interactor.GetSearchTitles
 import tachiyomi.domain.manga.interactor.SetCustomMangaInfo
 import tachiyomi.domain.manga.model.CustomMangaInfo
@@ -137,6 +139,7 @@ class LibraryScreenModel(
     // SY -->
     private val exhPreferences: ExhPreferences = Injekt.get(),
     private val sourcePreferences: SourcePreferences = Injekt.get(),
+    private val getMergedManga: GetMergedManga = Injekt.get(),
     private val getMergedMangaById: GetMergedMangaById = Injekt.get(),
     private val getTracks: GetTracks = Injekt.get(),
     private val getIdsOfFavoriteMangaWithMetadata: GetIdsOfFavoriteMangaWithMetadata = Injekt.get(),
@@ -233,6 +236,7 @@ class LibraryScreenModel(
                             data.showSystemCategory,
                             // SY -->
                             groupType,
+                            data.tracksMap,
                             // SY <--
                         )
                         .applySort(
@@ -433,6 +437,7 @@ class LibraryScreenModel(
         showSystemCategory: Boolean,
         // SY -->
         groupType: Int,
+        tracksMap: Map<Long, List<Track>>,
         // <-- SY
     ): Map<Category, List</* LibraryItem */ Long>> {
         // SY -->
@@ -465,6 +470,7 @@ class LibraryScreenModel(
             else -> {
                 return getGroupedMangaItems(
                     groupType = groupType,
+                    tracksMap = tracksMap,
                 )
             }
         }
@@ -643,38 +649,70 @@ class LibraryScreenModel(
             getLibraryItemPreferencesFlow(),
             downloadCache.changes,
         ) { libraryManga, preferences, _ ->
-            libraryManga.map { manga ->
-                LibraryItem(
-                    libraryManga = manga,
-                    downloadCount = if (preferences.downloadBadge) {
-                        // SY -->
-                        if (manga.manga.source == MERGED_SOURCE_ID) {
-                            runBlocking {
-                                getMergedMangaById.await(manga.manga.id)
-                            }.sumOf { downloadManager.getDownloadCount(it) }.toLong()
-                        } else {
-                            downloadManager.getDownloadCount(manga.manga).toLong()
-                        }
-                        // SY <--
-                    } else {
-                        0
-                    },
-                    unreadCount = if (preferences.unreadBadge) {
-                        manga.unreadCount
-                    } else {
-                        0
-                    },
-                    isLocal = if (preferences.localBadge) {
-                        manga.manga.isLocal()
-                    } else {
-                        false
-                    },
-                    sourceLanguage = if (preferences.languageBadge) {
-                        sourceManager.getOrStub(manga.manga.source).lang
-                    } else {
-                        ""
+            libraryManga to preferences
+        }.flatMapLatest { (libraryManga, preferences) ->
+            if (!preferences.downloadBadge || libraryManga.none { it.manga.source == MERGED_SOURCE_ID }) {
+                flowOf(
+                    libraryManga.map { manga ->
+                        LibraryItem(
+                            libraryManga = manga,
+                            downloadCount = if (preferences.downloadBadge) {
+                                downloadManager.getDownloadCount(manga.manga).toLong()
+                            } else {
+                                0
+                            },
+                            unreadCount = if (preferences.unreadBadge) {
+                                manga.unreadCount
+                            } else {
+                                0
+                            },
+                            isLocal = if (preferences.localBadge) {
+                                manga.manga.isLocal()
+                            } else {
+                                false
+                            },
+                            sourceLanguage = if (preferences.languageBadge) {
+                                sourceManager.getOrStub(manga.manga.source).lang
+                            } else {
+                                ""
+                            },
+                        )
                     },
                 )
+            } else {
+                getMergedManga.subscribe().map { mergedMangaList ->
+                    val mergedMangaMap = mergedMangaList.groupBy { it.mergeId }
+                    libraryManga.map { libManga ->
+                        LibraryItem(
+                            libraryManga = libManga,
+                            downloadCount = if (preferences.downloadBadge) {
+                                if (libManga.manga.source == MERGED_SOURCE_ID) {
+                                    mergedMangaMap[libManga.manga.id].orEmpty()
+                                        .sumOf { downloadManager.getDownloadCount(it.manga) }.toLong()
+                                } else {
+                                    downloadManager.getDownloadCount(libManga.manga).toLong()
+                                }
+                            } else {
+                                0
+                            },
+                            unreadCount = if (preferences.unreadBadge) {
+                                libManga.unreadCount
+                            } else {
+                                0
+                            },
+                            isLocal = if (preferences.localBadge) {
+                                libManga.manga.isLocal()
+                            } else {
+                                false
+                            },
+                            sourceLanguage = if (preferences.languageBadge) {
+                                sourceManager.getOrStub(libManga.manga.source).lang
+                            } else {
+                                ""
+                            },
+                        )
+                    }
+                }
             }
         }
     }
@@ -1333,13 +1371,13 @@ class LibraryScreenModel(
 
     private fun List<LibraryItem>.getGroupedMangaItems(
         groupType: Int,
+        tracksMap: Map<Long, List<Track>>,
     ): Map<Category, List</* LibraryItem */ Long>> {
         val context = preferences.context
         return when (groupType) {
             LibraryGroup.BY_TRACK_STATUS -> {
-                val tracks = runBlocking { getTracks.await() }.groupBy { it.mangaId }
                 groupBy { item ->
-                    val status = tracks[item.libraryManga.manga.id]?.firstNotNullOfOrNull { track ->
+                    val status = tracksMap[item.libraryManga.manga.id]?.firstNotNullOfOrNull { track ->
                         TrackStatus.parseTrackerStatus(trackerManager, track.trackerId, track.status)
                     } ?: TrackStatus.OTHER
 

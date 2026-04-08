@@ -3,12 +3,13 @@ package tachiyomi.domain.manga.repository
 import kotlinx.coroutines.flow.Flow
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.manga.model.MergeMangaSettingsUpdate
+import tachiyomi.domain.manga.model.MergedManga
 import tachiyomi.domain.manga.model.MergedMangaReference
 
 interface MangaMergeRepository {
-    suspend fun getMergedManga(): List<Manga>
+    suspend fun getMergedManga(): List<MergedManga>
 
-    suspend fun subscribeMergedManga(): Flow<List<Manga>>
+    suspend fun subscribeMergedManga(): Flow<List<MergedManga>>
 
     suspend fun getMergedMangaById(id: Long): List<Manga>
 

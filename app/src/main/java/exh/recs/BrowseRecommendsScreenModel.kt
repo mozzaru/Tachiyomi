@@ -6,11 +6,13 @@ import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreenModel
 import exh.metadata.metadata.RaisedSearchMetadata
 import exh.recs.sources.RecommendationPagingSource
 import exh.recs.sources.StaticResultPagingSource
+import cafe.adriel.voyager.core.model.screenModelScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
+import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.model.Manga
 import uy.kohesive.injekt.Injekt
@@ -26,18 +28,10 @@ class BrowseRecommendsScreenModel(
     },
     listingQuery = null,
 ) {
-    val recommendationSource: RecommendationPagingSource
-        get() = when (args) {
-            is BrowseRecommendsScreen.Args.MergedSourceMangas -> StaticResultPagingSource(args.results)
-            is BrowseRecommendsScreen.Args.SingleSourceManga -> RecommendationPagingSource.createSources(
-                runBlocking { getManga.await(args.mangaId)!! },
-                source as CatalogueSource,
-            ).first {
-                it::class.qualifiedName == args.recommendationSourceName
-            }
-        }
+    var recommendationSource: RecommendationPagingSource? = null
+        private set
 
-    override fun createSourcePagingSource(query: String, filters: FilterList) = recommendationSource
+    override fun createSourcePagingSource(query: String, filters: FilterList) = recommendationSource!!
 
     override fun Flow<Manga>.combineMetadata(metadata: RaisedSearchMetadata?): Flow<Pair<Manga, RaisedSearchMetadata?>> {
         // Overridden to prevent our custom metadata from being replaced from a cache
@@ -46,5 +40,20 @@ class BrowseRecommendsScreenModel(
 
     init {
         mutableState.update { it.copy(filterable = false) }
+
+        screenModelScope.launchIO {
+            recommendationSource = when (args) {
+                is BrowseRecommendsScreen.Args.MergedSourceMangas -> StaticResultPagingSource(args.results)
+                is BrowseRecommendsScreen.Args.SingleSourceManga -> {
+                    val manga = getManga.await(args.mangaId)!!
+                    RecommendationPagingSource.createSources(
+                        manga,
+                        source as CatalogueSource,
+                    ).first {
+                        it::class.qualifiedName == args.recommendationSourceName
+                    }
+                }
+            }
+        }
     }
 }
