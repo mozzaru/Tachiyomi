@@ -1,12 +1,15 @@
 package exh.recs
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import cafe.adriel.voyager.core.model.screenModelScope
 import eu.kanade.tachiyomi.source.CatalogueSource
 import eu.kanade.tachiyomi.source.model.FilterList
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreenModel
 import exh.metadata.metadata.RaisedSearchMetadata
 import exh.recs.sources.RecommendationPagingSource
 import exh.recs.sources.StaticResultPagingSource
-import cafe.adriel.voyager.core.model.screenModelScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -28,7 +31,7 @@ class BrowseRecommendsScreenModel(
     },
     listingQuery = null,
 ) {
-    var recommendationSource: RecommendationPagingSource? = null
+    var recommendationSource by mutableStateOf<RecommendationPagingSource?>(null)
         private set
 
     override fun createSourcePagingSource(query: String, filters: FilterList) = recommendationSource!!
