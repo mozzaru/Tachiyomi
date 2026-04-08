@@ -61,8 +61,9 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.i18n.MR
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.io.File
 import java.util.Locale
 
@@ -76,16 +77,18 @@ class Downloader(
     private val context: Context,
     private val provider: DownloadProvider,
     private val cache: DownloadCache,
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val chapterCache: ChapterCache = Injekt.get(),
-    private val downloadPreferences: DownloadPreferences = Injekt.get(),
-    private val xml: XML = Injekt.get(),
-    private val getCategories: GetCategories = Injekt.get(),
-    private val getTracks: GetTracks = Injekt.get(),
+) : KoinComponent {
+
+    private val sourceManager: SourceManager by inject()
+    private val chapterCache: ChapterCache by inject()
+    private val downloadPreferences: DownloadPreferences by inject()
+    private val xml: XML by inject()
+    private val getCategories: GetCategories by inject()
+    private val getTracks: GetTracks by inject()
+
     // SY -->
-    private val sourcePreferences: SourcePreferences = Injekt.get(),
+    private val sourcePreferences: SourcePreferences by inject()
     // SY <--
-) {
 
     /**
      * Store for persisting downloads across restarts.

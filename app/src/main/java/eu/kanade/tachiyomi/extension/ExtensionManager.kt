@@ -32,6 +32,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import logcat.LogPriority
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.source.model.StubSource
@@ -39,16 +41,6 @@ import tachiyomi.i18n.MR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.util.Locale
-
-/**
- * The manager of extensions installed as another apk which extend the available sources. It handles
- * the retrieval of remotely available extensions as well as installing, updating and removing them.
- * To avoid malicious distribution, every extension must be signed and it will only be loaded if its
- * signature is trusted, otherwise the user will be prompted with a warning to trust it before being
- * loaded.
- */
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 /**
  * The manager of extensions installed as another apk which extend the available sources. It handles

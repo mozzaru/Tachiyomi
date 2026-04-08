@@ -52,6 +52,8 @@ import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.storage.service.StorageManager
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.File
@@ -66,11 +68,12 @@ import kotlin.time.Duration.Companion.seconds
  */
 class DownloadCache(
     private val context: Context,
-    private val provider: DownloadProvider = Injekt.get(),
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val extensionManager: ExtensionManager = Injekt.get(),
-    private val storageManager: StorageManager = Injekt.get(),
-) {
+) : KoinComponent {
+
+    private val provider: DownloadProvider by inject()
+    private val sourceManager: SourceManager by inject()
+    private val extensionManager: ExtensionManager by inject()
+    private val storageManager: StorageManager by inject()
 
     private val scope = CoroutineScope(Dispatchers.IO)
 

@@ -11,19 +11,20 @@ import tachiyomi.domain.chapter.interactor.GetChapter
 import tachiyomi.domain.manga.interactor.GetManga
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 /**
  * This class is used to persist active downloads across application restarts.
  */
 class DownloadStore(
     context: Context,
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val json: Json = Injekt.get(),
-    private val getManga: GetManga = Injekt.get(),
-    private val getChapter: GetChapter = Injekt.get(),
-) {
+) : KoinComponent {
+
+    private val sourceManager: SourceManager by inject()
+    private val json: Json by inject()
+    private val getManga: GetManga by inject()
+    private val getChapter: GetChapter by inject()
 
     /**
      * Preference file where active downloads are stored.

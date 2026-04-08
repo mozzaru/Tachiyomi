@@ -75,6 +75,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.runBlocking
 import mihon.core.common.utils.mutate
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.CheckboxState
 import tachiyomi.core.common.preference.TriState
@@ -115,8 +117,6 @@ import tachiyomi.source.local.LocalSource
 import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import kotlin.random.Random
 
 class LibraryScreenModel : StateScreenModel<LibraryScreenModel.State>(State()), KoinComponent {
@@ -236,6 +236,7 @@ class LibraryScreenModel : StateScreenModel<LibraryScreenModel.State>(State()), 
                             data.showSystemCategory,
                             // SY -->
                             groupType,
+                            data.tracksMap,
                             // SY <--
                         )
                         .applySort(
@@ -436,6 +437,7 @@ class LibraryScreenModel : StateScreenModel<LibraryScreenModel.State>(State()), 
         showSystemCategory: Boolean,
         // SY -->
         groupType: Int,
+        tracksMap: Map<Long, List<Track>>,
         // <-- SY
     ): Map<Category, List</* LibraryItem */ Long>> {
         // SY -->
@@ -468,6 +470,7 @@ class LibraryScreenModel : StateScreenModel<LibraryScreenModel.State>(State()), 
             else -> {
                 return getGroupedMangaItems(
                     groupType = groupType,
+                    tracksMap = tracksMap,
                 )
             }
         }
@@ -1336,13 +1339,13 @@ class LibraryScreenModel : StateScreenModel<LibraryScreenModel.State>(State()), 
 
     private fun List<LibraryItem>.getGroupedMangaItems(
         groupType: Int,
+        tracksMap: Map<Long, List<Track>>,
     ): Map<Category, List</* LibraryItem */ Long>> {
         val context = preferences.context
         return when (groupType) {
             LibraryGroup.BY_TRACK_STATUS -> {
-                val tracks = runBlocking { getTracks.await() }.groupBy { it.mangaId }
                 groupBy { item ->
-                    val status = tracks[item.libraryManga.manga.id]?.firstNotNullOfOrNull { track ->
+                    val status = tracksMap[item.libraryManga.manga.id]?.firstNotNullOfOrNull { track ->
                         TrackStatus.parseTrackerStatus(trackerManager, track.trackerId, track.status)
                     } ?: TrackStatus.OTHER
 

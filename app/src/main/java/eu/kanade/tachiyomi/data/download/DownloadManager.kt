@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.runBlocking
 import logcat.LogPriority
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.storage.extension
 import tachiyomi.core.common.util.lang.launchIO
@@ -29,8 +31,6 @@ import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 /**
  * This class is used to manage chapter downloads in the application. It must be instantiated once

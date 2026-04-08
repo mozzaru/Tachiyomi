@@ -101,8 +101,10 @@ import tachiyomi.domain.manga.interactor.GetMergedReferencesById
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.source.local.isLocal
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.koin.core.component.get
 import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
 import java.time.Instant
 import java.util.Date
 
@@ -111,34 +113,36 @@ import java.util.Date
  */
 class ReaderViewModel @JvmOverloads constructor(
     private val savedState: SavedStateHandle,
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val downloadManager: DownloadManager = Injekt.get(),
-    private val downloadProvider: DownloadProvider = Injekt.get(),
-    private val tempFileManager: UniFileTempFileManager = Injekt.get(),
-    private val imageSaver: ImageSaver = Injekt.get(),
-    val readerPreferences: ReaderPreferences = Injekt.get(),
-    private val basePreferences: BasePreferences = Injekt.get(),
-    private val downloadPreferences: DownloadPreferences = Injekt.get(),
-    private val trackPreferences: TrackPreferences = Injekt.get(),
-    private val trackChapter: TrackChapter = Injekt.get(),
-    private val getManga: GetManga = Injekt.get(),
-    private val getChaptersByMangaId: GetChaptersByMangaId = Injekt.get(),
-    private val getNextChapters: GetNextChapters = Injekt.get(),
-    private val upsertHistory: UpsertHistory = Injekt.get(),
-    private val updateChapter: UpdateChapter = Injekt.get(),
-    private val setMangaViewerFlags: SetMangaViewerFlags = Injekt.get(),
-    private val getIncognitoState: GetIncognitoState = Injekt.get(),
-    private val libraryPreferences: LibraryPreferences = Injekt.get(),
+) : ViewModel(), KoinComponent {
+
+    private val sourceManager: SourceManager by inject()
+    private val downloadManager: DownloadManager by inject()
+    private val downloadProvider: DownloadProvider by inject()
+    private val tempFileManager: UniFileTempFileManager by inject()
+    private val imageSaver: ImageSaver by inject()
+    val readerPreferences: ReaderPreferences by inject()
+    private val basePreferences: BasePreferences by inject()
+    private val downloadPreferences: DownloadPreferences by inject()
+    private val trackPreferences: TrackPreferences by inject()
+    private val trackChapter: TrackChapter by inject()
+    private val getManga: GetManga by inject()
+    private val getChaptersByMangaId: GetChaptersByMangaId by inject()
+    private val getNextChapters: GetNextChapters by inject()
+    private val upsertHistory: UpsertHistory by inject()
+    private val updateChapter: UpdateChapter by inject()
+    private val setMangaViewerFlags: SetMangaViewerFlags by inject()
+    private val getIncognitoState: GetIncognitoState by inject()
+    private val libraryPreferences: LibraryPreferences by inject()
+
     // SY -->
-    private val syncPreferences: SyncPreferences = Injekt.get(),
-    private val uiPreferences: UiPreferences = Injekt.get(),
-    private val getFlatMetadataById: GetFlatMetadataById = Injekt.get(),
-    private val getMergedMangaById: GetMergedMangaById = Injekt.get(),
-    private val getMergedReferencesById: GetMergedReferencesById = Injekt.get(),
-    private val getMergedChaptersByMangaId: GetMergedChaptersByMangaId = Injekt.get(),
-    private val setReadStatus: SetReadStatus = Injekt.get(),
+    private val syncPreferences: SyncPreferences by inject()
+    private val uiPreferences: UiPreferences by inject()
+    private val getFlatMetadataById: GetFlatMetadataById by inject()
+    private val getMergedMangaById: GetMergedMangaById by inject()
+    private val getMergedReferencesById: GetMergedReferencesById by inject()
+    private val getMergedChaptersByMangaId: GetMergedChaptersByMangaId by inject()
+    private val setReadStatus: SetReadStatus by inject()
     // SY <--
-) : ViewModel() {
 
     private val mutableState = MutableStateFlow(State())
     val state = mutableState.asStateFlow()
@@ -401,7 +405,7 @@ class ReaderViewModel @JvmOverloads constructor(
                     }
                     if (chapterId == -1L) chapterId = initialChapterId
 
-                    val context = Injekt.get<Application>()
+                    val context: Application = get()
                     // val source = sourceManager.getOrStub(manga.source)
                     loader = ChapterLoader(
                         context = context,
@@ -723,7 +727,7 @@ class ReaderViewModel @JvmOverloads constructor(
 
                 // Check if syncing is enabled for chapter read:
                 if (isSyncEnabled && syncTriggerOpt.syncOnChapterRead) {
-                    SyncDataJob.startNow(Injekt.get<Application>())
+                    SyncDataJob.startNow(get<Application>())
                 }
             }
 
@@ -738,7 +742,7 @@ class ReaderViewModel @JvmOverloads constructor(
             // SY -->
             // Check if syncing is enabled for chapter open:
             if (isSyncEnabled && syncTriggerOpt.syncOnChapterOpen && readerChapter.chapter.last_page_read == 0) {
-                SyncDataJob.startNow(Injekt.get<Application>())
+                SyncDataJob.startNow(get<Application>())
             }
             // SY <--
         }
@@ -1085,7 +1089,7 @@ class ReaderViewModel @JvmOverloads constructor(
         if (page?.status != Page.State.Ready) return
         val manga = manga ?: return
 
-        val context = Injekt.get<Application>()
+        val context: Application = get()
         val notifier = SaveImageNotifier(context)
         notifier.onClear()
 
@@ -1133,7 +1137,7 @@ class ReaderViewModel @JvmOverloads constructor(
 
         val manga = manga ?: return
 
-        val context = Injekt.get<Application>()
+        val context: Application = get()
         val notifier = SaveImageNotifier(context)
         notifier.onClear()
 
@@ -1216,7 +1220,7 @@ class ReaderViewModel @JvmOverloads constructor(
         if (page?.status != Page.State.Ready) return
         val manga = manga ?: return
 
-        val context = Injekt.get<Application>()
+        val context: Application = get()
         val destDir = context.cacheImageDir
 
         val filename = generateFilename(manga, page)
@@ -1249,7 +1253,7 @@ class ReaderViewModel @JvmOverloads constructor(
         if (secondPage?.status != Page.State.Ready) return
         val manga = manga ?: return
 
-        val context = Injekt.get<Application>()
+        val context: Application = get()
         val destDir = context.cacheImageDir
 
         try {
@@ -1288,7 +1292,7 @@ class ReaderViewModel @JvmOverloads constructor(
 
         viewModelScope.launchNonCancellable {
             val result = try {
-                manga.editCover(Injekt.get(), stream())
+                manga.editCover(get(), stream())
                 if (manga.isLocal() || manga.favorite) {
                     SetAsCoverResult.Success
                 } else {
@@ -1321,7 +1325,7 @@ class ReaderViewModel @JvmOverloads constructor(
         if (!trackPreferences.autoUpdateTrack.get()) return
 
         val manga = manga ?: return
-        val context = Injekt.get<Application>()
+        val context: Application = get()
 
         viewModelScope.launchNonCancellable {
             trackChapter.await(context, manga.id, readerChapter.chapter.chapter_number.toDouble())

@@ -19,6 +19,7 @@ import androidx.work.Configuration
 import androidx.work.WorkManager
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
+import coil3.imageLoader
 import coil3.memory.MemoryCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.allowRgb565
@@ -53,7 +54,6 @@ import eu.kanade.tachiyomi.di.AppModule
 import eu.kanade.tachiyomi.di.InjektKoinBridge
 import eu.kanade.tachiyomi.di.PreferenceModule
 import eu.kanade.tachiyomi.di.SYPreferenceModule
-import coil3.imageLoader
 import eu.kanade.tachiyomi.di.importInjektModule
 import eu.kanade.tachiyomi.di.initExpensiveComponents
 import eu.kanade.tachiyomi.network.NetworkHelper
@@ -80,6 +80,8 @@ import mihon.core.firebase.FirebaseConfig
 import mihon.core.migration.Migrator
 import mihon.core.migration.migrations.migrations
 import org.conscrypt.Conscrypt
+import org.koin.android.ext.android.get
+import org.koin.android.ext.android.inject
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
@@ -87,8 +89,6 @@ import tachiyomi.core.common.util.system.ImageUtil
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.i18n.MR
-import org.koin.android.ext.android.get
-import org.koin.android.ext.android.inject
 import tachiyomi.presentation.widget.WidgetManager
 import uy.kohesive.injekt.Injekt
 import java.security.Security

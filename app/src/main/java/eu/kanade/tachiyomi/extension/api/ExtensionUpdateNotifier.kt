@@ -10,13 +10,14 @@ import eu.kanade.tachiyomi.util.system.cancelNotification
 import eu.kanade.tachiyomi.util.system.notify
 import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.i18n.MR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class ExtensionUpdateNotifier(
     private val context: Context,
-    private val securityPreferences: SecurityPreferences = Injekt.get(),
-) {
+) : KoinComponent {
+
+    private val securityPreferences: SecurityPreferences by inject()
     fun promptUpdates(names: List<String>) {
         context.notify(
             Notifications.ID_UPDATES_TO_EXTS,
