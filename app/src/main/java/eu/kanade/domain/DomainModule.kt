@@ -98,111 +98,211 @@ import tachiyomi.domain.track.interactor.GetTracksPerManga
 import tachiyomi.domain.track.interactor.InsertTrack
 import tachiyomi.domain.track.repository.TrackRepository
 import tachiyomi.domain.updates.interactor.GetUpdates
+import org.koin.dsl.module
 import tachiyomi.domain.updates.repository.UpdatesRepository
 import uy.kohesive.injekt.api.InjektRegistrar
 
+val domainModule = module {
+    single<CategoryRepository> { CategoryRepositoryImpl(get()) }
+    factory { GetCategories(get()) }
+    factory { ResetCategoryFlags(get(), get()) }
+    factory { SetDisplayMode(get()) }
+    factory { SetSortModeForCategory(get(), get()) }
+    factory { CreateCategoryWithName(get(), get()) }
+    factory { RenameCategory(get()) }
+    factory { ReorderCategory(get()) }
+    factory { UpdateCategory(get()) }
+    factory { DeleteCategory(get(), get(), get()) }
+
+    single<MangaRepository> { MangaRepositoryImpl(get()) }
+    factory { GetDuplicateLibraryManga(get()) }
+    factory { GetFavorites(get()) }
+    factory { GetLibraryManga(get()) }
+    factory { GetMangaWithChapters(get(), get()) }
+    factory { GetMangaByUrlAndSourceId(get()) }
+    factory { GetManga(get()) }
+    factory { GetNextChapters(get(), get(), get(), get()) }
+    factory { GetUpcomingManga(get()) }
+    factory { ResetViewerFlags(get()) }
+    factory { SetMangaChapterFlags(get()) }
+    factory { FetchInterval(get()) }
+    factory { SetMangaDefaultChapterFlags(get(), get(), get()) }
+    factory { SetMangaViewerFlags(get()) }
+    factory { NetworkToLocalManga(get()) }
+    factory { UpdateManga(get(), get()) }
+    factory { UpdateMangaNotes(get()) }
+    factory { SetMangaCategories(get()) }
+    factory { GetExcludedScanlators(get()) }
+    factory { SetExcludedScanlators(get()) }
+    factory {
+        MigrateMangaUseCase(
+            get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(),
+        )
+    }
+
+    single<ReleaseService> { ReleaseServiceImpl(get(), get()) }
+    factory { GetApplicationRelease(get(), get()) }
+
+    single<TrackRepository> { TrackRepositoryImpl(get()) }
+    factory { TrackChapter(get(), get(), get(), get()) }
+    factory { AddTracks(get(), get(), get(), get()) }
+    factory { RefreshTracks(get(), get(), get(), get()) }
+    factory { DeleteTrack(get()) }
+    factory { GetTracksPerManga(get(), get()) }
+    factory { GetTracks(get()) }
+    factory { InsertTrack(get()) }
+    factory { SyncChapterProgressWithTrack(get(), get(), get()) }
+
+    single<ChapterRepository> { ChapterRepositoryImpl(get()) }
+    factory { GetChapter(get()) }
+    factory { GetChaptersByMangaId(get()) }
+    factory { GetBookmarkedChaptersByMangaId(get(), get(), get()) }
+    factory { GetChapterByUrlAndMangaId(get()) }
+    factory { UpdateChapter(get()) }
+    factory { SetReadStatus(get(), get(), get(), get(), get()) }
+    factory { ShouldUpdateDbChapter() }
+    factory { SyncChaptersWithSource(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { GetAvailableScanlators(get()) }
+    factory { FilterChaptersForDownload(get(), get(), get(), get()) }
+
+    single<HistoryRepository> { HistoryRepositoryImpl(get()) }
+    factory { GetHistory(get()) }
+    factory { UpsertHistory(get()) }
+    factory { RemoveHistory(get()) }
+    factory { GetTotalReadDuration(get()) }
+
+    factory { DeleteDownload(get(), get()) }
+
+    factory { GetExtensionsByType(get(), get()) }
+    factory { GetExtensionSources(get()) }
+    factory { GetExtensionLanguages(get(), get()) }
+
+    single<UpdatesRepository> { UpdatesRepositoryImpl(get()) }
+    factory { GetUpdates(get()) }
+
+    single<SourceRepository> { SourceRepositoryImpl(get(), get()) }
+    single<StubSourceRepository> { StubSourceRepositoryImpl(get()) }
+    factory { GetEnabledSources(get(), get()) }
+    factory { GetLanguagesWithSources(get(), get()) }
+    factory { GetRemoteManga(get()) }
+    factory { GetSourcesWithFavoriteCount(get(), get()) }
+    factory { GetSourcesWithNonLibraryManga(get()) }
+    factory { SetMigrateSorting(get()) }
+    factory { ToggleLanguage(get()) }
+    factory { ToggleSource(get()) }
+    factory { ToggleSourcePin(get()) }
+    factory { TrustExtension(get(), get()) }
+
+    single<ExtensionRepoRepository> { ExtensionRepoRepositoryImpl(get()) }
+    factory { ExtensionRepoService(get(), get()) }
+    factory { GetExtensionRepo(get()) }
+    factory { GetExtensionRepoCount(get()) }
+    factory { CreateExtensionRepo(get(), get()) }
+    factory { DeleteExtensionRepo(get()) }
+    factory { ReplaceExtensionRepo(get()) }
+    factory { UpdateExtensionRepo(get(), get()) }
+    factory { ToggleIncognito(get()) }
+    factory { GetIncognitoState(get(), get(), get()) }
+}
+
 class DomainModule : InjektModule {
 
-    override fun InjektRegistrar.registerInjectables() {
-        addSingletonFactory<CategoryRepository> { CategoryRepositoryImpl(get()) }
-        addFactory { GetCategories(get()) }
-        addFactory { ResetCategoryFlags(get(), get()) }
-        addFactory { SetDisplayMode(get()) }
-        addFactory { SetSortModeForCategory(get(), get()) }
-        addFactory { CreateCategoryWithName(get(), get()) }
-        addFactory { RenameCategory(get()) }
-        addFactory { ReorderCategory(get()) }
-        addFactory { UpdateCategory(get()) }
-        addFactory { DeleteCategory(get(), get(), get()) }
+    override fun uy.kohesive.injekt.api.InjektRegistrar.registerInjectables() {
+        addSingletonFactory<CategoryRepository> { org.koin.java.KoinJavaComponent.get<CategoryRepository>(CategoryRepository::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetCategories>(GetCategories::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<ResetCategoryFlags>(ResetCategoryFlags::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<SetDisplayMode>(SetDisplayMode::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<SetSortModeForCategory>(SetSortModeForCategory::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<CreateCategoryWithName>(CreateCategoryWithName::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<RenameCategory>(RenameCategory::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<ReorderCategory>(ReorderCategory::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<UpdateCategory>(UpdateCategory::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<DeleteCategory>(DeleteCategory::class.java) }
 
-        addSingletonFactory<MangaRepository> { MangaRepositoryImpl(get()) }
-        addFactory { GetDuplicateLibraryManga(get()) }
-        addFactory { GetFavorites(get()) }
-        addFactory { GetLibraryManga(get()) }
-        addFactory { GetMangaWithChapters(get(), get()) }
-        addFactory { GetMangaByUrlAndSourceId(get()) }
-        addFactory { GetManga(get()) }
-        addFactory { GetNextChapters(get(), get(), get(), get()) }
-        addFactory { GetUpcomingManga(get()) }
-        addFactory { ResetViewerFlags(get()) }
-        addFactory { SetMangaChapterFlags(get()) }
-        addFactory { FetchInterval(get()) }
-        addFactory { SetMangaDefaultChapterFlags(get(), get(), get()) }
-        addFactory { SetMangaViewerFlags(get()) }
-        addFactory { NetworkToLocalManga(get()) }
-        addFactory { UpdateManga(get(), get()) }
-        addFactory { UpdateMangaNotes(get()) }
-        addFactory { SetMangaCategories(get()) }
-        addFactory { GetExcludedScanlators(get()) }
-        addFactory { SetExcludedScanlators(get()) }
-        addFactory {
-            MigrateMangaUseCase(
-                get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(),
-            )
-        }
+        addSingletonFactory<MangaRepository> { org.koin.java.KoinJavaComponent.get<MangaRepository>(MangaRepository::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetDuplicateLibraryManga>(GetDuplicateLibraryManga::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetFavorites>(GetFavorites::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetLibraryManga>(GetLibraryManga::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetMangaWithChapters>(GetMangaWithChapters::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetMangaByUrlAndSourceId>(GetMangaByUrlAndSourceId::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetManga>(GetManga::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetNextChapters>(GetNextChapters::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetUpcomingManga>(GetUpcomingManga::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<ResetViewerFlags>(ResetViewerFlags::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<SetMangaChapterFlags>(SetMangaChapterFlags::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<FetchInterval>(FetchInterval::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<SetMangaDefaultChapterFlags>(SetMangaDefaultChapterFlags::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<SetMangaViewerFlags>(SetMangaViewerFlags::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<NetworkToLocalManga>(NetworkToLocalManga::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<UpdateManga>(UpdateManga::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<UpdateMangaNotes>(UpdateMangaNotes::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<SetMangaCategories>(SetMangaCategories::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetExcludedScanlators>(GetExcludedScanlators::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<SetExcludedScanlators>(SetExcludedScanlators::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<MigrateMangaUseCase>(MigrateMangaUseCase::class.java) }
 
-        addSingletonFactory<ReleaseService> { ReleaseServiceImpl(get(), get()) }
-        addFactory { GetApplicationRelease(get(), get()) }
+        addSingletonFactory<ReleaseService> { org.koin.java.KoinJavaComponent.get<ReleaseService>(ReleaseService::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetApplicationRelease>(GetApplicationRelease::class.java) }
 
-        addSingletonFactory<TrackRepository> { TrackRepositoryImpl(get()) }
-        addFactory { TrackChapter(get(), get(), get(), get()) }
-        addFactory { AddTracks(get(), get(), get(), get()) }
-        addFactory { RefreshTracks(get(), get(), get(), get()) }
-        addFactory { DeleteTrack(get()) }
-        addFactory { GetTracksPerManga(get(), get()) }
-        addFactory { GetTracks(get()) }
-        addFactory { InsertTrack(get()) }
-        addFactory { SyncChapterProgressWithTrack(get(), get(), get()) }
+        addSingletonFactory<TrackRepository> { org.koin.java.KoinJavaComponent.get<TrackRepository>(TrackRepository::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<TrackChapter>(TrackChapter::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<AddTracks>(AddTracks::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<RefreshTracks>(RefreshTracks::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<DeleteTrack>(DeleteTrack::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetTracksPerManga>(GetTracksPerManga::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetTracks>(GetTracks::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<InsertTrack>(InsertTrack::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<SyncChapterProgressWithTrack>(SyncChapterProgressWithTrack::class.java) }
 
-        addSingletonFactory<ChapterRepository> { ChapterRepositoryImpl(get()) }
-        addFactory { GetChapter(get()) }
-        addFactory { GetChaptersByMangaId(get()) }
-        addFactory { GetBookmarkedChaptersByMangaId(get(), get(), get()) }
-        addFactory { GetChapterByUrlAndMangaId(get()) }
-        addFactory { UpdateChapter(get()) }
-        addFactory { SetReadStatus(get(), get(), get(), get(), get()) }
-        addFactory { ShouldUpdateDbChapter() }
-        addFactory { SyncChaptersWithSource(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
-        addFactory { GetAvailableScanlators(get()) }
-        addFactory { FilterChaptersForDownload(get(), get(), get(), get()) }
+        addSingletonFactory<ChapterRepository> { org.koin.java.KoinJavaComponent.get<ChapterRepository>(ChapterRepository::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetChapter>(GetChapter::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetChaptersByMangaId>(GetChaptersByMangaId::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetBookmarkedChaptersByMangaId>(GetBookmarkedChaptersByMangaId::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetChapterByUrlAndMangaId>(GetChapterByUrlAndMangaId::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<UpdateChapter>(UpdateChapter::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<SetReadStatus>(SetReadStatus::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<ShouldUpdateDbChapter>(ShouldUpdateDbChapter::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<SyncChaptersWithSource>(SyncChaptersWithSource::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetAvailableScanlators>(GetAvailableScanlators::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<FilterChaptersForDownload>(FilterChaptersForDownload::class.java) }
 
-        addSingletonFactory<HistoryRepository> { HistoryRepositoryImpl(get()) }
-        addFactory { GetHistory(get()) }
-        addFactory { UpsertHistory(get()) }
-        addFactory { RemoveHistory(get()) }
-        addFactory { GetTotalReadDuration(get()) }
+        addSingletonFactory<HistoryRepository> { org.koin.java.KoinJavaComponent.get<HistoryRepository>(HistoryRepository::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetHistory>(GetHistory::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<UpsertHistory>(UpsertHistory::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<RemoveHistory>(RemoveHistory::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetTotalReadDuration>(GetTotalReadDuration::class.java) }
 
-        addFactory { DeleteDownload(get(), get()) }
+        addFactory { org.koin.java.KoinJavaComponent.get<DeleteDownload>(DeleteDownload::class.java) }
 
-        addFactory { GetExtensionsByType(get(), get()) }
-        addFactory { GetExtensionSources(get()) }
-        addFactory { GetExtensionLanguages(get(), get()) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetExtensionsByType>(GetExtensionsByType::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetExtensionSources>(GetExtensionSources::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetExtensionLanguages>(GetExtensionLanguages::class.java) }
 
-        addSingletonFactory<UpdatesRepository> { UpdatesRepositoryImpl(get()) }
-        addFactory { GetUpdates(get()) }
+        addSingletonFactory<UpdatesRepository> { org.koin.java.KoinJavaComponent.get<UpdatesRepository>(UpdatesRepository::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetUpdates>(GetUpdates::class.java) }
 
-        addSingletonFactory<SourceRepository> { SourceRepositoryImpl(get(), get()) }
-        addSingletonFactory<StubSourceRepository> { StubSourceRepositoryImpl(get()) }
-        addFactory { GetEnabledSources(get(), get()) }
-        addFactory { GetLanguagesWithSources(get(), get()) }
-        addFactory { GetRemoteManga(get()) }
-        addFactory { GetSourcesWithFavoriteCount(get(), get()) }
-        addFactory { GetSourcesWithNonLibraryManga(get()) }
-        addFactory { SetMigrateSorting(get()) }
-        addFactory { ToggleLanguage(get()) }
-        addFactory { ToggleSource(get()) }
-        addFactory { ToggleSourcePin(get()) }
-        addFactory { TrustExtension(get(), get()) }
+        addSingletonFactory<SourceRepository> { org.koin.java.KoinJavaComponent.get<SourceRepository>(SourceRepository::class.java) }
+        addSingletonFactory<StubSourceRepository> { org.koin.java.KoinJavaComponent.get<StubSourceRepository>(StubSourceRepository::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetEnabledSources>(GetEnabledSources::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetLanguagesWithSources>(GetLanguagesWithSources::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetRemoteManga>(GetRemoteManga::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetSourcesWithFavoriteCount>(GetSourcesWithFavoriteCount::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetSourcesWithNonLibraryManga>(GetSourcesWithNonLibraryManga::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<SetMigrateSorting>(SetMigrateSorting::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<ToggleLanguage>(ToggleLanguage::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<ToggleSource>(ToggleSource::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<ToggleSourcePin>(ToggleSourcePin::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<TrustExtension>(TrustExtension::class.java) }
 
-        addSingletonFactory<ExtensionRepoRepository> { ExtensionRepoRepositoryImpl(get()) }
-        addFactory { ExtensionRepoService(get(), get()) }
-        addFactory { GetExtensionRepo(get()) }
-        addFactory { GetExtensionRepoCount(get()) }
-        addFactory { CreateExtensionRepo(get(), get()) }
-        addFactory { DeleteExtensionRepo(get()) }
-        addFactory { ReplaceExtensionRepo(get()) }
-        addFactory { UpdateExtensionRepo(get(), get()) }
-        addFactory { ToggleIncognito(get()) }
-        addFactory { GetIncognitoState(get(), get(), get()) }
+        addSingletonFactory<ExtensionRepoRepository> { org.koin.java.KoinJavaComponent.get<ExtensionRepoRepository>(ExtensionRepoRepository::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<ExtensionRepoService>(ExtensionRepoService::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetExtensionRepo>(GetExtensionRepo::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetExtensionRepoCount>(GetExtensionRepoCount::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<CreateExtensionRepo>(CreateExtensionRepo::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<DeleteExtensionRepo>(DeleteExtensionRepo::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<ReplaceExtensionRepo>(ReplaceExtensionRepo::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<UpdateExtensionRepo>(UpdateExtensionRepo::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<ToggleIncognito>(ToggleIncognito::class.java) }
+        addFactory { org.koin.java.KoinJavaComponent.get<GetIncognitoState>(GetIncognitoState::class.java) }
     }
 }

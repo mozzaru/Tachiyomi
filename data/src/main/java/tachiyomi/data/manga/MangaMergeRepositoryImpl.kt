@@ -13,19 +13,31 @@ class MangaMergeRepositoryImpl(
     private val handler: DatabaseHandler,
 ) : MangaMergeRepository {
 
-    override suspend fun getMergedManga(): List<Manga> {
-        return handler.awaitList { mergedQueries.selectAllMergedMangas(MangaMapper::mapManga) }
+    override suspend fun getMergedManga(): List<Pair<Long, Manga>> {
+        return handler.awaitList {
+            mergedQueries.selectAllMergedMangas { merge_id, id, source, url, artist, author, description, genre, title, status, thumbnailUrl, favorite, lastUpdate, nextUpdate, initialized, viewerFlags, chapterFlags, coverLastModified, dateAdded, filteredScanlators, updateStrategy, calculateInterval, lastModifiedAt, favoriteModifiedAt, version, isSyncing, notes ->
+                merge_id to MangaMapper.mapManga(
+                    id, source, url, artist, author, description, genre, title, status, thumbnailUrl, favorite, lastUpdate, nextUpdate, initialized, viewerFlags, chapterFlags, coverLastModified, dateAdded, filteredScanlators, updateStrategy, calculateInterval, lastModifiedAt, favoriteModifiedAt, version, isSyncing, notes,
+                )
+            }
+        }
     }
 
-    override suspend fun subscribeMergedManga(): Flow<List<Manga>> {
-        return handler.subscribeToList { mergedQueries.selectAllMergedMangas(MangaMapper::mapManga) }
+    override fun subscribeMergedManga(): Flow<List<Pair<Long, Manga>>> {
+        return handler.subscribeToList {
+            mergedQueries.selectAllMergedMangas { merge_id, id, source, url, artist, author, description, genre, title, status, thumbnailUrl, favorite, lastUpdate, nextUpdate, initialized, viewerFlags, chapterFlags, coverLastModified, dateAdded, filteredScanlators, updateStrategy, calculateInterval, lastModifiedAt, favoriteModifiedAt, version, isSyncing, notes ->
+                merge_id to MangaMapper.mapManga(
+                    id, source, url, artist, author, description, genre, title, status, thumbnailUrl, favorite, lastUpdate, nextUpdate, initialized, viewerFlags, chapterFlags, coverLastModified, dateAdded, filteredScanlators, updateStrategy, calculateInterval, lastModifiedAt, favoriteModifiedAt, version, isSyncing, notes,
+                )
+            }
+        }
     }
 
     override suspend fun getMergedMangaById(id: Long): List<Manga> {
         return handler.awaitList { mergedQueries.selectMergedMangasById(id, MangaMapper::mapManga) }
     }
 
-    override suspend fun subscribeMergedMangaById(id: Long): Flow<List<Manga>> {
+    override fun subscribeMergedMangaById(id: Long): Flow<List<Manga>> {
         return handler.subscribeToList { mergedQueries.selectMergedMangasById(id, MangaMapper::mapManga) }
     }
 

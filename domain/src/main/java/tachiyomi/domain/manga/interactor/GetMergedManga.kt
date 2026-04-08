@@ -10,7 +10,7 @@ class GetMergedManga(
     private val mangaMergeRepository: MangaMergeRepository,
 ) {
 
-    suspend fun await(): List<Manga> {
+    suspend fun await(): List<Pair<Long, Manga>> {
         return try {
             mangaMergeRepository.getMergedManga()
         } catch (e: Exception) {
@@ -19,7 +19,7 @@ class GetMergedManga(
         }
     }
 
-    suspend fun subscribe(): Flow<List<Manga>> {
+    fun subscribe(): Flow<List<Pair<Long, Manga>>> {
         return mangaMergeRepository.subscribeMergedManga()
     }
 }

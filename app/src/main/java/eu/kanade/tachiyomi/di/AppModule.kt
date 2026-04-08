@@ -46,16 +46,133 @@ import tachiyomi.data.StringListColumnAdapter
 import tachiyomi.data.UpdateStrategyColumnAdapter
 import tachiyomi.domain.manga.interactor.GetCustomMangaInfo
 import tachiyomi.domain.source.service.SourceManager
+import org.koin.dsl.module
+import uy.kohesive.injekt.injectLazy
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.source.local.image.LocalCoverManager
 import tachiyomi.source.local.io.LocalSourceFileSystem
 import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.InjektRegistrar
 import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
 import java.lang.ref.WeakReference
 
 private val lock = Any()
+
+val appModule = module {
+    single<SqlDriver> {
+        val app: Application = get()
+        val securityPreferences: SecurityPreferences = get()
+        var sqlDriverRef: WeakReference<SqlDriver>? = null
+
+        synchronized(lock) {
+            sqlDriverRef?.get()?.let { return@synchronized it }
+
+            // SY -->
+            if (securityPreferences.encryptDatabase.get()) {
+                System.loadLibrary("sqlcipher")
+
+                return@synchronized AndroidSqliteDriver(
+                    schema = Database.Schema,
+                    context = app,
+                    name = CbzCrypto.DATABASE_NAME,
+                    factory = SupportOpenHelperFactory(CbzCrypto.getDecryptedPasswordSql(), null, false, 25),
+                    callback = object : AndroidSqliteDriver.Callback(Database.Schema) {
+                        override fun onOpen(db: SupportSQLiteDatabase) {
+                            super.onOpen(db)
+                            setPragma(db, "foreign_keys = ON")
+                            setPragma(db, "journal_mode = WAL")
+                            setPragma(db, "synchronous = NORMAL")
+                        }
+
+                        private fun setPragma(db: SupportSQLiteDatabase, pragma: String) {
+                            val cursor = db.query("PRAGMA $pragma")
+                            cursor.moveToFirst()
+                            cursor.close()
+                        }
+                    },
+                ).also { sqlDriverRef = WeakReference(it) }
+            }
+        }
+        // SY <--
+
+        AndroidxSqliteDriver(
+            driver = BundledSQLiteDriver(),
+            databaseType = AndroidxSqliteDatabaseType.FileProvider(app, "tachiyomi.db"),
+            schema = Database.Schema,
+            configuration = AndroidxSqliteConfiguration(
+                isForeignKeyConstraintsEnabled = true,
+            ),
+        ).also { sqlDriverRef = WeakReference(it) }
+    }
+
+    single {
+        Database(
+            driver = get(),
+            historyAdapter = History.Adapter(
+                last_readAdapter = DateColumnAdapter,
+            ),
+            mangasAdapter = Mangas.Adapter(
+                genreAdapter = StringListColumnAdapter,
+                update_strategyAdapter = UpdateStrategyColumnAdapter,
+            ),
+        )
+    }
+
+    single<DatabaseHandler> { AndroidDatabaseHandler(get(), get()) }
+
+    single {
+        Json {
+            ignoreUnknownKeys = true
+            explicitNulls = false
+        }
+    }
+
+    single {
+        XML {
+            defaultPolicy {
+                ignoreUnknownChildren()
+            }
+            autoPolymorphic = true
+            xmlDeclMode = XmlDeclMode.Charset
+            indent = 2
+            xmlVersion = XmlVersion.XML10
+        }
+    }
+
+    single { ProtoBuf }
+
+    single { UniFileTempFileManager(get()) }
+
+    single { ChapterCache(get(), get(), get()) }
+    single { CoverCache(get()) }
+
+    single { NetworkHelper(get(), get(), BuildConfig.DEBUG) }
+    single { JavaScriptEngine(get()) }
+
+    single<SourceManager> { AndroidSourceManager(get(), get(), get()) }
+    single { ExtensionManager(get()) }
+
+    single { DownloadProvider(get()) }
+    single { DownloadManager(get()) }
+    single { DownloadCache(get()) }
+
+    single { TrackerManager() }
+    single { DelayedTrackingStore(get()) }
+
+    single { ImageSaver(get()) }
+
+    single { AndroidStorageFolderProvider(get()) }
+    single { LocalSourceFileSystem(get()) }
+    single { LocalCoverManager(get(), get()) }
+    single { StorageManager(get(), get()) }
+
+    // SY -->
+    single { EHentaiUpdateHelper(get()) }
+
+    single { PagePreviewCache(get()) }
+
+    single { GoogleDriveService(get()) }
+    // SY <--
+}
 
 class AppModule(val app: Application) : InjektModule {
     // SY -->
@@ -64,116 +181,48 @@ class AppModule(val app: Application) : InjektModule {
 
     private var sqlDriverRef: WeakReference<SqlDriver>? = null
 
-    override fun InjektRegistrar.registerInjectables() {
+    override fun uy.kohesive.injekt.api.InjektRegistrar.registerInjectables() {
         addSingleton(app)
 
-        addSingletonFactory<SqlDriver> {
-            synchronized(lock) {
-                sqlDriverRef?.get()?.let { return@synchronized it }
+        addSingletonFactory<SqlDriver> { org.koin.java.KoinJavaComponent.get<SqlDriver>(SqlDriver::class.java) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<Database>(Database::class.java) }
+        addSingletonFactory<DatabaseHandler> { org.koin.java.KoinJavaComponent.get<DatabaseHandler>(DatabaseHandler::class.java) }
 
-                // SY -->
-                if (securityPreferences.encryptDatabase.get()) {
-                    System.loadLibrary("sqlcipher")
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<Json>(Json::class.java) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<XML>(XML::class.java) }
+        addSingletonFactory<ProtoBuf> { org.koin.java.KoinJavaComponent.get<ProtoBuf>(ProtoBuf::class.java) }
 
-                    return@synchronized AndroidSqliteDriver(
-                        schema = Database.Schema,
-                        context = app,
-                        name = CbzCrypto.DATABASE_NAME,
-                        factory = SupportOpenHelperFactory(CbzCrypto.getDecryptedPasswordSql(), null, false, 25),
-                        callback = object : AndroidSqliteDriver.Callback(Database.Schema) {
-                            override fun onOpen(db: SupportSQLiteDatabase) {
-                                super.onOpen(db)
-                                setPragma(db, "foreign_keys = ON")
-                                setPragma(db, "journal_mode = WAL")
-                                setPragma(db, "synchronous = NORMAL")
-                            }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<UniFileTempFileManager>(UniFileTempFileManager::class.java) }
 
-                            private fun setPragma(db: SupportSQLiteDatabase, pragma: String) {
-                                val cursor = db.query("PRAGMA $pragma")
-                                cursor.moveToFirst()
-                                cursor.close()
-                            }
-                        },
-                    ).also { sqlDriverRef = WeakReference(it) }
-                }
-            }
-            // SY <--
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<ChapterCache>(ChapterCache::class.java) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<CoverCache>(CoverCache::class.java) }
 
-            AndroidxSqliteDriver(
-                driver = BundledSQLiteDriver(),
-                databaseType = AndroidxSqliteDatabaseType.FileProvider(app, "tachiyomi.db"),
-                schema = Database.Schema,
-                configuration = AndroidxSqliteConfiguration(
-                    isForeignKeyConstraintsEnabled = true,
-                ),
-            ).also { sqlDriverRef = WeakReference(it) }
-        }
-        addSingletonFactory {
-            Database(
-                driver = get(),
-                historyAdapter = History.Adapter(
-                    last_readAdapter = DateColumnAdapter,
-                ),
-                mangasAdapter = Mangas.Adapter(
-                    genreAdapter = StringListColumnAdapter,
-                    update_strategyAdapter = UpdateStrategyColumnAdapter,
-                ),
-            )
-        }
-        addSingletonFactory<DatabaseHandler> { AndroidDatabaseHandler(get(), get()) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<NetworkHelper>(NetworkHelper::class.java) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<JavaScriptEngine>(JavaScriptEngine::class.java) }
 
-        addSingletonFactory {
-            Json {
-                ignoreUnknownKeys = true
-                explicitNulls = false
-            }
-        }
-        addSingletonFactory {
-            XML {
-                defaultPolicy {
-                    ignoreUnknownChildren()
-                }
-                autoPolymorphic = true
-                xmlDeclMode = XmlDeclMode.Charset
-                indent = 2
-                xmlVersion = XmlVersion.XML10
-            }
-        }
-        addSingletonFactory<ProtoBuf> {
-            ProtoBuf
-        }
+        addSingletonFactory<SourceManager> { org.koin.java.KoinJavaComponent.get<SourceManager>(SourceManager::class.java) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<ExtensionManager>(ExtensionManager::class.java) }
 
-        addSingletonFactory { UniFileTempFileManager(app) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<DownloadProvider>(DownloadProvider::class.java) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<DownloadManager>(DownloadManager::class.java) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<DownloadCache>(DownloadCache::class.java) }
 
-        addSingletonFactory { ChapterCache(app, get(), get()) }
-        addSingletonFactory { CoverCache(app) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<TrackerManager>(TrackerManager::class.java) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<DelayedTrackingStore>(DelayedTrackingStore::class.java) }
 
-        addSingletonFactory { NetworkHelper(app, get(), BuildConfig.DEBUG) }
-        addSingletonFactory { JavaScriptEngine(app) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<ImageSaver>(ImageSaver::class.java) }
 
-        addSingletonFactory<SourceManager> { AndroidSourceManager(app, get(), get()) }
-        addSingletonFactory { ExtensionManager(app) }
-
-        addSingletonFactory { DownloadProvider(app) }
-        addSingletonFactory { DownloadManager(app) }
-        addSingletonFactory { DownloadCache(app) }
-
-        addSingletonFactory { TrackerManager() }
-        addSingletonFactory { DelayedTrackingStore(app) }
-
-        addSingletonFactory { ImageSaver(app) }
-
-        addSingletonFactory { AndroidStorageFolderProvider(app) }
-        addSingletonFactory { LocalSourceFileSystem(get()) }
-        addSingletonFactory { LocalCoverManager(app, get()) }
-        addSingletonFactory { StorageManager(app, get()) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<AndroidStorageFolderProvider>(AndroidStorageFolderProvider::class.java) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<LocalSourceFileSystem>(LocalSourceFileSystem::class.java) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<LocalCoverManager>(LocalCoverManager::class.java) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<StorageManager>(StorageManager::class.java) }
 
         // SY -->
-        addSingletonFactory { EHentaiUpdateHelper(app) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<EHentaiUpdateHelper>(EHentaiUpdateHelper::class.java) }
 
-        addSingletonFactory { PagePreviewCache(app) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<PagePreviewCache>(PagePreviewCache::class.java) }
 
-        addSingletonFactory { GoogleDriveService(app) }
+        addSingletonFactory { org.koin.java.KoinJavaComponent.get<GoogleDriveService>(GoogleDriveService::class.java) }
         // SY <--
     }
 }

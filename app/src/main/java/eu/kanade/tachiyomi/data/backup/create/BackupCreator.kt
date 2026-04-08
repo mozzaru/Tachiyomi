@@ -88,7 +88,7 @@ class BackupCreator(
 
             val nonFavoriteManga = if (options.readEntries) mangaRepository.getReadMangaNotInLibrary() else emptyList()
             // SY -->
-            val mergedManga = getMergedManga.await()
+            val mergedManga = getMergedManga.await().map { it.second }
             // SY <--
             val backupManga =
                 backupMangas(getFavorites.await() + nonFavoriteManga /* SY --> */ + mergedManga /* SY <-- */, options)
