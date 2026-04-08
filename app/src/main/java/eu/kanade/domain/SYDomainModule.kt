@@ -19,6 +19,7 @@ import eu.kanade.tachiyomi.di.addFactory
 import eu.kanade.tachiyomi.di.addSingletonFactory
 import eu.kanade.tachiyomi.source.online.MetadataSource
 import exh.search.SearchEngine
+import org.koin.dsl.module
 import tachiyomi.data.manga.CustomMangaRepositoryImpl
 import tachiyomi.data.manga.FavoritesEntryRepositoryImpl
 import tachiyomi.data.manga.MangaMergeRepositoryImpl
@@ -73,7 +74,6 @@ import tachiyomi.domain.source.interactor.InsertSavedSearch
 import tachiyomi.domain.source.repository.FeedSavedSearchRepository
 import tachiyomi.domain.source.repository.SavedSearchRepository
 import tachiyomi.domain.track.interactor.IsTrackUnfollowed
-import org.koin.dsl.module
 import uy.kohesive.injekt.api.InjektRegistrar
 import xyz.nulldev.ts.api.http.serializer.FilterSerializer
 

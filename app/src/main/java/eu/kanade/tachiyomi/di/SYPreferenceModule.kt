@@ -1,9 +1,9 @@
 package eu.kanade.tachiyomi.di
 
 import android.app.Application
-import org.koin.dsl.module
 import exh.pref.DelegateSourcePreferences
 import exh.source.ExhPreferences
+import org.koin.dsl.module
 import uy.kohesive.injekt.api.InjektRegistrar
 
 val syPreferenceModule = module {
