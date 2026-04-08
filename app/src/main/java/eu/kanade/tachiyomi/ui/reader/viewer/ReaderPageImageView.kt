@@ -175,6 +175,10 @@ open class ReaderPageImageView @JvmOverloads constructor(
             is AppCompatImageView -> it.dispose()
         }
         it.isVisible = false
+        onImageLoaded = null
+        onImageLoadError = null
+        onScaleChanged = null
+        onViewClicked = null
     }
 
     /**

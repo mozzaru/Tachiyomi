@@ -23,6 +23,8 @@ import kotlinx.coroutines.supervisorScope
 import logcat.LogPriority
 import okio.Buffer
 import okio.BufferedSource
+import okio.buffer
+import okio.source
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withIOContext
@@ -172,18 +174,24 @@ class PagerPageHolder(
 
         try {
             val (source, isAnimated, background) = withIOContext {
-                streamFn().buffered(16).use { source ->
+                streamFn().source().buffer().use { source ->
                     // SY -->
                     if (extraPage != null) {
                         streamFn2?.invoke()
-                            ?.buffered(16)
+                            ?.source()
+                            ?.buffer()
                     } else {
                         null
                     }.use { source2 ->
                         val itemSource = if (viewer.config.dualPageSplit) {
-                            process(item.first, Buffer().readFrom(source))
+                            process(item.first, source)
                         } else {
-                            mergePages(Buffer().readFrom(source), source2?.let { Buffer().readFrom(it) })
+                            val isWidePage = viewer.config.centerMarginType and PagerConfig.CenterMarginType.WIDE_PAGE_CENTER_MARGIN > 0 && !viewer.config.imageCropBorders
+                            if (source2 == null && !isWidePage && !viewer.config.dualPageRotateToFit) {
+                                source
+                            } else {
+                                mergePages(source, source2)
+                            }
                         }
                         // SY <--
                         val isAnimated = ImageUtil.isAnimatedAndSupported(itemSource)
@@ -314,9 +322,12 @@ class PagerPageHolder(
         imageSource.close()
         imageSource2.close()
 
-        return ImageUtil.mergeBitmaps(imageBitmap, imageBitmap2, isLTR, centerMargin, viewer.config.pageCanvasColor) {
+        val result = ImageUtil.mergeBitmaps(imageBitmap, imageBitmap2, isLTR, centerMargin, viewer.config.pageCanvasColor) {
             updateProgress(it)
         }
+        imageBitmap.recycle()
+        imageBitmap2.recycle()
+        return result
     }
 
     private fun handleWideImage(imageSource: BufferedSource): BufferedSource {
@@ -334,7 +345,10 @@ class PagerPageHolder(
 
     private fun decodeImage(imageSource: BufferedSource): Bitmap? {
         return try {
-            ImageDecoder.newInstance(imageSource.inputStream())?.decode()
+            val decoder = ImageDecoder.newInstance(imageSource.inputStream())
+            val bitmap = decoder?.decode()
+            decoder?.recycle()
+            bitmap
         } catch (e: Exception) {
             logcat(LogPriority.ERROR, e) { "Cannot decode image" }
             null

@@ -43,22 +43,23 @@ import tachiyomi.domain.source.model.StubSource
 import tachiyomi.domain.source.repository.StubSourceRepository
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.source.local.LocalSource
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
-import uy.kohesive.injekt.injectLazy
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
+import org.koin.core.component.inject
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
 class AndroidSourceManager(
     private val context: Context,
-    private val extensionManager: ExtensionManager,
-    private val sourceRepository: StubSourceRepository,
-) : SourceManager {
+) : SourceManager, KoinComponent {
+
+    private val extensionManager: ExtensionManager by inject()
+    private val sourceRepository: StubSourceRepository by inject()
 
     private val _isInitialized = MutableStateFlow(false)
     override val isInitialized: StateFlow<Boolean> = _isInitialized.asStateFlow()
 
-    private val downloadManager: DownloadManager by injectLazy()
+    private val downloadManager: DownloadManager by inject()
 
     private val scope = CoroutineScope(Job() + Dispatchers.IO)
 
@@ -71,8 +72,8 @@ class AndroidSourceManager(
     }
 
     // SY -->
-    private val exhPreferences: ExhPreferences by injectLazy()
-    private val sourcePreferences: SourcePreferences by injectLazy()
+    private val exhPreferences: ExhPreferences by inject()
+    private val sourcePreferences: SourcePreferences by inject()
     // SY <--
 
     init {
@@ -88,8 +89,8 @@ class AndroidSourceManager(
                         mapOf(
                             LocalSource.ID to LocalSource(
                                 context,
-                                Injekt.get(),
-                                Injekt.get(),
+                                get(),
+                                get(),
                                 // SY -->
                                 sourcePreferences.allowLocalSourceHiddenFolders::get,
                                 // SY <--

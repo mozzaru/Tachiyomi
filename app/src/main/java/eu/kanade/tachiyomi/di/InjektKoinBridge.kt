@@ -59,6 +59,6 @@ inline fun <reified T> InjektModule.addFactory(crossinline instance: Scope.() ->
     module.factory<T> { instance() }
 }
 
-fun InjektScope.importModule(injektModule: InjektModule) {
+fun InjektScope.importInjektModule(injektModule: InjektModule) {
     with(injektModule) { registrar.registerInjectables() }
 }

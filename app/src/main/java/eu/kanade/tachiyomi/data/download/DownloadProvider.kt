@@ -15,8 +15,8 @@ import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.storage.service.StorageManager
 import tachiyomi.i18n.MR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.io.IOException
 
 /**
@@ -27,10 +27,11 @@ import java.io.IOException
  */
 class DownloadProvider(
     private val context: Context,
-    private val storageManager: StorageManager = Injekt.get(),
-    private val libraryPreferences: LibraryPreferences = Injekt.get(),
-    private val downloadPreferences: DownloadPreferences = Injekt.get(),
-) {
+) : KoinComponent {
+
+    private val storageManager: StorageManager by inject()
+    private val libraryPreferences: LibraryPreferences by inject()
+    private val downloadPreferences: DownloadPreferences by inject()
 
     private val downloadsDir: UniFile?
         get() = storageManager.getDownloadsDirectory()

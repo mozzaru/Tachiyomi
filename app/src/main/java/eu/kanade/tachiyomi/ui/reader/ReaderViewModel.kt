@@ -1168,8 +1168,10 @@ class ReaderViewModel @JvmOverloads constructor(
         ImageUtil.findImageType(stream1) ?: throw Exception("Not an image")
         val stream2 = page2.stream!!
         ImageUtil.findImageType(stream2) ?: throw Exception("Not an image")
-        val imageBitmap = ImageDecoder.newInstance(stream1())?.decode()!!
-        val imageBitmap2 = ImageDecoder.newInstance(stream2())?.decode()!!
+        val decoder1 = ImageDecoder.newInstance(stream1())
+        val imageBitmap = decoder1?.decode()!!
+        val decoder2 = ImageDecoder.newInstance(stream2())
+        val imageBitmap2 = decoder2?.decode()!!
 
         val chapter = page1.chapter.chapter
 
@@ -1179,13 +1181,20 @@ class ReaderViewModel @JvmOverloads constructor(
             "${manga.title} - ${chapter.name}".takeBytes(MAX_FILE_NAME_BYTES - filenameSuffix.byteSize()),
         ) + filenameSuffix
 
-        return imageSaver.save(
+        val uri = imageSaver.save(
             image = Image.Page(
                 inputStream = { ImageUtil.mergeBitmaps(imageBitmap, imageBitmap2, isLTR, 0, bg).inputStream() },
                 name = filename,
                 location = location,
             ),
         )
+
+        decoder1.recycle()
+        imageBitmap.recycle()
+        decoder2.recycle()
+        imageBitmap2.recycle()
+
+        return uri
     }
     // SY <--
 

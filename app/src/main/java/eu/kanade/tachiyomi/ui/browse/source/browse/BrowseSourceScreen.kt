@@ -117,9 +117,10 @@ data class BrowseSourceScreen(
         val context = LocalContext.current
         // SY <--
 
-        if (screenModel.source is StubSource) {
+        val source = screenModel.source
+        if (source is StubSource) {
             MissingSourceScreen(
-                source = screenModel.source,
+                source = source,
                 navigateUp = navigateUp,
             )
             return
@@ -132,18 +133,18 @@ data class BrowseSourceScreen(
 
         val onHelpClick = { uriHandler.openUri(LocalSource.HELP_URL) }
         val onWebViewClick = f@{
-            val source = screenModel.source as? HttpSource ?: return@f
+            val httpSource = source as? HttpSource ?: return@f
             navigator.push(
                 WebViewScreen(
-                    url = source.baseUrl,
-                    initialTitle = source.name,
-                    sourceId = source.id,
+                    url = httpSource.baseUrl,
+                    initialTitle = httpSource.name,
+                    sourceId = httpSource.id,
                 ),
             )
         }
 
-        LaunchedEffect(screenModel.source) {
-            assistUrl = (screenModel.source as? HttpSource)?.baseUrl
+        LaunchedEffect(source) {
+            assistUrl = (source as? HttpSource)?.baseUrl
         }
 
         Scaffold(
@@ -156,7 +157,7 @@ data class BrowseSourceScreen(
                     BrowseSourceToolbar(
                         searchQuery = state.toolbarQuery,
                         onSearchQueryChange = screenModel::setToolbarQuery,
-                        source = screenModel.source,
+                        source = source,
                         displayMode = screenModel.displayMode,
                         onDisplayModeChange = { screenModel.displayMode = it },
                         navigateUp = navigateUp,
@@ -190,7 +191,7 @@ data class BrowseSourceScreen(
                                 Text(text = stringResource(MR.strings.popular))
                             },
                         )
-                        if ((screenModel.source as CatalogueSource).supportsLatest) {
+                        if ((source as? CatalogueSource)?.supportsLatest == true) {
                             FilterChip(
                                 selected = state.listing == Listing.Latest,
                                 onClick = {
@@ -243,7 +244,7 @@ data class BrowseSourceScreen(
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         ) { paddingValues ->
             BrowseSourceContent(
-                source = screenModel.source,
+                source = source,
                 mangaList = screenModel.mangaPagerFlowFlow.collectAsLazyPagingItems(),
                 columns = screenModel.getColumnsPreference(LocalConfiguration.current.orientation),
                 // SY -->

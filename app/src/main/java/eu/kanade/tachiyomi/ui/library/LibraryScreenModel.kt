@@ -115,40 +115,43 @@ import tachiyomi.source.local.LocalSource
 import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import kotlin.random.Random
 
-class LibraryScreenModel(
-    private val getLibraryManga: GetLibraryManga = Injekt.get(),
-    private val getCategories: GetCategories = Injekt.get(),
-    private val getTracksPerManga: GetTracksPerManga = Injekt.get(),
-    private val getNextChapters: GetNextChapters = Injekt.get(),
-    private val getChaptersByMangaId: GetChaptersByMangaId = Injekt.get(),
-    private val getBookmarkedChaptersByMangaId: GetBookmarkedChaptersByMangaId = Injekt.get(),
-    private val setReadStatus: SetReadStatus = Injekt.get(),
-    private val updateManga: UpdateManga = Injekt.get(),
-    private val setMangaCategories: SetMangaCategories = Injekt.get(),
-    private val preferences: BasePreferences = Injekt.get(),
-    private val libraryPreferences: LibraryPreferences = Injekt.get(),
-    private val coverCache: CoverCache = Injekt.get(),
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val downloadManager: DownloadManager = Injekt.get(),
-    private val downloadCache: DownloadCache = Injekt.get(),
-    private val trackerManager: TrackerManager = Injekt.get(),
-    // SY -->
-    private val exhPreferences: ExhPreferences = Injekt.get(),
-    private val sourcePreferences: SourcePreferences = Injekt.get(),
-    private val getMergedMangaById: GetMergedMangaById = Injekt.get(),
-    private val getTracks: GetTracks = Injekt.get(),
-    private val getIdsOfFavoriteMangaWithMetadata: GetIdsOfFavoriteMangaWithMetadata = Injekt.get(),
-    private val getSearchTags: GetSearchTags = Injekt.get(),
-    private val getSearchTitles: GetSearchTitles = Injekt.get(),
-    private val searchEngine: SearchEngine = Injekt.get(),
-    private val setCustomMangaInfo: SetCustomMangaInfo = Injekt.get(),
-    private val getMergedChaptersByMangaId: GetMergedChaptersByMangaId = Injekt.get(),
+class LibraryScreenModel : StateScreenModel<LibraryScreenModel.State>(State()), KoinComponent {
 
-    syncPreferences: SyncPreferences = Injekt.get(),
+    private val getLibraryManga: GetLibraryManga by inject()
+    private val getCategories: GetCategories by inject()
+    private val getTracksPerManga: GetTracksPerManga by inject()
+    private val getNextChapters: GetNextChapters by inject()
+    private val getChaptersByMangaId: GetChaptersByMangaId by inject()
+    private val getBookmarkedChaptersByMangaId: GetBookmarkedChaptersByMangaId by inject()
+    private val setReadStatus: SetReadStatus by inject()
+    private val updateManga: UpdateManga by inject()
+    private val setMangaCategories: SetMangaCategories by inject()
+    private val preferences: BasePreferences by inject()
+    private val libraryPreferences: LibraryPreferences by inject()
+    private val coverCache: CoverCache by inject()
+    private val sourceManager: SourceManager by inject()
+    private val downloadManager: DownloadManager by inject()
+    private val downloadCache: DownloadCache by inject()
+    private val trackerManager: TrackerManager by inject()
+
+    // SY -->
+    private val exhPreferences: ExhPreferences by inject()
+    private val sourcePreferences: SourcePreferences by inject()
+    private val getMergedMangaById: GetMergedMangaById by inject()
+    private val getTracks: GetTracks by inject()
+    private val getIdsOfFavoriteMangaWithMetadata: GetIdsOfFavoriteMangaWithMetadata by inject()
+    private val getSearchTags: GetSearchTags by inject()
+    private val getSearchTitles: GetSearchTitles by inject()
+    private val searchEngine: SearchEngine by inject()
+    private val setCustomMangaInfo: SetCustomMangaInfo by inject()
+    private val getMergedChaptersByMangaId: GetMergedChaptersByMangaId by inject()
+
+    private val syncPreferences: SyncPreferences by inject()
     // SY <--
-) : StateScreenModel<LibraryScreenModel.State>(State()) {
 
     // SY -->
     val favoritesSync = FavoritesSyncHelper(preferences.context)

@@ -163,6 +163,16 @@ class MainActivity : BaseActivity() {
 
         super.onCreate(savedInstanceState)
 
+        val rootView = findViewById<View>(android.R.id.content)
+        rootView.viewTreeObserver.addOnGlobalLayoutListener {
+            if (!firstPaint) {
+                firstPaint = true
+                while (iuuQueue.isNotEmpty()) {
+                    iuuQueue.poll()?.invoke()
+                }
+            }
+        }
+
         // Do not let the launcher create a new activity http://stackoverflow.com/questions/16283079
         if (!isTaskRoot) {
             finish()
@@ -177,7 +187,9 @@ class MainActivity : BaseActivity() {
         setComposeContent {
             var didMigration by remember { mutableStateOf<Boolean?>(null) }
             LaunchedEffect(Unit) {
-                addAnalytics()
+                initWhenIdle {
+                    addAnalytics()
+                }
                 didMigration = Migrator.awaitAndRelease()
             }
 

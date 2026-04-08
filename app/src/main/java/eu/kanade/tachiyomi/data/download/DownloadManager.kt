@@ -29,8 +29,8 @@ import tachiyomi.domain.download.service.DownloadPreferences
 import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
-import uy.kohesive.injekt.Injekt
-import uy.kohesive.injekt.api.get
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 /**
  * This class is used to manage chapter downloads in the application. It must be instantiated once
@@ -40,12 +40,13 @@ import uy.kohesive.injekt.api.get
 @OptIn(DelicateCoroutinesApi::class)
 class DownloadManager(
     private val context: Context,
-    private val provider: DownloadProvider = Injekt.get(),
-    private val cache: DownloadCache = Injekt.get(),
-    private val getCategories: GetCategories = Injekt.get(),
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val downloadPreferences: DownloadPreferences = Injekt.get(),
-) {
+) : KoinComponent {
+
+    private val provider: DownloadProvider by inject()
+    private val cache: DownloadCache by inject()
+    private val getCategories: GetCategories by inject()
+    private val sourceManager: SourceManager by inject()
+    private val downloadPreferences: DownloadPreferences by inject()
 
     /**
      * Downloader whose only task is to download chapters.

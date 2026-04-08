@@ -75,6 +75,8 @@ import tachiyomi.domain.source.model.SavedSearch
 import tachiyomi.domain.source.repository.SourcePagingSource
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.sy.SYMR
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import xyz.nulldev.ts.api.http.serializer.FilterSerializer
@@ -88,29 +90,30 @@ open class BrowseSourceScreenModel(
     private val filtersJson: String? = null,
     private val savedSearch: Long? = null,
     // SY <--
-    private val sourceManager: SourceManager = Injekt.get(),
-    sourcePreferences: SourcePreferences = Injekt.get(),
-    private val libraryPreferences: LibraryPreferences = Injekt.get(),
-    private val coverCache: CoverCache = Injekt.get(),
-    private val getRemoteManga: GetRemoteManga = Injekt.get(),
-    private val getDuplicateLibraryManga: GetDuplicateLibraryManga = Injekt.get(),
-    private val getCategories: GetCategories = Injekt.get(),
-    private val setMangaCategories: SetMangaCategories = Injekt.get(),
-    private val setMangaDefaultChapterFlags: SetMangaDefaultChapterFlags = Injekt.get(),
-    private val getManga: GetManga = Injekt.get(),
-    private val updateManga: UpdateManga = Injekt.get(),
-    private val addTracks: AddTracks = Injekt.get(),
-    private val getIncognitoState: GetIncognitoState = Injekt.get(),
+) : StateScreenModel<BrowseSourceScreenModel.State>(State(Listing.valueOf(listingQuery))), KoinComponent {
+
+    private val sourceManager: SourceManager by inject()
+    private val sourcePreferences: SourcePreferences by inject()
+    private val libraryPreferences: LibraryPreferences by inject()
+    private val coverCache: CoverCache by inject()
+    private val getRemoteManga: GetRemoteManga by inject()
+    private val getDuplicateLibraryManga: GetDuplicateLibraryManga by inject()
+    private val getCategories: GetCategories by inject()
+    private val setMangaCategories: SetMangaCategories by inject()
+    private val setMangaDefaultChapterFlags: SetMangaDefaultChapterFlags by inject()
+    private val getManga: GetManga by inject()
+    private val updateManga: UpdateManga by inject()
+    private val addTracks: AddTracks by inject()
+    private val getIncognitoState: GetIncognitoState by inject()
 
     // SY -->
-    exhPreferences: ExhPreferences = Injekt.get(),
-    uiPreferences: UiPreferences = Injekt.get(),
-    private val getFlatMetadataById: GetFlatMetadataById = Injekt.get(),
-    private val deleteSavedSearchById: DeleteSavedSearchById = Injekt.get(),
-    private val insertSavedSearch: InsertSavedSearch = Injekt.get(),
-    private val getExhSavedSearch: GetExhSavedSearch = Injekt.get(),
+    private val exhPreferences: ExhPreferences by inject()
+    private val uiPreferences: UiPreferences by inject()
+    private val getFlatMetadataById: GetFlatMetadataById by inject()
+    private val deleteSavedSearchById: DeleteSavedSearchById by inject()
+    private val insertSavedSearch: InsertSavedSearch by inject()
+    private val getExhSavedSearch: GetExhSavedSearch by inject()
     // SY <--
-) : StateScreenModel<BrowseSourceScreenModel.State>(State(Listing.valueOf(listingQuery))) {
 
     var displayMode by sourcePreferences.sourceDisplayMode.asState(screenModelScope)
 
@@ -127,6 +130,7 @@ open class BrowseSourceScreenModel(
     // SY <--
 
     init {
+        val source = source
         if (source is CatalogueSource) {
             mutableState.update {
                 var query: String? = null
@@ -154,9 +158,11 @@ open class BrowseSourceScreenModel(
         val jsonFilters = filtersJson
         val filters = state.value.filters
         if (savedSearchFilters != null) {
-            val savedSearch = runBlocking { getExhSavedSearch.awaitOne(savedSearchFilters) { filters } }
-            if (savedSearch != null) {
-                search(query = savedSearch.query, filters = savedSearch.filterList)
+            screenModelScope.launchIO {
+                val savedSearch = getExhSavedSearch.awaitOne(savedSearchFilters) { filters }
+                if (savedSearch != null) {
+                    search(query = savedSearch.query, filters = savedSearch.filterList)
+                }
             }
         } else if (jsonFilters != null) {
             runCatching {
@@ -167,7 +173,7 @@ open class BrowseSourceScreenModel(
         }
 
         if (source is CatalogueSource) {
-            getExhSavedSearch.subscribe(source.id, source::getFilterList)
+            getExhSavedSearch.subscribe(source.id, { source.getFilterList() })
                 .map { it.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER, EXHSavedSearch::name)) }
                 .onEach { savedSearches ->
                     mutableState.update { it.copy(savedSearches = savedSearches.toImmutableList()) }
@@ -230,6 +236,7 @@ open class BrowseSourceScreenModel(
     // SY <--
 
     fun resetFilters() {
+        val source = source
         if (source !is CatalogueSource) return
 
         mutableState.update { it.copy(filters = source.getFilterList()) }
@@ -250,6 +257,7 @@ open class BrowseSourceScreenModel(
     }
 
     fun search(query: String? = null, filters: FilterList? = null) {
+        val source = source
         if (source !is CatalogueSource) return
         // SY -->
         if (filters != null && filters !== state.value.filters) {
@@ -271,6 +279,7 @@ open class BrowseSourceScreenModel(
     }
 
     fun searchGenre(genreName: String) {
+        val source = source
         if (source !is CatalogueSource) return
 
         val defaultFilters = source.getFilterList()
@@ -485,6 +494,7 @@ open class BrowseSourceScreenModel(
         onToast: (StringResource) -> Unit,
     ) {
         screenModelScope.launchIO {
+            val source = source
             if (source !is CatalogueSource) return@launchIO
 
             if (search.filterList == null && state.value.filters.isNotEmpty()) {
@@ -521,6 +531,7 @@ open class BrowseSourceScreenModel(
     fun saveSearch(
         name: String,
     ) {
+        val source = source
         if (source !is CatalogueSource) return
         screenModelScope.launchNonCancellable {
             val query = state.value.toolbarQuery?.takeUnless {

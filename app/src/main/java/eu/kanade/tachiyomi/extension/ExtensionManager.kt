@@ -47,11 +47,22 @@ import java.util.Locale
  * signature is trusted, otherwise the user will be prompted with a warning to trust it before being
  * loaded.
  */
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+
+/**
+ * The manager of extensions installed as another apk which extend the available sources. It handles
+ * the retrieval of remotely available extensions as well as installing, updating and removing them.
+ * To avoid malicious distribution, every extension must be signed and it will only be loaded if its
+ * signature is trusted, otherwise the user will be prompted with a warning to trust it before being
+ * loaded.
+ */
 class ExtensionManager(
     private val context: Context,
-    private val preferences: SourcePreferences = Injekt.get(),
-    private val trustExtension: TrustExtension = Injekt.get(),
-) {
+) : KoinComponent {
+
+    private val preferences: SourcePreferences by inject()
+    private val trustExtension: TrustExtension by inject()
 
     val scope = CoroutineScope(SupervisorJob())
 

@@ -151,6 +151,9 @@ object ImageUtil {
         val output = Buffer()
         half.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
 
+        imageBitmap.recycle()
+        half.recycle()
+
         return output
     }
 
@@ -160,6 +163,9 @@ object ImageUtil {
 
         val output = Buffer()
         rotated.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+
+        imageBitmap.recycle()
+        rotated.recycle()
 
         return output
     }
@@ -198,6 +204,10 @@ object ImageUtil {
 
         val output = Buffer()
         result.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+
+        imageBitmap.recycle()
+        result.recycle()
+
         return output
     }
 
@@ -217,7 +227,8 @@ object ImageUtil {
         viewHeight: Int,
         backgroundContext: Context,
     ): BufferedSource {
-        val imageBitmap = ImageDecoder.newInstance(imageSource.inputStream())?.decode()!!
+        val decoder = ImageDecoder.newInstance(imageSource.inputStream())
+        val imageBitmap = decoder?.decode()!!
         val height = imageBitmap.height
         val width = imageBitmap.width
 
@@ -240,6 +251,11 @@ object ImageUtil {
 
         val output = Buffer()
         result.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+
+        decoder.recycle()
+        imageBitmap.recycle()
+        result.recycle()
+
         return output
     }
     // SY <--

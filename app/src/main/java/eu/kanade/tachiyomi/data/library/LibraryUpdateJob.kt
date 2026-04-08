@@ -92,6 +92,8 @@ import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.domain.track.interactor.InsertTrack
 import tachiyomi.i18n.MR
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.io.File
@@ -106,27 +108,27 @@ import kotlin.concurrent.atomics.incrementAndFetch
 
 @OptIn(ExperimentalAtomicApi::class)
 class LibraryUpdateJob(private val context: Context, workerParams: WorkerParameters) :
-    CoroutineWorker(context, workerParams) {
+    CoroutineWorker(context, workerParams), KoinComponent {
 
-    private val sourceManager: SourceManager = Injekt.get()
-    private val libraryPreferences: LibraryPreferences = Injekt.get()
-    private val downloadManager: DownloadManager = Injekt.get()
-    private val coverCache: CoverCache = Injekt.get()
-    private val getLibraryManga: GetLibraryManga = Injekt.get()
-    private val getManga: GetManga = Injekt.get()
-    private val updateManga: UpdateManga = Injekt.get()
-    private val syncChaptersWithSource: SyncChaptersWithSource = Injekt.get()
-    private val fetchInterval: FetchInterval = Injekt.get()
-    private val filterChaptersForDownload: FilterChaptersForDownload = Injekt.get()
+    private val sourceManager: SourceManager by inject()
+    private val libraryPreferences: LibraryPreferences by inject()
+    private val downloadManager: DownloadManager by inject()
+    private val coverCache: CoverCache by inject()
+    private val getLibraryManga: GetLibraryManga by inject()
+    private val getManga: GetManga by inject()
+    private val updateManga: UpdateManga by inject()
+    private val syncChaptersWithSource: SyncChaptersWithSource by inject()
+    private val fetchInterval: FetchInterval by inject()
+    private val filterChaptersForDownload: FilterChaptersForDownload by inject()
 
     // SY -->
-    private val getFavorites: GetFavorites = Injekt.get()
-    private val insertFlatMetadata: InsertFlatMetadata = Injekt.get()
-    private val networkToLocalManga: NetworkToLocalManga = Injekt.get()
-    private val getMergedMangaForDownloading: GetMergedMangaForDownloading = Injekt.get()
-    private val getTracks: GetTracks = Injekt.get()
-    private val insertTrack: InsertTrack = Injekt.get()
-    private val trackerManager: TrackerManager = Injekt.get()
+    private val getFavorites: GetFavorites by inject()
+    private val insertFlatMetadata: InsertFlatMetadata by inject()
+    private val networkToLocalManga: NetworkToLocalManga by inject()
+    private val getMergedMangaForDownloading: GetMergedMangaForDownloading by inject()
+    private val getTracks: GetTracks by inject()
+    private val insertTrack: InsertTrack by inject()
+    private val trackerManager: TrackerManager by inject()
     private val mdList = trackerManager.mdList
     // SY <--
 
@@ -137,8 +139,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
     override suspend fun doWork(): Result {
         if (tags.contains(WORK_NAME_AUTO)) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-                val preferences = Injekt.get<LibraryPreferences>()
-                val restrictions = preferences.autoUpdateDeviceRestrictions.get()
+                val restrictions = libraryPreferences.autoUpdateDeviceRestrictions.get()
                 if ((DEVICE_ONLY_ON_WIFI in restrictions) && !context.isConnectedToWifi()) {
                     return Result.retry()
                 }
@@ -450,12 +451,12 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
         }
     }
 
-    private fun downloadChapters(manga: Manga, chapters: List<Chapter>) {
+    private suspend fun downloadChapters(manga: Manga, chapters: List<Chapter>) {
         // We don't want to start downloading while the library is updating, because websites
         // may don't like it and they could ban the user.
         // SY -->
         if (manga.source == MERGED_SOURCE_ID) {
-            val downloadingManga = runBlocking { getMergedMangaForDownloading.await(manga.id) }
+            val downloadingManga = getMergedMangaForDownloading.await(manga.id)
                 .associateBy { it.id }
             chapters.groupBy { it.mangaId }
                 .forEach {
@@ -555,7 +556,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
      * filter all follows from Mangadex and only add reading or rereading manga to library
      */
     private suspend fun syncFollows() = coroutineScope {
-        val preferences = Injekt.get<SourcePreferences>()
+        val preferences: SourcePreferences by inject()
         var count = 0
         val mangaDex = MdUtil.getEnabledMangaDex(preferences, sourceManager = sourceManager)
             ?: return@coroutineScope
@@ -668,7 +669,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
     /**
      * Writes basic file of update errors to cache dir.
      */
-    private fun writeErrorFile(errors: List<Pair<Manga, String?>>): File {
+    private suspend fun writeErrorFile(errors: List<Pair<Manga, String?>>): File {
         try {
             if (errors.isNotEmpty()) {
                 val file = context.createFileInCacheDir("mihon_update_errors.txt")
@@ -739,7 +740,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
             context: Context,
             prefInterval: Int? = null,
         ) {
-            val preferences = Injekt.get<LibraryPreferences>()
+            val preferences: LibraryPreferences = Injekt.get<LibraryPreferences>()
             val interval = prefInterval ?: preferences.autoUpdateInterval.get()
             if (interval > 0) {
                 val restrictions = preferences.autoUpdateDeviceRestrictions.get()
@@ -812,7 +813,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                 // SY <--
             )
 
-            val syncPreferences: SyncPreferences = Injekt.get()
+            val syncPreferences: SyncPreferences = Injekt.get<SyncPreferences>()
 
             // Always sync the data before library update if syncing is enabled.
             if (syncPreferences.isSyncEnabled()) {
