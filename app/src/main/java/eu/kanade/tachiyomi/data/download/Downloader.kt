@@ -46,6 +46,8 @@ import logcat.LogPriority
 import mihon.core.common.archive.ZipWriter
 import nl.adaptivity.xmlutil.serialization.XML
 import okhttp3.Response
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.storage.extension
 import tachiyomi.core.common.util.lang.launchIO
@@ -61,8 +63,6 @@ import tachiyomi.domain.manga.model.Manga
 import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.domain.track.interactor.GetTracks
 import tachiyomi.i18n.MR
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import uy.kohesive.injekt.Injekt
 import java.io.File
 import java.util.Locale

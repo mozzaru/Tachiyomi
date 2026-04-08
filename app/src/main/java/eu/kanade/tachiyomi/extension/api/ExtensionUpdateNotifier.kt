@@ -8,10 +8,10 @@ import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.util.system.cancelNotification
 import eu.kanade.tachiyomi.util.system.notify
-import tachiyomi.core.common.i18n.pluralStringResource
-import tachiyomi.i18n.MR
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import tachiyomi.core.common.i18n.pluralStringResource
+import tachiyomi.i18n.MR
 
 class ExtensionUpdateNotifier(
     private val context: Context,
