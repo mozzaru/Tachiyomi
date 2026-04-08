@@ -491,6 +491,20 @@ class ReaderActivity : BaseActivity() {
      * Helps with rotations.
      */
     override fun onResume() {
+        // REALME UI 2.0 ANDROID 11 POWER GENIE KILLER
+        if (Build.MANUFACTURER.equals("realme", ignoreCase = true) && Build.VERSION.SDK_INT == 30) {
+            try {
+                window.attributes = window.attributes.apply {
+                    screenBrightness = 0.003921569f
+                }
+                val pm = getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+                val wl = pm.newWakeLock(
+                    android.os.PowerManager.PARTIAL_WAKE_LOCK or android.os.PowerManager.ACQUIRE_CAUSES_WAKEUP,
+                    "tachiyomi:realme_fix"
+                )
+                wl.acquire(600000)
+            } catch (e: Exception) {}
+        }
         super.onResume()
         viewModel.restartReadTimer()
         setMenuVisibility(viewModel.state.value.menuVisible)
