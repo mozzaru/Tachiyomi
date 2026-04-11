@@ -48,6 +48,18 @@ object DeviceUtil {
         Build.MANUFACTURER.equals("samsung", ignoreCase = true)
     }
 
+    val isOppo: Boolean by lazy {
+        Build.MANUFACTURER.equals("oppo", ignoreCase = true)
+    }
+
+    val isRealme: Boolean by lazy {
+        Build.MANUFACTURER.equals("realme", ignoreCase = true)
+    }
+
+    val isOppoRealme: Boolean by lazy {
+        isOppo || isRealme
+    }
+
     val oneUiVersion: Double? by lazy {
         try {
             val semPlatformIntField = Build.VERSION::class.java.getDeclaredField("SEM_PLATFORM_INT")
