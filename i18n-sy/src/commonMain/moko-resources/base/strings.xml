@@ -297,6 +297,8 @@
     <string name="aggressively_load_pages_summary">Slowly download the entire chapter while reading instead of just loading the pages you are viewing.</string>
     <string name="oppo_realme_hans_fix">Fix ColorHans/background freezing</string>
     <string name="oppo_realme_hans_warning">Some Oppo and Realme devices use ColorHansManager which freezes background apps like Tachiyomi, interrupting library updates and downloads. Click to learn how to fix this.</string>
+    <string name="oppo_realme_rui_2_fix">Fix for Realme UI 2 / ColorOS 11</string>
+    <string name="oppo_realme_rui_2_warning">This device aggressively freezes background apps. To fix:\n1. Go to Settings > Battery > App Quick Freeze > Disable TachiyomiSY.\n2. Go to Settings > Battery > More battery settings > Optimized standby > Off.\n3. Lock the app in Recent Apps (click two dots > Lock).</string>
     <string name="skip_queue_on_retry">Skip queue on retry</string>
     <string name="skip_queue_on_retry_summary">Normally, pressing the retry button on a failed download will wait until the downloader has finished downloading the last page before beginning to re-download the failed page. Enabling this will force the downloader to begin re-downloading the failed page as soon as you press the retry button.</string>
     <string name="reader_preload_amount">Page Preload amount</string>

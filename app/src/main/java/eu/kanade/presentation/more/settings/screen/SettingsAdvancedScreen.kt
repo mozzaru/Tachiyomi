@@ -211,18 +211,26 @@ object SettingsAdvancedScreen : SearchableSettings {
                 },
             )
             if (eu.kanade.tachiyomi.util.system.DeviceUtil.isOppoRealme) {
-                items += Preference.PreferenceItem.TextPreference(
-                    title = context.stringResource(SYMR.strings.oppo_realme_hans_fix),
-                    subtitle = context.stringResource(SYMR.strings.oppo_realme_hans_warning),
-                    onClick = {
-                        val url = if (eu.kanade.tachiyomi.util.system.DeviceUtil.isOppo) {
-                            "https://dontkillmyapp.com/oppo"
-                        } else {
-                            "https://dontkillmyapp.com/realme"
-                        }
-                        uriHandler.openUri(url)
-                    },
-                )
+                val isRui2 = eu.kanade.tachiyomi.util.system.DeviceUtil.isRealme && Build.VERSION.SDK_INT == 30
+                if (isRui2) {
+                    items += Preference.PreferenceItem.TextPreference(
+                        title = context.stringResource(SYMR.strings.oppo_realme_rui_2_fix),
+                        subtitle = context.stringResource(SYMR.strings.oppo_realme_rui_2_warning),
+                    )
+                } else {
+                    items += Preference.PreferenceItem.TextPreference(
+                        title = context.stringResource(SYMR.strings.oppo_realme_hans_fix),
+                        subtitle = context.stringResource(SYMR.strings.oppo_realme_hans_warning),
+                        onClick = {
+                            val url = if (eu.kanade.tachiyomi.util.system.DeviceUtil.isOppo) {
+                                "https://dontkillmyapp.com/oppo"
+                            } else {
+                                "https://dontkillmyapp.com/realme"
+                            }
+                            uriHandler.openUri(url)
+                        },
+                    )
+                }
             }
             items += Preference.PreferenceItem.TextPreference(
                 title = "Don't kill my app!",

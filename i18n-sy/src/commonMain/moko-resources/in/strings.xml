@@ -192,6 +192,8 @@
     <string name="aggressively_load_pages_summary">Unduh perlahan seluruh bab sambil membaca, alih-alih hanya memuat halaman yang Anda lihat.</string>
     <string name="oppo_realme_hans_fix">Atasi ColorHans/pembekuan latar belakang</string>
     <string name="oppo_realme_hans_warning">Beberapa perangkat Oppo dan Realme menggunakan ColorHansManager yang membekukan aplikasi latar belakang seperti Tachiyomi, mengganggu pembaruan pustaka dan unduhan. Ketuk untuk mempelajari cara mengatasinya.</string>
+    <string name="oppo_realme_rui_2_fix">Atasi ColorHans (Realme UI 2 / ColorOS 11)</string>
+    <string name="oppo_realme_rui_2_warning">Perangkat ini membekukan aplikasi latar belakang secara agresif. Cara atasi:\n1. Buka Pengaturan > Baterai > Pembekuan Cepat Aplikasi > Matikan TachiyomiSY.\n2. Buka Pengaturan > Baterai > Pengaturan baterai lainnya > Optimalisasi tidur siaga > Matikan.\n3. Kunci aplikasi di Recent Apps (klik dua titik > Kunci).</string>
     <string name="skip_queue_on_retry">Lewati antrean saat mencoba lagi</string>
     <string name="skip_queue_on_retry_summary">Biasanya, menekan tombol lanjut pada unduhan yang gagal akan menunggu hingga pengunduh selesai mengunduh halaman terakhir sebelum mulai mengunduh ulang halaman yang gagal. Mengaktifkan ini akan memaksa pengunduh untuk mulai mengunduh ulang halaman yang gagal segera setelah Anda menekan tombol coba lagi.</string>
     <string name="reader_preload_amount">Jumlah Pramuat Halaman</string>
