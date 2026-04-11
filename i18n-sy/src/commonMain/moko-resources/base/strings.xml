@@ -295,6 +295,8 @@
     <string name="download_threads_summary">Higher values can speed up image downloading significantly, but can also trigger bans. Recommended value is 2 or 3. Current value is: %s</string>
     <string name="aggressively_load_pages">Aggressively load pages</string>
     <string name="aggressively_load_pages_summary">Slowly download the entire chapter while reading instead of just loading the pages you are viewing.</string>
+    <string name="oppo_realme_hans_fix">Fix ColorHans/background freezing</string>
+    <string name="oppo_realme_hans_warning">Some Oppo and Realme devices use ColorHansManager which freezes background apps like Tachiyomi, interrupting library updates and downloads. Click to learn how to fix this.</string>
     <string name="skip_queue_on_retry">Skip queue on retry</string>
     <string name="skip_queue_on_retry_summary">Normally, pressing the retry button on a failed download will wait until the downloader has finished downloading the last page before beginning to re-download the failed page. Enabling this will force the downloader to begin re-downloading the failed page as soon as you press the retry button.</string>
     <string name="reader_preload_amount">Page Preload amount</string>
