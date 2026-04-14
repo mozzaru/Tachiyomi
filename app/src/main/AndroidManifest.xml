@@ -156,7 +156,7 @@
 
         <activity
             android:name=".ui.reader.ReaderActivity"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="com.samsung.android.support.REMOTE_ACTION" />
             </intent-filter>

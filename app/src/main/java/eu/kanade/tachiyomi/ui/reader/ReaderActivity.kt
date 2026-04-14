@@ -166,10 +166,6 @@ class ReaderActivity : BaseActivity() {
     val viewModel by viewModels<ReaderViewModel>()
     private var assistUrl: String? = null
 
-    private var lastShiftDoubleState: Boolean? = null
-    private var indexPageToShift: Int? = null
-    private var indexChapterToShift: Long? = null
-
     // SY -->
     private val sourceManager = Injekt.get<SourceManager>()
     // SY <--
@@ -219,12 +215,18 @@ class ReaderActivity : BaseActivity() {
         binding.setComposeOverlay()
 
         if (savedInstanceState != null) {
-            lastShiftDoubleState = savedInstanceState.getBoolean(SHIFT_DOUBLE_PAGES)
-                .takeIf { savedInstanceState.containsKey(SHIFT_DOUBLE_PAGES) }
-            indexPageToShift = savedInstanceState.getInt(SHIFTED_PAGE_INDEX, Int.MIN_VALUE)
-                .takeIf { it != Int.MIN_VALUE }
-            indexChapterToShift = savedInstanceState.getLong(SHIFTED_CHAP_INDEX, Long.MIN_VALUE)
-                .takeIf { it != Long.MIN_VALUE }
+            viewModel.setLastShiftDoubleState(
+                savedInstanceState.getBoolean(SHIFT_DOUBLE_PAGES)
+                    .takeIf { savedInstanceState.containsKey(SHIFT_DOUBLE_PAGES) },
+            )
+            viewModel.setIndexPageToShift(
+                savedInstanceState.getInt(SHIFTED_PAGE_INDEX, Int.MIN_VALUE)
+                    .takeIf { it != Int.MIN_VALUE },
+            )
+            viewModel.setIndexChapterToShift(
+                savedInstanceState.getLong(SHIFTED_CHAP_INDEX, Long.MIN_VALUE)
+                    .takeIf { it != Long.MIN_VALUE },
+            )
         }
 
         if (viewModel.needsInit()) {
@@ -856,6 +858,7 @@ class ReaderActivity : BaseActivity() {
         val viewer = viewModel.state.value.viewer as? PagerViewer ?: return
         viewer.config.let { config ->
             config.shiftDoublePage = !config.shiftDoublePage
+            viewModel.setLastShiftDoubleState(config.shiftDoublePage)
             viewModel.state.value.viewerChapters?.let {
                 viewer.updateShifting()
                 viewer.setChaptersDoubleShift(it)
@@ -907,7 +910,7 @@ class ReaderActivity : BaseActivity() {
             if (readerPreferences.pageLayout.get() == PagerConfig.PageLayout.AUTOMATIC) {
                 setDoublePageMode(newViewer)
             }
-            lastShiftDoubleState?.let { newViewer.config.shiftDoublePage = it }
+            viewModel.state.value.lastShiftDoubleState?.let { newViewer.config.shiftDoublePage = it }
         }
 
         val manga = viewModel.state.value.manga
@@ -985,15 +988,16 @@ class ReaderActivity : BaseActivity() {
     private fun setChapters(viewerChapters: ViewerChapters) {
         binding.readerContainer.removeView(loadingIndicator)
         // SY -->
-        if (indexChapterToShift != null && indexPageToShift != null) {
+        val state = viewModel.state.value
+        if (state.indexChapterToShift != null && state.indexPageToShift != null) {
             viewerChapters.currChapter.pages?.find {
-                it.index == indexPageToShift && it.chapter.chapter.id == indexChapterToShift
+                it.index == state.indexPageToShift && it.chapter.chapter.id == state.indexChapterToShift
             }?.let {
                 (viewModel.state.value.viewer as? PagerViewer)?.updateShifting(it)
             }
-            indexChapterToShift = null
-            indexPageToShift = null
-        } else if (lastShiftDoubleState != null) {
+            viewModel.setIndexChapterToShift(null)
+            viewModel.setIndexPageToShift(null)
+        } else if (state.lastShiftDoubleState != null) {
             val currentChapter = viewerChapters.currChapter
             (viewModel.state.value.viewer as? PagerViewer)?.config?.shiftDoublePage = (
                 currentChapter.requestedPage +
@@ -1091,6 +1095,15 @@ class ReaderActivity : BaseActivity() {
             "${page.number}"
         }
         viewModel.onPageSelected(page, currentPageText, hasExtraPage)
+
+        (viewModel.state.value.viewer as? PagerViewer)?.let {
+            if (it.config.shiftDoublePage && it.config.doublePages) {
+                it.getShiftedPage()?.let { shiftedPage ->
+                    viewModel.setIndexChapterToShift(shiftedPage.chapter.chapter.id)
+                    viewModel.setIndexPageToShift(shiftedPage.index)
+                }
+            }
+        }
         // SY <--
     }
 
