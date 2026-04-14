@@ -166,6 +166,10 @@ class ReaderActivity : BaseActivity() {
     val viewModel by viewModels<ReaderViewModel>()
     private var assistUrl: String? = null
 
+    private var lastShiftDoubleState: Boolean? = null
+    private var indexPageToShift: Int? = null
+    private var indexChapterToShift: Long? = null
+
     // SY -->
     private val sourceManager = Injekt.get<SourceManager>()
     // SY <--
@@ -213,6 +217,15 @@ class ReaderActivity : BaseActivity() {
         binding = ReaderActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.setComposeOverlay()
+
+        if (savedInstanceState != null) {
+            lastShiftDoubleState = savedInstanceState.getBoolean(SHIFT_DOUBLE_PAGES)
+                .takeIf { savedInstanceState.containsKey(SHIFT_DOUBLE_PAGES) }
+            indexPageToShift = savedInstanceState.getInt(SHIFTED_PAGE_INDEX, Int.MIN_VALUE)
+                .takeIf { it != Int.MIN_VALUE }
+            indexChapterToShift = savedInstanceState.getLong(SHIFTED_CHAP_INDEX, Long.MIN_VALUE)
+                .takeIf { it != Long.MIN_VALUE }
+        }
 
         if (viewModel.needsInit()) {
             val manga = intent.extras?.getLong("manga", -1) ?: -1L
@@ -453,6 +466,22 @@ class ReaderActivity : BaseActivity() {
             // SY <--
             null -> {}
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        (viewModel.state.value.viewer as? PagerViewer)?.let { pViewer ->
+            val config = pViewer.config
+            if (config.doublePages) {
+                outState.putBoolean(SHIFT_DOUBLE_PAGES, config.shiftDoublePage)
+            }
+            if (config.shiftDoublePage && config.doublePages) {
+                pViewer.getShiftedPage()?.let {
+                    outState.putInt(SHIFTED_PAGE_INDEX, it.index)
+                    outState.putLong(SHIFTED_CHAP_INDEX, it.chapter.chapter.id ?: 0L)
+                }
+            }
+        }
+        super.onSaveInstanceState(outState)
     }
 
     /**
@@ -878,7 +907,7 @@ class ReaderActivity : BaseActivity() {
             if (readerPreferences.pageLayout.get() == PagerConfig.PageLayout.AUTOMATIC) {
                 setDoublePageMode(newViewer)
             }
-            viewModel.state.value.lastShiftDoubleState?.let { newViewer.config.shiftDoublePage = it }
+            lastShiftDoubleState?.let { newViewer.config.shiftDoublePage = it }
         }
 
         val manga = viewModel.state.value.manga
@@ -956,16 +985,15 @@ class ReaderActivity : BaseActivity() {
     private fun setChapters(viewerChapters: ViewerChapters) {
         binding.readerContainer.removeView(loadingIndicator)
         // SY -->
-        val state = viewModel.state.value
-        if (state.indexChapterToShift != null && state.indexPageToShift != null) {
+        if (indexChapterToShift != null && indexPageToShift != null) {
             viewerChapters.currChapter.pages?.find {
-                it.index == state.indexPageToShift && it.chapter.chapter.id == state.indexChapterToShift
+                it.index == indexPageToShift && it.chapter.chapter.id == indexChapterToShift
             }?.let {
                 (viewModel.state.value.viewer as? PagerViewer)?.updateShifting(it)
             }
-            viewModel.setIndexChapterToShift(null)
-            viewModel.setIndexPageToShift(null)
-        } else if (state.lastShiftDoubleState != null) {
+            indexChapterToShift = null
+            indexPageToShift = null
+        } else if (lastShiftDoubleState != null) {
             val currentChapter = viewerChapters.currChapter
             (viewModel.state.value.viewer as? PagerViewer)?.config?.shiftDoublePage = (
                 currentChapter.requestedPage +
