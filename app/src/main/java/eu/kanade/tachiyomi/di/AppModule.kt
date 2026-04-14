@@ -108,19 +108,6 @@ class AppModule(val app: Application) : InjektModule {
                 schema = Database.Schema,
                 configuration = AndroidxSqliteConfiguration(
                     isForeignKeyConstraintsEnabled = true,
-                    callback = object : AndroidSqliteDriver.Callback(Database.Schema) {
-                        override fun onOpen(db: SupportSQLiteDatabase) {
-                            super.onOpen(db)
-                            setPragma(db, "journal_mode = WAL")
-                            setPragma(db, "synchronous = NORMAL")
-                        }
-
-                        private fun setPragma(db: SupportSQLiteDatabase, pragma: String) {
-                            val cursor = db.query("PRAGMA $pragma")
-                            cursor.moveToFirst()
-                            cursor.close()
-                        }
-                    },
                 ),
             ).also { sqlDriverRef = WeakReference(it) }
         }

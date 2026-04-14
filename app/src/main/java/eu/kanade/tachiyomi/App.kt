@@ -229,9 +229,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
-        if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW ||
-            level == ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN
-        ) {
+        if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW) {
             imageLoader.memoryCache?.clear()
         }
     }
