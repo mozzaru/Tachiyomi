@@ -1011,6 +1011,10 @@ class ReaderViewModel @JvmOverloads constructor(
         mutableState.update { it.copy(doublePages = doublePages) }
     }
 
+    fun setLastShiftDoubleState(lastShiftDoubleState: Boolean?) {
+        mutableState.update { it.copy(lastShiftDoubleState = lastShiftDoubleState) }
+    }
+
     fun openAutoScrollHelpDialog() {
         mutableState.update { it.copy(dialog = Dialog.AutoScrollHelp) }
     }
