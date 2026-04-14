@@ -289,6 +289,17 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         }
     }
 
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW) {
+            try {
+                SingletonImageLoader.get(this).memoryCache?.clear()
+            } catch (e: Exception) {
+                logcat(LogPriority.ERROR, e) { "Failed to clear memory cache" }
+            }
+        }
+    }
+
     override fun getPackageName(): String {
         // This causes freezes in Android 6/7 for some reason
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
