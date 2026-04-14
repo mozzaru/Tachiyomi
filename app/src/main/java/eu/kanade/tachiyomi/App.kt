@@ -280,17 +280,6 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         SecureActivityDelegate.onApplicationStopped()
     }
 
-    override fun onTrimMemory(level: Int) {
-        super.onTrimMemory(level)
-        if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW) {
-            try {
-                SingletonImageLoader.get(this).memoryCache?.clear()
-            } catch (e: Exception) {
-                logcat(LogPriority.ERROR, e) { "Failed to clear memory cache" }
-            }
-        }
-    }
-
     override fun onLowMemory() {
         super.onLowMemory()
         try {
