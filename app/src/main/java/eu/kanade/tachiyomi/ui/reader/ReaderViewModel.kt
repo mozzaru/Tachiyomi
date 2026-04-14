@@ -171,6 +171,30 @@ class ReaderViewModel @JvmOverloads constructor(
             field = value
         }
 
+    private var lastShiftDoubleStateVal = savedState.get<Boolean>(ReaderActivity.SHIFT_DOUBLE_PAGES)
+        set(value) {
+            savedState[ReaderActivity.SHIFT_DOUBLE_PAGES] = value
+            field = value
+        }
+
+    private var indexPageToShiftVal = savedState.get<Int>(ReaderActivity.SHIFTED_PAGE_INDEX)
+        set(value) {
+            savedState[ReaderActivity.SHIFTED_PAGE_INDEX] = value
+            field = value
+        }
+
+    private var indexChapterToShiftVal = savedState.get<Long>(ReaderActivity.SHIFTED_CHAP_INDEX)
+        set(value) {
+            savedState[ReaderActivity.SHIFTED_CHAP_INDEX] = value
+            field = value
+        }
+
+    private var menuVisibleVal = savedState.get<Boolean>("menu_visible") ?: false
+        set(value) {
+            savedState["menu_visible"] = value
+            field = value
+        }
+
     /**
      * The chapter loader for the loaded manga. It'll be null until [manga] is set.
      */
@@ -388,6 +412,10 @@ class ReaderViewModel @JvmOverloads constructor(
                                 autoScrollFreq.toString()
                             },
                             isAutoScrollEnabled = autoScrollFreq != -1f,
+                            lastShiftDoubleState = lastShiftDoubleStateVal,
+                            indexPageToShift = indexPageToShiftVal,
+                            indexChapterToShift = indexChapterToShiftVal,
+                            menuVisible = menuVisibleVal,
                             /* SY <-- */
                         )
                     }
@@ -987,6 +1015,7 @@ class ReaderViewModel @JvmOverloads constructor(
     }
 
     fun showMenus(visible: Boolean) {
+        menuVisibleVal = visible
         mutableState.update { it.copy(menuVisible = visible) }
     }
 
@@ -996,10 +1025,12 @@ class ReaderViewModel @JvmOverloads constructor(
     }
 
     fun setIndexChapterToShift(index: Long?) {
+        indexChapterToShiftVal = index
         mutableState.update { it.copy(indexChapterToShift = index) }
     }
 
     fun setIndexPageToShift(index: Int?) {
+        indexPageToShiftVal = index
         mutableState.update { it.copy(indexPageToShift = index) }
     }
 
@@ -1009,6 +1040,11 @@ class ReaderViewModel @JvmOverloads constructor(
 
     fun setDoublePages(doublePages: Boolean) {
         mutableState.update { it.copy(doublePages = doublePages) }
+    }
+
+    fun setLastShiftDoubleState(lastShiftDoubleState: Boolean?) {
+        this.lastShiftDoubleStateVal = lastShiftDoubleState
+        mutableState.update { it.copy(lastShiftDoubleState = lastShiftDoubleState) }
     }
 
     fun openAutoScrollHelpDialog() {

@@ -214,6 +214,10 @@ class ReaderActivity : BaseActivity() {
         setContentView(binding.root)
         binding.setComposeOverlay()
 
+        if (savedInstanceState != null) {
+            setMenuVisibility(viewModel.state.value.menuVisible)
+        }
+
         if (viewModel.needsInit()) {
             val manga = intent.extras?.getLong("manga", -1) ?: -1L
             val chapter = intent.extras?.getLong("chapter", -1) ?: -1L
@@ -827,6 +831,7 @@ class ReaderActivity : BaseActivity() {
         val viewer = viewModel.state.value.viewer as? PagerViewer ?: return
         viewer.config.let { config ->
             config.shiftDoublePage = !config.shiftDoublePage
+            viewModel.setLastShiftDoubleState(config.shiftDoublePage)
             viewModel.state.value.viewerChapters?.let {
                 viewer.updateShifting()
                 viewer.setChaptersDoubleShift(it)
@@ -1063,6 +1068,15 @@ class ReaderActivity : BaseActivity() {
             "${page.number}"
         }
         viewModel.onPageSelected(page, currentPageText, hasExtraPage)
+
+        (viewModel.state.value.viewer as? PagerViewer)?.let {
+            if (it.config.shiftDoublePage && it.config.doublePages) {
+                it.getShiftedPage()?.let { shiftedPage ->
+                    viewModel.setIndexChapterToShift(shiftedPage.chapter.chapter.id)
+                    viewModel.setIndexPageToShift(shiftedPage.index)
+                }
+            }
+        }
         // SY <--
     }
 
