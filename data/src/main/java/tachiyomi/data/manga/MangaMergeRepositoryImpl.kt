@@ -124,4 +124,14 @@ class MangaMergeRepositoryImpl(
     override suspend fun getMergeMangaForDownloading(mergeId: Long): List<Manga> {
         return handler.awaitList { mergedQueries.selectMergedMangasForDownloadingById(mergeId, MangaMapper::mapManga) }
     }
+
+    override fun subscribeMergedMangaForDownloading(): Flow<List<Pair<Long, Manga>>> {
+        return handler.subscribeToList {
+            mergedQueries.selectAllMergedMangasForDownloading { merge_id, id, source, url, artist, author, description, genre, title, status, thumbnail_url, favorite, last_update, next_update, initialized, viewer, chapter_flags, cover_last_modified, date_added, filtered_scanlators, update_strategy, calculate_interval, last_modified_at, favorite_modified_at, version, is_syncing, notes ->
+                merge_id to MangaMapper.mapManga(
+                    id, source, url, artist, author, description, genre, title, status, thumbnail_url, favorite, last_update, next_update, initialized, viewer, chapter_flags, cover_last_modified, date_added, filtered_scanlators, update_strategy, calculate_interval, last_modified_at, favorite_modified_at, version, is_syncing, notes,
+                )
+            }
+        }
+    }
 }

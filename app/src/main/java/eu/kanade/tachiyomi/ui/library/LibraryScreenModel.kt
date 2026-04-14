@@ -73,7 +73,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
-import kotlinx.coroutines.runBlocking
 import mihon.core.common.utils.mutate
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.CheckboxState
@@ -98,6 +97,7 @@ import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.domain.manga.interactor.GetIdsOfFavoriteMangaWithMetadata
 import tachiyomi.domain.manga.interactor.GetLibraryManga
 import tachiyomi.domain.manga.interactor.GetMergedMangaById
+import tachiyomi.domain.manga.interactor.GetMergedMangaForDownloading
 import tachiyomi.domain.manga.interactor.GetSearchTags
 import tachiyomi.domain.manga.interactor.GetSearchTitles
 import tachiyomi.domain.manga.interactor.SetCustomMangaInfo
@@ -145,6 +145,7 @@ class LibraryScreenModel(
     private val searchEngine: SearchEngine = Injekt.get(),
     private val setCustomMangaInfo: SetCustomMangaInfo = Injekt.get(),
     private val getMergedChaptersByMangaId: GetMergedChaptersByMangaId = Injekt.get(),
+    private val getMergedMangaForDownloading: GetMergedMangaForDownloading = Injekt.get(),
 
     syncPreferences: SyncPreferences = Injekt.get(),
     // SY <--
@@ -233,6 +234,7 @@ class LibraryScreenModel(
                             data.showSystemCategory,
                             // SY -->
                             groupType,
+                            data.tracksMap,
                             // SY <--
                         )
                         .applySort(
@@ -433,6 +435,7 @@ class LibraryScreenModel(
         showSystemCategory: Boolean,
         // SY -->
         groupType: Int,
+        tracksMap: Map<Long, List<Track>>,
         // <-- SY
     ): Map<Category, List</* LibraryItem */ Long>> {
         // SY -->
@@ -465,6 +468,7 @@ class LibraryScreenModel(
             else -> {
                 return getGroupedMangaItems(
                     groupType = groupType,
+                    tracksMap = tracksMap,
                 )
             }
         }
@@ -642,16 +646,17 @@ class LibraryScreenModel(
             getLibraryManga.subscribe(),
             getLibraryItemPreferencesFlow(),
             downloadCache.changes,
-        ) { libraryManga, preferences, _ ->
+            getMergedMangaForDownloading.subscribe(),
+        ) { libraryManga, preferences, _, mergedManga ->
+            val mergedMangaMap = mergedManga.groupBy { it.first }
             libraryManga.map { manga ->
                 LibraryItem(
                     libraryManga = manga,
                     downloadCount = if (preferences.downloadBadge) {
                         // SY -->
                         if (manga.manga.source == MERGED_SOURCE_ID) {
-                            runBlocking {
-                                getMergedMangaById.await(manga.manga.id)
-                            }.sumOf { downloadManager.getDownloadCount(it) }.toLong()
+                            mergedMangaMap[manga.manga.id].orEmpty()
+                                .sumOf { downloadManager.getDownloadCount(it.second) }.toLong()
                         } else {
                             downloadManager.getDownloadCount(manga.manga).toLong()
                         }
@@ -1333,13 +1338,13 @@ class LibraryScreenModel(
 
     private fun List<LibraryItem>.getGroupedMangaItems(
         groupType: Int,
+        tracksMap: Map<Long, List<Track>>,
     ): Map<Category, List</* LibraryItem */ Long>> {
         val context = preferences.context
         return when (groupType) {
             LibraryGroup.BY_TRACK_STATUS -> {
-                val tracks = runBlocking { getTracks.await() }.groupBy { it.mangaId }
                 groupBy { item ->
-                    val status = tracks[item.libraryManga.manga.id]?.firstNotNullOfOrNull { track ->
+                    val status = tracksMap[item.libraryManga.manga.id]?.firstNotNullOfOrNull { track ->
                         TrackStatus.parseTrackerStatus(trackerManager, track.trackerId, track.status)
                     } ?: TrackStatus.OTHER
 

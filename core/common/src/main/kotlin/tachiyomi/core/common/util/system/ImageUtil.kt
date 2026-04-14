@@ -134,7 +134,7 @@ object ImageUtil {
      * Extract the 'side' part from [BufferedSource] and return it as [BufferedSource].
      */
     fun splitInHalf(imageSource: BufferedSource, side: Side, sidePadding: Int): BufferedSource {
-        val imageBitmap = BitmapFactory.decodeStream(imageSource.inputStream())
+        val imageBitmap = BitmapFactory.decodeStream(imageSource.inputStream()) ?: throw Exception("Decoder failed")
         val height = imageBitmap.height
         val width = imageBitmap.width
 
@@ -151,15 +151,21 @@ object ImageUtil {
         val output = Buffer()
         half.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
 
+        imageBitmap.recycle()
+        half.recycle()
+
         return output
     }
 
     fun rotateImage(imageSource: BufferedSource, degrees: Float): BufferedSource {
-        val imageBitmap = BitmapFactory.decodeStream(imageSource.inputStream())
+        val imageBitmap = BitmapFactory.decodeStream(imageSource.inputStream()) ?: throw Exception("Decoder failed")
         val rotated = rotateBitMap(imageBitmap, degrees)
 
         val output = Buffer()
         rotated.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+
+        imageBitmap.recycle()
+        rotated.recycle()
 
         return output
     }
@@ -174,7 +180,7 @@ object ImageUtil {
      * new vertically-aligned image.
      */
     fun splitAndMerge(imageSource: BufferedSource, upperSide: Side): BufferedSource {
-        val imageBitmap = BitmapFactory.decodeStream(imageSource.inputStream())
+        val imageBitmap = BitmapFactory.decodeStream(imageSource.inputStream()) ?: throw Exception("Decoder failed")
         val height = imageBitmap.height
         val width = imageBitmap.width
 
@@ -198,6 +204,10 @@ object ImageUtil {
 
         val output = Buffer()
         result.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+
+        imageBitmap.recycle()
+        result.recycle()
+
         return output
     }
 
@@ -228,7 +238,7 @@ object ImageUtil {
         val leftTargetPart = Rect(0, 0, width / 2, height)
         val rightTargetPart = Rect(width / 2 + centerPadding, 0, width + centerPadding, height)
 
-        val bgColor = chooseBackground(backgroundContext, imageSource)
+        val bgColor = chooseBackground(backgroundContext, imageBitmap)
         bgColor.setBounds(width / 2, 0, width / 2 + centerPadding, height)
         val result = createBitmap(width + centerPadding, height)
 
@@ -240,6 +250,10 @@ object ImageUtil {
 
         val output = Buffer()
         result.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+
+        imageBitmap.recycle()
+        result.recycle()
+
         return output
     }
     // SY <--
@@ -388,6 +402,15 @@ object ImageUtil {
 
         val whiteColor = Color.WHITE
         if (image == null) return ColorDrawable(whiteColor)
+        return try {
+            chooseBackground(context, image)
+        } finally {
+            image.recycle()
+        }
+    }
+
+    fun chooseBackground(context: Context, image: Bitmap): Drawable {
+        val whiteColor = Color.WHITE
         if (image.width < 50 || image.height < 50) {
             return ColorDrawable(whiteColor)
         }
@@ -798,6 +821,9 @@ object ImageUtil {
         val output = Buffer()
         result.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
         progressCallback?.invoke(100)
+
+        result.recycle()
+
         return output
     }
 

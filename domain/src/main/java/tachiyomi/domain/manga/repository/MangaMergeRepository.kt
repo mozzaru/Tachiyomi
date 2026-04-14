@@ -31,4 +31,6 @@ interface MangaMergeRepository {
     suspend fun deleteByMergeId(mergeId: Long)
 
     suspend fun getMergeMangaForDownloading(mergeId: Long): List<Manga>
+
+    fun subscribeMergedMangaForDownloading(): Flow<List<Pair<Long, Manga>>>
 }

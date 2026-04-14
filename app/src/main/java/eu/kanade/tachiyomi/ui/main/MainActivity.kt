@@ -188,6 +188,7 @@ class MainActivity : BaseActivity() {
                 override fun onPreDraw(): Boolean {
                     root.viewTreeObserver.removeOnPreDrawListener(this)
                     firstPaint = true
+                    ready = true
                     while (iuuQueue.isNotEmpty()) {
                         iuuQueue.poll()?.invoke()
                     }

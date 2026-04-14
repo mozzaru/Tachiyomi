@@ -26,6 +26,8 @@ import kotlinx.coroutines.supervisorScope
 import logcat.LogPriority
 import okio.Buffer
 import okio.BufferedSource
+import okio.buffer
+import okio.source
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withIOContext
@@ -191,7 +193,13 @@ class WebtoonPageHolder(
 
         try {
             val (source, isAnimated) = withIOContext {
-                val source = streamFn().use { process(Buffer().readFrom(it)) }
+                val source = streamFn().use {
+                    if (viewer.config.dualPageRotateToFit || viewer.config.dualPageSplit) {
+                        process(Buffer().readFrom(it))
+                    } else {
+                        it.source().buffer()
+                    }
+                }
                 val isAnimated = ImageUtil.isAnimatedAndSupported(source)
                 Pair(source, isAnimated)
             }

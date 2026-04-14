@@ -28,6 +28,9 @@ import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.source.AndroidSourceManager
 import eu.kanade.tachiyomi.util.storage.CbzCrypto
 import exh.eh.EHentaiUpdateHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
@@ -105,6 +108,19 @@ class AppModule(val app: Application) : InjektModule {
                 schema = Database.Schema,
                 configuration = AndroidxSqliteConfiguration(
                     isForeignKeyConstraintsEnabled = true,
+                    callback = object : AndroidSqliteDriver.Callback(Database.Schema) {
+                        override fun onOpen(db: SupportSQLiteDatabase) {
+                            super.onOpen(db)
+                            setPragma(db, "journal_mode = WAL")
+                            setPragma(db, "synchronous = NORMAL")
+                        }
+
+                        private fun setPragma(db: SupportSQLiteDatabase, pragma: String) {
+                            val cursor = db.query("PRAGMA $pragma")
+                            cursor.moveToFirst()
+                            cursor.close()
+                        }
+                    },
                 ),
             ).also { sqlDriverRef = WeakReference(it) }
         }
@@ -180,7 +196,9 @@ class AppModule(val app: Application) : InjektModule {
 
 fun initExpensiveComponents(app: Application) {
     // Asynchronously init expensive components for a faster cold start
-    ContextCompat.getMainExecutor(app).execute {
+    // SY -->
+    val scope = CoroutineScope(Dispatchers.IO)
+    scope.launch {
         Injekt.get<NetworkHelper>()
 
         Injekt.get<SourceManager>()
@@ -189,8 +207,7 @@ fun initExpensiveComponents(app: Application) {
 
         Injekt.get<DownloadManager>()
 
-        // SY -->
         Injekt.get<GetCustomMangaInfo>()
-        // SY <--
     }
+    // SY <--
 }

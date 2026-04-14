@@ -23,6 +23,8 @@ import kotlinx.coroutines.supervisorScope
 import logcat.LogPriority
 import okio.Buffer
 import okio.BufferedSource
+import okio.buffer
+import okio.source
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withIOContext
@@ -172,20 +174,31 @@ class PagerPageHolder(
 
         try {
             val (source, isAnimated, background) = withIOContext {
-                streamFn().buffered(16).use { source ->
-                    // SY -->
+                streamFn().use { sourceStream ->
                     if (extraPage != null) {
-                        streamFn2?.invoke()
-                            ?.buffered(16)
-                    } else {
-                        null
-                    }.use { source2 ->
-                        val itemSource = if (viewer.config.dualPageSplit) {
-                            process(item.first, Buffer().readFrom(source))
-                        } else {
-                            mergePages(Buffer().readFrom(source), source2?.let { Buffer().readFrom(it) })
+                        streamFn2!!.invoke().use { sourceStream2 ->
+                            val source = sourceStream.source().buffer()
+                            val source2 = sourceStream2.source().buffer()
+                            val itemSource = if (viewer.config.dualPageSplit) {
+                                process(item.first, source)
+                            } else {
+                                mergePages(source, source2)
+                            }
+                            val isAnimated = ImageUtil.isAnimatedAndSupported(itemSource)
+                            val background = if (!isAnimated && viewer.config.automaticBackground) {
+                                ImageUtil.chooseBackground(context, itemSource.peek())
+                            } else {
+                                null
+                            }
+                            Triple(itemSource, isAnimated, background)
                         }
-                        // SY <--
+                    } else {
+                        val source = sourceStream.source().buffer()
+                        val itemSource = if (viewer.config.dualPageSplit) {
+                            process(item.first, source)
+                        } else {
+                            handleWideImage(source)
+                        }
                         val isAnimated = ImageUtil.isAnimatedAndSupported(itemSource)
                         val background = if (!isAnimated && viewer.config.automaticBackground) {
                             ImageUtil.chooseBackground(context, itemSource.peek())
