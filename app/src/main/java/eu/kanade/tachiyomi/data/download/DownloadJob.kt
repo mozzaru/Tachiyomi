@@ -65,7 +65,7 @@ class DownloadJob(context: Context, workerParams: WorkerParameters) : CoroutineW
 
         // Keep the worker running when needed
         while (active) {
-            delay(100)
+            delay(500)
             networkCheck = checkNetworkState(
                 applicationContext.activeNetworkState(),
                 downloadPreferences.downloadOnlyOverWifi.get(),
