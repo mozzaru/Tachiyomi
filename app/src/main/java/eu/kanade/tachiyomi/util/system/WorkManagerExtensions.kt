@@ -28,7 +28,7 @@ fun WorkManager.isRunning(tag: String): Boolean {
 suspend fun CoroutineWorker.setForegroundSafely() {
     try {
         setForeground(getForegroundInfo())
-        delay(500)
+        delay(1000)
     } catch (e: IllegalStateException) {
         logcat(LogPriority.ERROR, e) { "Not allowed to set foreground job" }
     }
