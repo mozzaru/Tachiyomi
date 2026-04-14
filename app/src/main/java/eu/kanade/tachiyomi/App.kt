@@ -10,6 +10,7 @@ import android.content.IntentFilter
 import android.os.Build
 import android.os.Looper
 import android.webkit.WebView
+import android.content.ComponentCallbacks2
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -19,6 +20,7 @@ import androidx.work.Configuration
 import androidx.work.WorkManager
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
+import coil3.imageLoader
 import coil3.memory.MemoryCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.allowRgb565
@@ -223,6 +225,18 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
                 preference.set(BuildConfig.VERSION_CODE)
             },
         )
+    }
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW) {
+            imageLoader.memoryCache?.clear()
+        }
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        imageLoader.memoryCache?.clear()
     }
 
     override fun newImageLoader(context: Context): ImageLoader {

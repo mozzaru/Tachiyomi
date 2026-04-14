@@ -13,6 +13,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkQuery
@@ -825,6 +826,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                 // Define the SyncDataJob
                 val syncDataJob = OneTimeWorkRequestBuilder<SyncDataJob>()
                     .addTag(SyncDataJob.TAG_MANUAL)
+                    .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                     .build()
 
                 // Chain SyncDataJob to run before LibraryUpdateJob
@@ -832,6 +834,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                     .addTag(TAG)
                     .addTag(WORK_NAME_MANUAL)
                     .setInputData(inputData)
+                    .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                     .build()
 
                 wm.beginUniqueWork(WORK_NAME_MANUAL, ExistingWorkPolicy.KEEP, syncDataJob)
@@ -842,6 +845,7 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                     .addTag(TAG)
                     .addTag(WORK_NAME_MANUAL)
                     .setInputData(inputData)
+                    .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                     .build()
 
                 wm.enqueueUniqueWork(WORK_NAME_MANUAL, ExistingWorkPolicy.KEEP, request)

@@ -12,6 +12,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
@@ -122,6 +123,7 @@ class BackupCreateJob(private val context: Context, workerParams: WorkerParamete
             val request = OneTimeWorkRequestBuilder<BackupCreateJob>()
                 .addTag(TAG_MANUAL)
                 .setInputData(inputData)
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .build()
             context.workManager.enqueueUniqueWork(TAG_MANUAL, ExistingWorkPolicy.KEEP, request)
         }

@@ -8,6 +8,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -78,6 +79,7 @@ class DownloadJob(context: Context, workerParams: WorkerParameters) : CoroutineW
 
         // Keep the worker running when needed
         while (active) {
+            kotlinx.coroutines.delay(100)
             active = !isStopped && downloadManager.isRunning && networkCheck
         }
 
@@ -105,6 +107,7 @@ class DownloadJob(context: Context, workerParams: WorkerParameters) : CoroutineW
         fun start(context: Context) {
             val request = OneTimeWorkRequestBuilder<DownloadJob>()
                 .addTag(TAG)
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .build()
             WorkManager.getInstance(context)
                 .enqueueUniqueWork(TAG, ExistingWorkPolicy.REPLACE, request)

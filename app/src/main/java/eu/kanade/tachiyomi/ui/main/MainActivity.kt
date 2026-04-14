@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.view.View
+import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
@@ -180,6 +181,20 @@ class MainActivity : BaseActivity() {
         @Suppress("KotlinConstantConditions", "SimplifyBooleanWithConstants")
         val hasDebugOverlay = (BuildConfig.DEBUG || BuildConfig.BUILD_TYPE == "releaseTest")
         // SY <--
+
+        val root = findViewById<View>(android.R.id.content)
+        root.viewTreeObserver.addOnPreDrawListener(
+            object : ViewTreeObserver.OnPreDrawListener {
+                override fun onPreDraw(): Boolean {
+                    root.viewTreeObserver.removeOnPreDrawListener(this)
+                    firstPaint = true
+                    while (iuuQueue.isNotEmpty()) {
+                        iuuQueue.poll()?.invoke()
+                    }
+                    return true
+                }
+            },
+        )
 
         setComposeContent {
             val context = LocalContext.current
