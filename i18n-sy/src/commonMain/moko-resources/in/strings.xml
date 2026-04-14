@@ -190,6 +190,8 @@
     <string name="download_threads_summary">Nilai yang lebih tinggi dapat mempercepat pengunduhan gambar secara signifikan, tapi dapat mengakibatkan diblokir. Nilai yang disarankan adalah 2 atau 3. Nilai saat ini adalah: %s</string>
     <string name="aggressively_load_pages">Muat halaman secara agresif</string>
     <string name="aggressively_load_pages_summary">Unduh perlahan seluruh bab sambil membaca, alih-alih hanya memuat halaman yang Anda lihat.</string>
+    <string name="oppo_realme_hans_fix">Atasi ColorHans/pembekuan latar belakang</string>
+    <string name="oppo_realme_hans_warning">Beberapa perangkat Oppo dan Realme menggunakan ColorHansManager yang membekukan aplikasi latar belakang seperti Tachiyomi, mengganggu pembaruan pustaka dan unduhan. Ketuk untuk mempelajari cara mengatasinya.</string>
     <string name="skip_queue_on_retry">Lewati antrean saat mencoba lagi</string>
     <string name="skip_queue_on_retry_summary">Biasanya, menekan tombol lanjut pada unduhan yang gagal akan menunggu hingga pengunduh selesai mengunduh halaman terakhir sebelum mulai mengunduh ulang halaman yang gagal. Mengaktifkan ini akan memaksa pengunduh untuk mulai mengunduh ulang halaman yang gagal segera setelah Anda menekan tombol coba lagi.</string>
     <string name="reader_preload_amount">Jumlah Pramuat Halaman</string>
