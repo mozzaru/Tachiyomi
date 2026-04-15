@@ -5,8 +5,8 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.stack.StackEvent
@@ -32,7 +32,7 @@ import tachiyomi.presentation.core.i18n.stringResource
 fun Screen.feedTab(): TabContent {
     val navigator = LocalNavigator.currentOrThrow
     val screenModel = rememberScreenModel { FeedScreenModel() }
-    val state by screenModel.state.collectAsState()
+    val state by screenModel.state.collectAsStateWithLifecycle()
 
     DisposableEffect(navigator.lastEvent) {
         if (navigator.lastEvent == StackEvent.Push) {

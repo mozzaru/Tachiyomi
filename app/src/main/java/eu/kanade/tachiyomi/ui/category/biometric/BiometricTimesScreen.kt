@@ -2,8 +2,8 @@ package eu.kanade.tachiyomi.ui.category.biometric
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.platform.LocalContext
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -29,7 +29,7 @@ class BiometricTimesScreen : Screen() {
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = rememberScreenModel { BiometricTimesScreenModel() }
 
-        val state by screenModel.state.collectAsState()
+        val state by screenModel.state.collectAsStateWithLifecycle()
 
         if (state is BiometricTimesScreenState.Loading) {
             LoadingScreen()

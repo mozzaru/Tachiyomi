@@ -7,8 +7,8 @@ import androidx.compose.animation.graphics.vector.AnimatedImageVector
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
@@ -79,7 +79,7 @@ data object HistoryTab : Tab {
         val navigator = LocalNavigator.currentOrThrow
         val context = LocalContext.current
         val screenModel = rememberScreenModel { HistoryScreenModel() }
-        val state by screenModel.state.collectAsState()
+        val state by screenModel.state.collectAsStateWithLifecycle()
 
         HistoryScreen(
             state = state,

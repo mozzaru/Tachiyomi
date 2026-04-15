@@ -19,8 +19,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.animateFloatingActionButton
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,7 +67,7 @@ object DownloadQueueScreen : Screen() {
         val navigator = LocalNavigator.currentOrThrow
         val scope = rememberCoroutineScope()
         val screenModel = rememberScreenModel { DownloadQueueScreenModel() }
-        val downloadList by screenModel.state.collectAsState()
+        val downloadList by screenModel.state.collectAsStateWithLifecycle()
         val downloadCount by remember {
             derivedStateOf { downloadList.sumOf { it.subItems.size } }
         }
@@ -199,7 +199,7 @@ object DownloadQueueScreen : Screen() {
                 )
             },
             floatingActionButton = {
-                val isRunning by screenModel.isDownloaderRunning.collectAsState()
+                val isRunning by screenModel.isDownloaderRunning.collectAsStateWithLifecycle()
                 SmallExtendedFloatingActionButton(
                     text = {
                         val id = if (isRunning) {
