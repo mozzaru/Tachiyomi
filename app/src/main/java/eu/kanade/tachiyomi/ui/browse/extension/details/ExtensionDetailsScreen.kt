@@ -42,7 +42,7 @@ data class ExtensionDetailsScreen(
             onClickIncognito = screenModel::toggleIncognito,
         )
 
-        LaunchedEffect(Unit) {
+        LaunchedEffect(screenModel) {
             screenModel.events.collectLatest { event ->
                 if (event is ExtensionDetailsEvent.Uninstalled) {
                     navigator.pop()

@@ -130,7 +130,7 @@ fun Screen.feedTab(): TabContent {
 
             val internalErrString = stringResource(MR.strings.internal_error)
             val tooManyFeedsString = stringResource(SYMR.strings.too_many_in_feed)
-            LaunchedEffect(Unit) {
+            LaunchedEffect(screenModel) {
                 screenModel.events.collectLatest { event ->
                     when (event) {
                         FeedScreenModel.Event.FailedFetchingSources -> {

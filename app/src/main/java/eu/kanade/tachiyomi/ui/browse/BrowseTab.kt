@@ -107,7 +107,7 @@ data object BrowseTab : Tab {
             searchQuery = extensionsState.searchQuery,
             onChangeSearchQuery = extensionsScreenModel::search,
         )
-        LaunchedEffect(Unit) {
+        LaunchedEffect(extensionsScreenModel) {
             switchToExtensionTabChannel.receiveAsFlow()
                 .collectLatest { state.scrollToPage(/* SY --> */2/* SY <-- */) }
         }

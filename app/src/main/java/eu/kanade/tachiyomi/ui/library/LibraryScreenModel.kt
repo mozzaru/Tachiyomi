@@ -9,8 +9,8 @@ import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
-import cafe.adriel.voyager.core.model.StateScreenModel
-import cafe.adriel.voyager.core.model.screenModelScope
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import eu.kanade.core.preference.PreferenceMutableState
 import eu.kanade.core.preference.asState
 import eu.kanade.core.util.fastFilterNot
@@ -58,7 +58,10 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -148,7 +151,10 @@ class LibraryScreenModel(
 
     syncPreferences: SyncPreferences = Injekt.get(),
     // SY <--
-) : StateScreenModel<LibraryScreenModel.State>(State()) {
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(State())
+    val state: StateFlow<State> = _state.asStateFlow()
 
     // SY -->
     val favoritesSync = FavoritesSyncHelper(preferences.context)
@@ -158,10 +164,10 @@ class LibraryScreenModel(
     // SY <--
 
     init {
-        mutableState.update { state ->
+        _state.update { state ->
             state.copy(activeCategoryIndex = libraryPreferences.lastUsedCategory.get())
         }
-        screenModelScope.launchIO {
+        viewModelScope.launchIO {
             combine(
                 combine(
                     state.map { it.searchQuery }.distinctUntilChanged().debounce(SEARCH_DEBOUNCE_MILLIS),
@@ -208,13 +214,13 @@ class LibraryScreenModel(
             }
                 .distinctUntilChanged()
                 .collectLatest { libraryData ->
-                    mutableState.update { state ->
+                    _state.update { state ->
                         state.copy(libraryData = libraryData)
                     }
                 }
         }
 
-        screenModelScope.launchIO {
+        viewModelScope.launchIO {
             state
                 .dropWhile { !it.libraryData.isInitialized }
                 .map {
@@ -257,7 +263,7 @@ class LibraryScreenModel(
                         }
                 }
                 .collectLatest {
-                    mutableState.update { state ->
+                    _state.update { state ->
                         state.copy(
                             isLoading = false,
                             groupedFavorites = it,
@@ -272,7 +278,7 @@ class LibraryScreenModel(
             libraryPreferences.showContinueReadingButton.changes(),
         ) { a, b, c -> arrayOf(a, b, c) }
             .onEach { (showCategoryTabs, showMangaCount, showMangaContinueButton) ->
-                mutableState.update { state ->
+                _state.update { state ->
                     state.copy(
                         showCategoryTabs = showCategoryTabs,
                         showMangaCount = showMangaCount,
@@ -280,7 +286,7 @@ class LibraryScreenModel(
                     )
                 }
             }
-            .launchIn(screenModelScope)
+            .launchIn(viewModelScope)
 
         combine(
             getLibraryItemPreferencesFlow(),
@@ -302,11 +308,11 @@ class LibraryScreenModel(
         }
             .distinctUntilChanged()
             .onEach {
-                mutableState.update { state ->
+                _state.update { state ->
                     state.copy(hasActiveFilters = it)
                 }
             }
-            .launchIn(screenModelScope)
+            .launchIn(viewModelScope)
 
         // SY -->
         combine(
@@ -318,26 +324,26 @@ class LibraryScreenModel(
         }
             .distinctUntilChanged()
             .onEach {
-                mutableState.update { state ->
+                _state.update { state ->
                     state.copy(showSyncExh = it)
                 }
             }
-            .launchIn(screenModelScope)
+            .launchIn(viewModelScope)
 
         libraryPreferences.groupLibraryBy.changes()
             .onEach {
-                mutableState.update { state ->
+                _state.update { state ->
                     state.copy(groupType = it)
                 }
             }
-            .launchIn(screenModelScope)
+            .launchIn(viewModelScope)
         syncPreferences.syncService
             .changes()
             .distinctUntilChanged()
             .onEach { syncService ->
-                mutableState.update { it.copy(isSyncEnabled = syncService != 0) }
+                _state.update { it.copy(isSyncEnabled = syncService != 0) }
             }
-            .launchIn(screenModelScope)
+            .launchIn(viewModelScope)
         // SY <--
     }
 
@@ -749,7 +755,7 @@ class LibraryScreenModel(
 
     private fun downloadNextChapters(amount: Int?) {
         val mangas = state.value.selectedManga
-        screenModelScope.launchNonCancellable {
+        viewModelScope.launchNonCancellable {
             mangas.forEach { manga ->
                 // SY -->
                 if (manga.source == MERGED_SOURCE_ID) {
@@ -800,7 +806,7 @@ class LibraryScreenModel(
 
     private fun downloadBookmarkedChapters() {
         val mangas = state.value.selectedManga
-        screenModelScope.launchNonCancellable {
+        viewModelScope.launchNonCancellable {
             mangas.forEach { manga ->
                 // SY -->
                 if (manga.source == MERGED_SOURCE_ID) {
@@ -914,7 +920,7 @@ class LibraryScreenModel(
      */
     fun markReadSelection(read: Boolean) {
         val selection = state.value.selectedManga
-        screenModelScope.launchNonCancellable {
+        viewModelScope.launchNonCancellable {
             selection.forEach { manga ->
                 setReadStatus.await(
                     manga = manga,
@@ -933,7 +939,7 @@ class LibraryScreenModel(
      * @param deleteChapters whether to delete downloaded chapters.
      */
     fun removeMangas(mangas: List<Manga>, deleteFromLibrary: Boolean, deleteChapters: Boolean) {
-        screenModelScope.launchNonCancellable {
+        viewModelScope.launchNonCancellable {
             if (deleteFromLibrary) {
                 val toDelete = mangas.map {
                     it.removeCovers(coverCache)
@@ -976,7 +982,7 @@ class LibraryScreenModel(
      * @param removeCategories the categories to remove in all mangas.
      */
     fun setMangaCategories(mangaList: List<Manga>, addCategories: List<Long>, removeCategories: List<Long>) {
-        screenModelScope.launchNonCancellable {
+        viewModelScope.launchNonCancellable {
             mangaList.forEach { manga ->
                 val categoryIds = getCategories.await(manga.id)
                     .map { it.id }
@@ -990,12 +996,12 @@ class LibraryScreenModel(
     }
 
     fun getDisplayMode(): PreferenceMutableState<LibraryDisplayMode> {
-        return libraryPreferences.displayMode.asState(screenModelScope)
+        return libraryPreferences.displayMode.asState(viewModelScope)
     }
 
     fun getColumnsForOrientation(isLandscape: Boolean): PreferenceMutableState<Int> {
         return (if (isLandscape) libraryPreferences.landscapeColumns else libraryPreferences.portraitColumns)
-            .asState(screenModelScope)
+            .asState(viewModelScope)
     }
 
     fun getRandomLibraryItemForCurrentCategory(): LibraryItem? {
@@ -1004,13 +1010,13 @@ class LibraryScreenModel(
     }
 
     fun showSettingsDialog() {
-        mutableState.update { it.copy(dialog = Dialog.SettingsSheet) }
+        _state.update { it.copy(dialog = Dialog.SettingsSheet) }
     }
 
     // SY -->
     fun showRecommendationSearchDialog() {
         val mangaList = state.value.selectedManga
-        mutableState.update { it.copy(dialog = Dialog.RecommendationSearchSheet(mangaList)) }
+        _state.update { it.copy(dialog = Dialog.RecommendationSearchSheet(mangaList)) }
     }
 
     private suspend fun filterLibrary(
@@ -1194,11 +1200,11 @@ class LibraryScreenModel(
 
     fun clearSelection() {
         lastSelectionCategory = null
-        mutableState.update { it.copy(selection = setOf()) }
+        _state.update { it.copy(selection = setOf()) }
     }
 
     fun toggleSelection(category: Category, manga: LibraryManga) {
-        mutableState.update { state ->
+        _state.update { state ->
             val newSelection = state.selection.mutate { set ->
                 if (!set.remove(manga.id)) set.add(manga.id)
             }
@@ -1212,7 +1218,7 @@ class LibraryScreenModel(
      * same category as the given manga
      */
     fun toggleRangeSelection(category: Category, manga: LibraryManga) {
-        mutableState.update { state ->
+        _state.update { state ->
             val newSelection = state.selection.mutate { list ->
                 val lastSelected = list.lastOrNull()
                 if (lastSelectionCategory != category.id) {
@@ -1239,7 +1245,7 @@ class LibraryScreenModel(
 
     fun selectAll() {
         lastSelectionCategory = null
-        mutableState.update { state ->
+        _state.update { state ->
             val newSelection = state.selection.mutate { list ->
                 state.getItemsForCategoryId(state.activeCategory?.id).map { it.id }.let(list::addAll)
             }
@@ -1249,7 +1255,7 @@ class LibraryScreenModel(
 
     fun invertSelection() {
         lastSelectionCategory = null
-        mutableState.update { state ->
+        _state.update { state ->
             val newSelection = state.selection.mutate { list ->
                 val itemIds = state.getItemsForCategoryId(state.activeCategory?.id).fastMap { it.id }
                 val (toRemove, toAdd) = itemIds.partition { it in list }
@@ -1261,11 +1267,11 @@ class LibraryScreenModel(
     }
 
     fun search(query: String?) {
-        mutableState.update { it.copy(searchQuery = query) }
+        _state.update { it.copy(searchQuery = query) }
     }
 
     fun updateActiveCategoryIndex(index: Int) {
-        val newIndex = mutableState.updateAndGet { state ->
+        val newIndex = _state.updateAndGet { state ->
             state.copy(activeCategoryIndex = index)
         }
             .coercedActiveCategoryIndex
@@ -1274,7 +1280,7 @@ class LibraryScreenModel(
     }
 
     fun openChangeCategoryDialog() {
-        screenModelScope.launchIO {
+        viewModelScope.launchIO {
             // Create a copy of selected manga
             val mangaList = state.value.selectedManga
 
@@ -1296,16 +1302,16 @@ class LibraryScreenModel(
                     }
                 }
                 .toImmutableList()
-            mutableState.update { it.copy(dialog = Dialog.ChangeCategory(mangaList, preselected)) }
+            _state.update { it.copy(dialog = Dialog.ChangeCategory(mangaList, preselected)) }
         }
     }
 
     fun openDeleteMangaDialog() {
-        mutableState.update { it.copy(dialog = Dialog.DeleteManga(state.value.selectedManga)) }
+        _state.update { it.copy(dialog = Dialog.DeleteManga(state.value.selectedManga)) }
     }
 
     fun closeDialog() {
-        mutableState.update { it.copy(dialog = null) }
+        _state.update { it.copy(dialog = null) }
     }
 
     sealed interface Dialog {
@@ -1420,7 +1426,7 @@ class LibraryScreenModel(
     }
 
     fun runRecommendationSearch(selection: List<Manga>) {
-        recommendationSearch.runSearch(screenModelScope, selection)?.let {
+        recommendationSearch.runSearch(viewModelScope, selection)?.let {
             recommendationSearchJob = it
         }
     }
@@ -1430,7 +1436,7 @@ class LibraryScreenModel(
     }
 
     fun runSync() {
-        favoritesSync.runSync(screenModelScope)
+        favoritesSync.runSync(viewModelScope)
     }
 
     fun onAcceptSyncWarning() {
@@ -1438,7 +1444,7 @@ class LibraryScreenModel(
     }
 
     fun openFavoritesSyncDialog() {
-        mutableState.update {
+        _state.update {
             it.copy(
                 dialog = if (exhPreferences.exhShowSyncIntro.get()) {
                     Dialog.SyncFavoritesWarning

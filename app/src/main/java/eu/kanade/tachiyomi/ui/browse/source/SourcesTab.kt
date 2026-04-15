@@ -122,7 +122,7 @@ fun Screen.sourcesTab(
             }
 
             val internalErrString = stringResource(MR.strings.internal_error)
-            LaunchedEffect(Unit) {
+            LaunchedEffect(screenModel) {
                 screenModel.events.collectLatest { event ->
                     when (event) {
                         SourcesScreenModel.Event.FailedFetchingSources -> {
