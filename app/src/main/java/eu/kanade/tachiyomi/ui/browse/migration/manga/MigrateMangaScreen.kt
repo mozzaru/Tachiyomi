@@ -112,7 +112,7 @@ data class MigrateMangaScreen(
             )
         }
 
-        LaunchedEffect(Unit) {
+        LaunchedEffect(screenModel) {
             screenModel.events.collectLatest { event ->
                 when (event) {
                     MigrationMangaEvent.FailedFetchingFavorites -> {
