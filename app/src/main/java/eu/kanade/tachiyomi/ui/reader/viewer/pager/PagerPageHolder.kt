@@ -89,6 +89,18 @@ class PagerPageHolder(
         extraLoadJob = null
     }
 
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        // Skip reload if page already loaded
+        if (page.status == Page.State.Ready && (extraPage == null || extraPage?.status == Page.State.Ready)) return
+        if (loadJob == null || loadJob?.isActive == false) {
+            loadJob = scope.launch { loadPageAndProcessStatus(1) }
+        }
+        if (extraPage != null && (extraLoadJob == null || extraLoadJob?.isActive == false)) {
+            extraLoadJob = scope.launch { loadPageAndProcessStatus(2) }
+        }
+    }
+
     private fun initProgressIndicator() {
         if (progressIndicator == null) {
             progressIndicator = ReaderProgressIndicator(context)
