@@ -18,7 +18,9 @@ import eu.kanade.tachiyomi.util.system.activeNetworkState
 import eu.kanade.tachiyomi.util.system.networkStateFlow
 import eu.kanade.tachiyomi.util.system.notificationBuilder
 import eu.kanade.tachiyomi.util.system.setForegroundSafely
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.launchIn
@@ -54,6 +56,8 @@ class DownloadJob(context: Context, workerParams: WorkerParameters) : CoroutineW
     }
 
     override suspend fun doWork(): Result {
+        setForegroundSafely()
+
         var networkCheck = checkNetworkState(
             applicationContext.activeNetworkState(),
             downloadPreferences.downloadOnlyOverWifi.get(),
@@ -63,8 +67,6 @@ class DownloadJob(context: Context, workerParams: WorkerParameters) : CoroutineW
         if (!active) {
             return Result.failure()
         }
-
-        setForegroundSafely()
 
         coroutineScope {
             combineTransform(
@@ -76,12 +78,16 @@ class DownloadJob(context: Context, workerParams: WorkerParameters) : CoroutineW
                 .launchIn(this)
         }
 
-        // Keep the worker running when needed
-        while (active) {
-            active = !isStopped && downloadManager.isRunning && networkCheck
+        return try {
+            // Keep the worker running when needed
+            while (active) {
+                delay(100)
+                active = !isStopped && downloadManager.isRunning && networkCheck
+            }
+            Result.success()
+        } catch (_: CancellationException) {
+            Result.success()
         }
-
-        return Result.success()
     }
 
     private fun checkNetworkState(state: NetworkState, requireWifi: Boolean): Boolean {
