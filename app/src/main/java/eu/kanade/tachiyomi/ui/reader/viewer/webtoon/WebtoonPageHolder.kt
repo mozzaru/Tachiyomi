@@ -134,8 +134,10 @@ class WebtoonPageHolder(
         val page = page ?: return
         val loader = page.chapter.pageLoader ?: return
         supervisorScope {
-            launchIO {
-                loader.loadPage(page)
+            if (page.status != Page.State.Ready || page.stream == null) {
+                launchIO {
+                    loader.loadPage(page)
+                }
             }
             page.statusFlow.collectLatest { state ->
                 when (state) {
