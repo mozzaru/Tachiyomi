@@ -2,8 +2,8 @@ package eu.kanade.tachiyomi.ui.manga.notes
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
@@ -26,7 +26,7 @@ class MangaNotesScreen(
         val navigator = LocalNavigator.currentOrThrow
 
         val screenModel = rememberScreenModel { Model(manga) }
-        val state by screenModel.state.collectAsState()
+        val state by screenModel.state.collectAsStateWithLifecycle()
 
         MangaNotesScreen(
             state = state,
