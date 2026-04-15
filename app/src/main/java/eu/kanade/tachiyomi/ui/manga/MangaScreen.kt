@@ -17,9 +17,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.core.net.toUri
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import cafe.adriel.voyager.core.model.rememberScreenModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -107,12 +105,14 @@ class MangaScreen(
         val context = LocalContext.current
         val haptic = LocalHapticFeedback.current
         val scope = rememberCoroutineScope()
-        val lifecycleOwner = LocalLifecycleOwner.current
-        val screenModel = rememberScreenModel {
-            MangaScreenModel(context, lifecycleOwner.lifecycle, mangaId, fromSource, smartSearchConfig != null)
-        }
+        val screenModel: MangaScreenModel = viewModel(
+            key = "MangaScreenModel-$mangaId",
+            initializer = {
+                MangaScreenModel(mangaId, fromSource, smartSearchConfig != null)
+            },
+        )
 
-        val state by screenModel.state.collectAsStateWithLifecycle()
+        val state by screenModel.state.collectAsState()
 
         if (state is MangaScreenModel.State.Loading) {
             LoadingScreen()
@@ -306,7 +306,10 @@ class MangaScreen(
                 )
             }
             MangaScreenModel.Dialog.FullCover -> {
-                val sm = rememberScreenModel { MangaCoverScreenModel(successState.manga.id) }
+                val sm: MangaCoverScreenModel = viewModel(
+                    key = "MangaCoverScreenModel-${successState.manga.id}",
+                    initializer = { MangaCoverScreenModel(successState.manga.id) },
+                )
                 val manga by sm.state.collectAsState()
                 if (manga != null) {
                     val getContent = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) {
