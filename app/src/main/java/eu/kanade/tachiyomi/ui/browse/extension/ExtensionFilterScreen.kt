@@ -37,7 +37,7 @@ class ExtensionFilterScreen : Screen() {
             onClickToggle = screenModel::toggle,
         )
 
-        LaunchedEffect(Unit) {
+        LaunchedEffect(screenModel) {
             screenModel.events.collectLatest {
                 when (it) {
                     ExtensionFilterEvent.FailedFetchingLanguages -> {
