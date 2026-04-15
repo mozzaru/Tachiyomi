@@ -40,7 +40,7 @@ class ReaderPreferences(
 
     val drawUnderCutout: Preference<Boolean> = preferenceStore.getBoolean("cutout_short", true)
 
-    val keepScreenOn: Preference<Boolean> = preferenceStore.getBoolean("pref_keep_screen_on_key", false)
+    fun keepScreenOn() = preferenceStore.getBoolean("pref_keep_screen_on_key", true)
 
     val defaultReadingMode: Preference<Int> = preferenceStore.getInt(
         "pref_default_reading_mode_key",
