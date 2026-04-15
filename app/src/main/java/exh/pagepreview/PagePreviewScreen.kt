@@ -2,7 +2,7 @@ package exh.pagepreview
 
 import android.content.Context
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import cafe.adriel.voyager.core.model.rememberScreenModel
@@ -18,7 +18,7 @@ class PagePreviewScreen(private val mangaId: Long) : Screen() {
     override fun Content() {
         val screenModel = rememberScreenModel { PagePreviewScreenModel(mangaId) }
         val context = LocalContext.current
-        val state by screenModel.state.collectAsState()
+        val state by screenModel.state.collectAsStateWithLifecycle()
         val navigator = LocalNavigator.currentOrThrow
         PagePreviewScreen(
             state = state,

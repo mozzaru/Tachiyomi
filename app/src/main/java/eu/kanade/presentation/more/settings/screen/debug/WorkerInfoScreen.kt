@@ -11,7 +11,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -58,9 +58,9 @@ class WorkerInfoScreen : Screen() {
         val navigator = LocalNavigator.currentOrThrow
 
         val screenModel = rememberScreenModel { Model(context) }
-        val enqueued by screenModel.enqueued.collectAsState()
-        val finished by screenModel.finished.collectAsState()
-        val running by screenModel.running.collectAsState()
+        val enqueued by screenModel.enqueued.collectAsStateWithLifecycle()
+        val finished by screenModel.finished.collectAsStateWithLifecycle()
+        val running by screenModel.running.collectAsStateWithLifecycle()
 
         Scaffold(
             topBar = {

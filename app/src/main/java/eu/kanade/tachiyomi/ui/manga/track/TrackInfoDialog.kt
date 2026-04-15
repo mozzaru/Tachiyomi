@@ -24,7 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -110,7 +110,7 @@ data class TrackInfoDialogHomeScreen(
         val screenModel = rememberScreenModel { Model(mangaId, sourceId) }
 
         val dateFormat = remember { UiPreferences.dateFormat(Injekt.get<UiPreferences>().dateFormat.get()) }
-        val state by screenModel.state.collectAsState()
+        val state by screenModel.state.collectAsStateWithLifecycle()
 
         // SY -->
         Column(modifier = Modifier.animateContentSize()) {
@@ -391,7 +391,7 @@ private data class TrackStatusSelectorScreen(
                 tracker = Injekt.get<TrackerManager>().get(serviceId)!!,
             )
         }
-        val state by screenModel.state.collectAsState()
+        val state by screenModel.state.collectAsStateWithLifecycle()
         TrackStatusSelector(
             selection = state.selection,
             onSelectionChange = screenModel::setSelection,
@@ -444,7 +444,7 @@ private data class TrackChapterSelectorScreen(
                 tracker = Injekt.get<TrackerManager>().get(serviceId)!!,
             )
         }
-        val state by screenModel.state.collectAsState()
+        val state by screenModel.state.collectAsStateWithLifecycle()
 
         TrackChapterSelector(
             selection = state.selection,
@@ -503,7 +503,7 @@ private data class TrackScoreSelectorScreen(
                 tracker = Injekt.get<TrackerManager>().get(serviceId)!!,
             )
         }
-        val state by screenModel.state.collectAsState()
+        val state by screenModel.state.collectAsStateWithLifecycle()
 
         TrackScoreSelector(
             selection = state.selection,
@@ -767,7 +767,7 @@ data class TrackerSearchScreen(
             )
         }
 
-        val state by screenModel.state.collectAsState()
+        val state by screenModel.state.collectAsStateWithLifecycle()
 
         val textFieldState = rememberTextFieldState(initialQuery)
         TrackerSearch(

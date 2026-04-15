@@ -1,7 +1,7 @@
 package exh.recs
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import cafe.adriel.voyager.core.model.rememberScreenModel
@@ -41,7 +41,7 @@ class RecommendsScreen(private val args: Args) : Screen() {
         val navigator = LocalNavigator.currentOrThrow
 
         val screenModel = rememberScreenModel { RecommendsScreenModel(args) }
-        val state by screenModel.state.collectAsState()
+        val state by screenModel.state.collectAsStateWithLifecycle()
 
         val onClickItem = { manga: Manga ->
             navigator.push(

@@ -2,7 +2,7 @@ package eu.kanade.presentation.more.settings.screen.browse
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import cafe.adriel.voyager.core.model.rememberScreenModel
@@ -30,7 +30,7 @@ class ExtensionReposScreen(
         val navigator = LocalNavigator.currentOrThrow
 
         val screenModel = rememberScreenModel { ExtensionReposScreenModel() }
-        val state by screenModel.state.collectAsState()
+        val state by screenModel.state.collectAsStateWithLifecycle()
 
         LaunchedEffect(url) {
             url?.let { screenModel.showDialog(RepoDialog.Confirm(it)) }

@@ -1,5 +1,7 @@
 package eu.kanade.presentation.library
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -159,7 +161,7 @@ private fun ColumnScope.FilterPage(
     )
     // SY <--
 
-    val trackers by screenModel.trackersFlow.collectAsState()
+    val trackers by screenModel.trackersFlow.collectAsStateWithLifecycle()
     when (trackers.size) {
         0 -> {
             // No trackers
@@ -192,7 +194,7 @@ private fun ColumnScope.SortPage(
     category: Category?,
     screenModel: LibrarySettingsScreenModel,
 ) {
-    val trackers by screenModel.trackersFlow.collectAsState()
+    val trackers by screenModel.trackersFlow.collectAsStateWithLifecycle()
     // SY -->
     val globalSortMode by screenModel.libraryPreferences.sortingMode.collectAsState()
     val sortingMode = if (screenModel.grouping == LibraryGroup.BY_DEFAULT) {
@@ -378,7 +380,7 @@ private fun ColumnScope.GroupPage(
     screenModel: LibrarySettingsScreenModel,
     hasCategories: Boolean,
 ) {
-    val trackers by screenModel.trackersFlow.collectAsState()
+    val trackers by screenModel.trackersFlow.collectAsStateWithLifecycle()
     val groups = remember(hasCategories, trackers) {
         buildList {
             add(LibraryGroup.BY_DEFAULT)

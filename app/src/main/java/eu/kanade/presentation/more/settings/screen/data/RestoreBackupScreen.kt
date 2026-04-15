@@ -11,7 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -49,7 +49,7 @@ class RestoreBackupScreen(
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
         val model = rememberScreenModel { RestoreBackupScreenModel(context, uri) }
-        val state by model.state.collectAsState()
+        val state by model.state.collectAsStateWithLifecycle()
 
         Scaffold(
             topBar = {

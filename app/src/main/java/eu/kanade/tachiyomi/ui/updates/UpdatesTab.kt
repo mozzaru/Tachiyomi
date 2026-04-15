@@ -6,7 +6,7 @@ import androidx.compose.animation.graphics.vector.AnimatedImageVector
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -72,7 +72,7 @@ data object UpdatesTab : Tab {
         val navigator = LocalNavigator.currentOrThrow
         val screenModel: UpdatesScreenModel = viewModel()
         val settingsScreenModel: UpdatesSettingsScreenModel = viewModel()
-        val state by screenModel.state.collectAsState()
+        val state by screenModel.state.collectAsStateWithLifecycle()
 
         UpdateScreen(
             state = state,

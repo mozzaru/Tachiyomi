@@ -19,7 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,7 +69,7 @@ class ClearDatabaseScreen : Screen() {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
         val model = rememberScreenModel { ClearDatabaseScreenModel() }
-        val state by model.state.collectAsState()
+        val state by model.state.collectAsStateWithLifecycle()
         val scope = rememberCoroutineScope()
 
         when (val s = state) {

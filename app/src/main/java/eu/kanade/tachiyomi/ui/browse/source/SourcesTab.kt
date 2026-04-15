@@ -5,7 +5,7 @@ import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.TravelExplore
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
@@ -35,7 +35,7 @@ fun Screen.sourcesTab(
 ): TabContent {
     val navigator = LocalNavigator.currentOrThrow
     val screenModel = rememberScreenModel { SourcesScreenModel(smartSearchConfig = smartSearchConfig) }
-    val state by screenModel.state.collectAsState()
+    val state by screenModel.state.collectAsStateWithLifecycle()
 
     return TabContent(
         // SY -->

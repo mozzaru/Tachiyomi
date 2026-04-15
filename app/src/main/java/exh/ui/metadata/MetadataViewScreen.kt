@@ -12,7 +12,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -40,11 +40,11 @@ class MetadataViewScreen(private val mangaId: Long, private val sourceId: Long) 
         val screenModel = rememberScreenModel { MetadataViewScreenModel(mangaId, sourceId) }
         val navigator = LocalNavigator.currentOrThrow
 
-        val state by screenModel.state.collectAsState()
+        val state by screenModel.state.collectAsStateWithLifecycle()
         Scaffold(
             topBar = { scrollBehavior ->
                 AppBar(
-                    title = screenModel.manga.collectAsState().value?.title,
+                    title = screenModel.manga.collectAsStateWithLifecycle().value?.title,
                     navigateUp = navigator::pop,
                     scrollBehavior = scrollBehavior,
                 )

@@ -3,7 +3,7 @@ package exh.md.follows
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -44,7 +44,7 @@ class MangaDexFollowsScreen(private val sourceId: Long) : Screen() {
         val scope = rememberCoroutineScope()
         val haptic = LocalHapticFeedback.current
         val screenModel = rememberScreenModel { MangaDexFollowsScreenModel(sourceId) }
-        val state by screenModel.state.collectAsState()
+        val state by screenModel.state.collectAsStateWithLifecycle()
 
         val snackbarHostState = remember { SnackbarHostState() }
 

@@ -13,7 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -54,7 +54,7 @@ internal fun Screen.MigrateMangaDialog(
     LaunchedEffect(current, target) {
         screenModel.init(current, target)
     }
-    val state by screenModel.state.collectAsState()
+    val state by screenModel.state.collectAsStateWithLifecycle()
 
     if (state.isMigrated) return
 

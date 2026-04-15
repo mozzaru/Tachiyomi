@@ -2,7 +2,7 @@ package eu.kanade.tachiyomi.ui.category.genre
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import cafe.adriel.voyager.core.model.rememberScreenModel
@@ -24,7 +24,7 @@ class SortTagScreen : Screen() {
         val navigator = LocalNavigator.currentOrThrow
         val screenModel = rememberScreenModel { SortTagScreenModel() }
 
-        val state by screenModel.state.collectAsState()
+        val state by screenModel.state.collectAsStateWithLifecycle()
 
         if (state is SortTagScreenState.Loading) {
             LoadingScreen()

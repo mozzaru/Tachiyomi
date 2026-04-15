@@ -3,7 +3,7 @@ package eu.kanade.presentation.more.settings.screen.data
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.rememberScreenModel
@@ -32,7 +32,7 @@ class SyncSettingsSelector : Screen() {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val model = rememberScreenModel { SyncSettingsSelectorModel() }
-        val state by model.state.collectAsState()
+        val state by model.state.collectAsStateWithLifecycle()
 
         Scaffold(
             topBar = {

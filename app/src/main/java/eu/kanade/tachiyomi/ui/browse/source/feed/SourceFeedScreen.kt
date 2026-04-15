@@ -2,7 +2,7 @@ package eu.kanade.tachiyomi.ui.browse.source.feed
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import cafe.adriel.voyager.core.model.rememberScreenModel
@@ -36,7 +36,7 @@ class SourceFeedScreen(val sourceId: Long) : Screen() {
         }
 
         val screenModel = rememberScreenModel { SourceFeedScreenModel(sourceId) }
-        val state by screenModel.state.collectAsState()
+        val state by screenModel.state.collectAsStateWithLifecycle()
         val navigator = LocalNavigator.currentOrThrow
         val context = LocalContext.current
 

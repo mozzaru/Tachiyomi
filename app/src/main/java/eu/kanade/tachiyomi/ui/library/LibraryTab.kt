@@ -11,7 +11,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -103,7 +103,7 @@ data object LibraryTab : Tab {
 
         val screenModel: LibraryScreenModel = viewModel()
         val settingsScreenModel: LibrarySettingsScreenModel = viewModel()
-        val state by screenModel.state.collectAsState()
+        val state by screenModel.state.collectAsStateWithLifecycle()
 
         val snackbarHostState = remember { SnackbarHostState() }
 
@@ -350,13 +350,13 @@ data object LibraryTab : Tab {
 
         // SY -->
         SyncFavoritesProgressDialog(
-            status = screenModel.favoritesSync.status.collectAsState().value,
+            status = screenModel.favoritesSync.status.collectAsStateWithLifecycle().value,
             setStatusIdle = { screenModel.favoritesSync.status.value = FavoritesSyncStatus.Idle },
             openManga = { navigator.push(MangaScreen(it)) },
         )
 
         RecommendationSearchProgressDialog(
-            status = screenModel.recommendationSearch.status.collectAsState().value,
+            status = screenModel.recommendationSearch.status.collectAsStateWithLifecycle().value,
             setStatusIdle = { screenModel.recommendationSearch.status.value = SearchStatus.Idle },
             setStatusCancelling = { screenModel.recommendationSearch.status.value = SearchStatus.Cancelling },
         )
@@ -380,7 +380,7 @@ data object LibraryTab : Tab {
         }
 
         // SY -->
-        val recSearchState by screenModel.recommendationSearch.status.collectAsState()
+        val recSearchState by screenModel.recommendationSearch.status.collectAsStateWithLifecycle()
         LaunchedEffect(recSearchState) {
             when (val current = recSearchState) {
                 is SearchStatus.Finished.WithResults -> {
