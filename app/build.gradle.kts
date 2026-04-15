@@ -221,6 +221,7 @@ dependencies {
     implementation(libs.androidx.profileInstaller)
 
     implementation(libs.bundles.androidx.lifecycle)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     // Job scheduling
     implementation(libs.androidx.work)

@@ -2,8 +2,8 @@ package eu.kanade.tachiyomi.ui.deeplink
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import cafe.adriel.voyager.core.model.rememberScreenModel
@@ -31,7 +31,7 @@ class DeepLinkScreen(
         val screenModel = rememberScreenModel {
             DeepLinkScreenModel(query = query)
         }
-        val state by screenModel.state.collectAsState()
+        val state by screenModel.state.collectAsStateWithLifecycle()
         Scaffold(
             topBar = { scrollBehavior ->
                 AppBar(

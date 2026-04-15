@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -159,7 +160,7 @@ private fun ColumnScope.FilterPage(
     )
     // SY <--
 
-    val trackers by screenModel.trackersFlow.collectAsState()
+    val trackers by screenModel.trackersFlow.collectAsStateWithLifecycle()
     when (trackers.size) {
         0 -> {
             // No trackers
@@ -192,7 +193,7 @@ private fun ColumnScope.SortPage(
     category: Category?,
     screenModel: LibrarySettingsScreenModel,
 ) {
-    val trackers by screenModel.trackersFlow.collectAsState()
+    val trackers by screenModel.trackersFlow.collectAsStateWithLifecycle()
     // SY -->
     val globalSortMode by screenModel.libraryPreferences.sortingMode.collectAsState()
     val sortingMode = if (screenModel.grouping == LibraryGroup.BY_DEFAULT) {
@@ -378,7 +379,7 @@ private fun ColumnScope.GroupPage(
     screenModel: LibrarySettingsScreenModel,
     hasCategories: Boolean,
 ) {
-    val trackers by screenModel.trackersFlow.collectAsState()
+    val trackers by screenModel.trackersFlow.collectAsStateWithLifecycle()
     val groups = remember(hasCategories, trackers) {
         buildList {
             add(LibraryGroup.BY_DEFAULT)
