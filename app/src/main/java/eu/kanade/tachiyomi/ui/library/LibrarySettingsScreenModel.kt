@@ -1,8 +1,8 @@
 package eu.kanade.tachiyomi.ui.library
 
 import androidx.compose.runtime.getValue
-import cafe.adriel.voyager.core.model.ScreenModel
-import cafe.adriel.voyager.core.model.screenModelScope
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import eu.kanade.core.preference.asState
 import eu.kanade.domain.base.BasePreferences
 import eu.kanade.tachiyomi.data.track.TrackerManager
@@ -28,17 +28,17 @@ class LibrarySettingsScreenModel(
     private val setDisplayMode: SetDisplayMode = Injekt.get(),
     private val setSortModeForCategory: SetSortModeForCategory = Injekt.get(),
     trackerManager: TrackerManager = Injekt.get(),
-) : ScreenModel {
+) : ViewModel() {
 
     val trackersFlow = trackerManager.loggedInTrackersFlow()
         .stateIn(
-            scope = screenModelScope,
+            scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5.seconds.inWholeMilliseconds),
             initialValue = trackerManager.loggedInTrackers(),
         )
 
     // SY -->
-    val grouping by libraryPreferences.groupLibraryBy.asState(screenModelScope)
+    val grouping by libraryPreferences.groupLibraryBy.asState(viewModelScope)
 
     // SY <--
     fun toggleFilter(preference: (LibraryPreferences) -> Preference<TriState>) {
@@ -56,14 +56,14 @@ class LibrarySettingsScreenModel(
     }
 
     fun setSort(category: Category?, mode: LibrarySort.Type, direction: LibrarySort.Direction) {
-        screenModelScope.launchIO {
+        viewModelScope.launchIO {
             setSortModeForCategory.await(category, mode, direction)
         }
     }
 
     // SY -->
     fun setGrouping(grouping: Int) {
-        screenModelScope.launchIO {
+        viewModelScope.launchIO {
             libraryPreferences.groupLibraryBy.set(grouping)
         }
     }

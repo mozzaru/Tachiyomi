@@ -2,8 +2,8 @@ package eu.kanade.tachiyomi.ui.history
 
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Immutable
-import cafe.adriel.voyager.core.model.StateScreenModel
-import cafe.adriel.voyager.core.model.screenModelScope
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import eu.kanade.core.util.insertSeparators
 import eu.kanade.domain.manga.interactor.UpdateManga
 import eu.kanade.domain.track.interactor.AddTracks
@@ -14,6 +14,9 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -58,13 +61,16 @@ class HistoryScreenModel(
     private val updateManga: UpdateManga = Injekt.get(),
     val snackbarHostState: SnackbarHostState = SnackbarHostState(),
     private val sourceManager: SourceManager = Injekt.get(),
-) : StateScreenModel<HistoryScreenModel.State>(State()) {
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(State())
+    val state: StateFlow<State> = _state.asStateFlow()
 
     private val _events: Channel<Event> = Channel(Channel.UNLIMITED)
     val events: Flow<Event> = _events.receiveAsFlow()
 
     init {
-        screenModelScope.launch {
+        viewModelScope.launch {
             state.map { it.searchQuery }
                 .distinctUntilChanged()
                 .flatMapLatest { query ->
@@ -77,7 +83,7 @@ class HistoryScreenModel(
                         .map { it.toHistoryUiModels().toImmutableList() }
                         .flowOn(Dispatchers.IO)
                 }
-                .collect { newList -> mutableState.update { it.copy(list = newList) } }
+                .collect { newList -> _state.update { it.copy(list = newList) } }
         }
     }
 
@@ -99,7 +105,7 @@ class HistoryScreenModel(
     }
 
     fun getNextChapterForManga(mangaId: Long, chapterId: Long) {
-        screenModelScope.launchIO {
+        viewModelScope.launchIO {
             sendNextChapterEvent(getNextChapters.await(mangaId, chapterId, onlyUnread = false))
         }
     }
@@ -110,19 +116,19 @@ class HistoryScreenModel(
     }
 
     fun removeFromHistory(history: HistoryWithRelations) {
-        screenModelScope.launchIO {
+        viewModelScope.launchIO {
             removeHistory.await(history)
         }
     }
 
     fun removeAllFromHistory(mangaId: Long) {
-        screenModelScope.launchIO {
+        viewModelScope.launchIO {
             removeHistory.await(mangaId)
         }
     }
 
     fun removeAllHistory() {
-        screenModelScope.launchIO {
+        viewModelScope.launchIO {
             val result = removeHistory.awaitAll()
             if (!result) return@launchIO
             _events.send(Event.HistoryCleared)
@@ -130,11 +136,11 @@ class HistoryScreenModel(
     }
 
     fun updateSearchQuery(query: String?) {
-        mutableState.update { it.copy(searchQuery = query) }
+        _state.update { it.copy(searchQuery = query) }
     }
 
     fun setDialog(dialog: Dialog?) {
-        mutableState.update { it.copy(dialog = dialog) }
+        _state.update { it.copy(dialog = dialog) }
     }
 
     /**
@@ -152,7 +158,7 @@ class HistoryScreenModel(
     }
 
     private fun moveMangaToCategory(mangaId: Long, categoryIds: List<Long>) {
-        screenModelScope.launchIO {
+        viewModelScope.launchIO {
             setMangaCategories.await(mangaId, categoryIds)
         }
     }
@@ -161,7 +167,7 @@ class HistoryScreenModel(
         moveMangaToCategory(manga.id, categories)
         if (manga.favorite) return
 
-        screenModelScope.launchIO {
+        viewModelScope.launchIO {
             updateManga.awaitUpdateFavorite(manga.id, true)
         }
     }
@@ -172,12 +178,12 @@ class HistoryScreenModel(
     }
 
     fun addFavorite(mangaId: Long) {
-        screenModelScope.launchIO {
+        viewModelScope.launchIO {
             val manga = getManga.await(mangaId) ?: return@launchIO
 
             val duplicates = getDuplicateLibraryManga(manga)
             if (duplicates.isNotEmpty()) {
-                mutableState.update { it.copy(dialog = Dialog.DuplicateManga(manga, duplicates)) }
+                _state.update { it.copy(dialog = Dialog.DuplicateManga(manga, duplicates)) }
                 return@launchIO
             }
 
@@ -186,7 +192,7 @@ class HistoryScreenModel(
     }
 
     fun addFavorite(manga: Manga) {
-        screenModelScope.launchIO {
+        viewModelScope.launchIO {
             // Move to default category if applicable
             val categories = getCategories()
             val defaultCategoryId = libraryPreferences.defaultCategory.get().toLong()
@@ -217,16 +223,16 @@ class HistoryScreenModel(
     }
 
     fun showMigrateDialog(target: Manga, current: Manga) {
-        mutableState.update { currentState ->
+        _state.update { currentState ->
             currentState.copy(dialog = Dialog.Migrate(target = target, current = current))
         }
     }
 
     fun showChangeCategoryDialog(manga: Manga) {
-        screenModelScope.launch {
+        viewModelScope.launch {
             val categories = getCategories()
             val selection = getMangaCategoryIds(manga)
-            mutableState.update { currentState ->
+            _state.update { currentState ->
                 currentState.copy(
                     dialog = Dialog.ChangeCategory(
                         manga = manga,
