@@ -124,16 +124,20 @@ class PagerPageHolder(
 
         val loader = page.chapter.pageLoader ?: return
 
-        loadJob = scope.launch(Dispatchers.IO) {
-            loader.loadPage(page)
+        if (page.status != Page.State.Ready || page.stream == null) {
+            loadJob = scope.launch(Dispatchers.IO) {
+                loader.loadPage(page)
+            }
         }
         statusJob = scope.launch {
             page.statusFlow.collectLatest { processStatus(it) }
         }
 
         val extraPage = extraPage ?: return
-        extraLoadJob = scope.launch(Dispatchers.IO) {
-            loader.loadPage(extraPage)
+        if (extraPage.status != Page.State.Ready || extraPage.stream == null) {
+            extraLoadJob = scope.launch(Dispatchers.IO) {
+                loader.loadPage(extraPage)
+            }
         }
         extraStatusJob = scope.launch {
             extraPage.statusFlow.collectLatest { processStatus2(it) }
