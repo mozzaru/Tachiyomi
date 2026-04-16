@@ -128,14 +128,18 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         Injekt.importModule(SYPreferenceModule(this))
         Injekt.importModule(SYDomainModule())
         InjektKoinBridge.startKoin(this)
-        initExpensiveComponents(this)
+
+        // SY -->
+        // Force immediate initialization of SourceManager and Database
+        // to prevent "Extension not installed" errors and keep the process alive in RAM
+        Injekt.get<tachiyomi.domain.source.service.SourceManager>()
+        Injekt.get<tachiyomi.domain.manga.repository.MangaRepository>()
+        setupNotificationChannels()
         // SY <--
 
         setupExhLogging() // EXH logging
         LogcatLogger.install()
         LogcatLogger.loggers += XLogLogcatLogger() // SY Redirect Logcat to XLog
-
-        setupNotificationChannels()
 
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
 
@@ -197,8 +201,9 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         // SY -->
         // Run expensive initialization in background for a faster cold start
         scope.launchIO {
+            // Remaining expensive components that don't block the UI
             initExpensiveComponents(this@App)
-            setupNotificationChannels()
+
             initializeMigrator()
 
             // Updates widget update
