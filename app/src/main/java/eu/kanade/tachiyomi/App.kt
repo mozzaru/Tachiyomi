@@ -82,6 +82,7 @@ import org.conscrypt.Conscrypt
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
+import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.system.ImageUtil
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.storage.service.StorageManager
@@ -189,23 +190,27 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
         setAppCompatDelegateThemeMode(Injekt.get<UiPreferences>().themeMode.get())
 
-        // Updates widget update
-        WidgetManager(Injekt.get(), Injekt.get()).apply { init(scope) }
-
-        /*if (!LogcatLogger.isInstalled && networkPreferences.verboseLogging().get()) {
-            LogcatLogger.install(AndroidLogcatLogger(LogPriority.VERBOSE))
-        }*/
-
         if (!WorkManager.isInitialized()) {
             WorkManager.initialize(this, Configuration.Builder().build())
         }
-        val syncPreferences: SyncPreferences = Injekt.get()
-        val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
-        if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppStart) {
-            SyncDataJob.startNow(this@App)
-        }
 
-        initializeMigrator()
+        // SY -->
+        // Jalankan inisialisasi berat di background agar startup tidak lag
+        scope.launchIO {
+            initExpensiveComponents(this@App)
+            setupNotificationChannels()
+            initializeMigrator()
+
+            // Updates widget update
+            WidgetManager(Injekt.get(), Injekt.get()).apply { init(scope) }
+
+            val syncPreferences: SyncPreferences = Injekt.get()
+            val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
+            if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppStart) {
+                SyncDataJob.startNow(this@App)
+            }
+        }
+        // SY <--
     }
 
     private fun initializeMigrator() {
