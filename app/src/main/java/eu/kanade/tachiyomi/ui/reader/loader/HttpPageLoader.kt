@@ -70,10 +70,7 @@ internal class HttpPageLoader(
                 }
                     .filter { it.page.status == Page.State.Queue }
                     .collect {
-                        internalLoadPage(
-                            page = it.page,
-                            force = it.priority == PriorityPage.RETRY,
-                        )
+                        internalLoadPage(it.page)
                     }
             }
             // EXH -->
@@ -99,12 +96,21 @@ internal class HttpPageLoader(
         // SY -->
         val rp = pages.mapIndexed { index, page ->
             // Don't trust sources and use our own indexing
-            ReaderPage(index, page.url, page.imageUrl)
+            ReaderPage(index, page.url, page.imageUrl).apply {
+                val imageUrl = page.imageUrl
+                if (imageUrl != null && chapterCache.isImageInCache(imageUrl)) {
+                    stream = { chapterCache.getImageFile(imageUrl).inputStream() }
+                    status = Page.State.Ready
+                }
+            }
         }
         if (readerPreferences.aggressivePageLoading.get()) {
             rp.forEach {
                 if (it.status == Page.State.Queue) {
-                    queue.offer(PriorityPage(it, 0))
+                    val alreadyCached = it.imageUrl?.let { chapterCache.isImageInCache(it) } ?: false
+                    if (!alreadyCached) {
+                        queue.offer(PriorityPage(it, 0))
+                    }
                 }
             }
         }
@@ -118,9 +124,16 @@ internal class HttpPageLoader(
     override suspend fun loadPage(page: ReaderPage) = withIOContext {
         val imageUrl = page.imageUrl
 
-        // Check if the image has been deleted
-        if (page.status == Page.State.Ready && imageUrl != null && !chapterCache.isImageInCache(imageUrl)) {
-            page.status = Page.State.Queue
+        // If page was ready, verify cache is still valid before doing anything
+        if (page.status == Page.State.Ready && imageUrl != null) {
+            if (chapterCache.isImageInCache(imageUrl)) {
+                // Cache is valid, re-attach stream and return immediately
+                page.stream = { chapterCache.getImageFile(imageUrl).inputStream() }
+                return@withIOContext
+            } else {
+                // Cache was evicted, need to re-download
+                page.status = Page.State.Queue
+            }
         }
 
         // Automatically retry failed pages when subscribed to this page
@@ -214,7 +227,7 @@ internal class HttpPageLoader(
      *
      * @param page the page whose source image has to be downloaded.
      */
-    private suspend fun internalLoadPage(page: ReaderPage, force: Boolean) {
+    private suspend fun internalLoadPage(page: ReaderPage) {
         try {
             if (page.imageUrl.isNullOrEmpty()) {
                 page.status = Page.State.LoadPage
@@ -222,7 +235,7 @@ internal class HttpPageLoader(
             }
             val imageUrl = page.imageUrl!!
 
-            if (force || !chapterCache.isImageInCache(imageUrl)) {
+            if (!chapterCache.isImageInCache(imageUrl)) {
                 page.status = Page.State.DownloadImage
                 val imageResponse = source.getImage(page, dataSaver)
                 chapterCache.putImageToCache(imageUrl, imageResponse)

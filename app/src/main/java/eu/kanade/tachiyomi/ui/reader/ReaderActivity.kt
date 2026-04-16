@@ -481,6 +481,20 @@ class ReaderActivity : BaseActivity() {
         super.onResume()
         viewModel.restartReadTimer()
         setMenuVisibility(viewModel.state.value.menuVisible)
+
+        // SY -->
+        val state = viewModel.state.value
+        val currentChapter = state.currentChapter
+        if (currentChapter != null) {
+            val pageIndex = state.currentPage - 1
+            val pages = currentChapter.pages
+            if (pages != null && pageIndex in pages.indices) {
+                lifecycleScope.launchIO {
+                    currentChapter.pageLoader?.loadPage(pages[pageIndex])
+                }
+            }
+        }
+        // SY <--
     }
 
     /**
