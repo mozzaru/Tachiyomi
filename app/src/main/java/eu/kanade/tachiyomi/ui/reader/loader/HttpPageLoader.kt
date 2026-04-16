@@ -116,13 +116,6 @@ internal class HttpPageLoader(
      * Loads a page through the queue. Handles re-enqueueing pages if they were evicted from the cache.
      */
     override suspend fun loadPage(page: ReaderPage) = withIOContext {
-        val imageUrl = page.imageUrl
-
-        // Check if the image has been deleted
-        if (page.status == Page.State.Ready && imageUrl != null && !chapterCache.isImageInCache(imageUrl)) {
-            page.status = Page.State.Queue
-        }
-
         // Automatically retry failed pages when subscribed to this page
         if (page.status is Page.State.Error) {
             page.status = Page.State.Queue

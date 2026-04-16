@@ -480,7 +480,6 @@ class ReaderActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         viewModel.restartReadTimer()
-        setMenuVisibility(viewModel.state.value.menuVisible)
     }
 
     /**
