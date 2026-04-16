@@ -613,7 +613,7 @@ class ReaderViewModel @JvmOverloads constructor(
         val pages = selectedChapter.pages ?: return
 
         // Save last page read and mark as read if needed
-        savedState[LAST_PAGE_INDEX] = page.number
+        savedState[LAST_PAGE_INDEX] = page.index
         viewModelScope.launchNonCancellable {
             updateChapterProgress(selectedChapter, page/* SY --> */, hasExtraPage/* SY <-- */)
         }
