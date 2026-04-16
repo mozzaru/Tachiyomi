@@ -118,14 +118,19 @@ internal class HttpPageLoader(
     override suspend fun loadPage(page: ReaderPage) = withIOContext {
         val imageUrl = page.imageUrl
 
-        // Check if the image has been deleted
-        if (page.status == Page.State.Ready && imageUrl != null && !chapterCache.isImageInCache(imageUrl)) {
-            page.status = Page.State.Queue
-        }
-
         // Automatically retry failed pages when subscribed to this page
         if (page.status is Page.State.Error) {
             page.status = Page.State.Queue
+        }
+
+        // If page is Ready but stream is null (e.g. process death recovery), recreate stream
+        if (page.status == Page.State.Ready && page.stream == null && imageUrl != null) {
+            val cacheFile = chapterCache.getImageFile(imageUrl)
+            if (cacheFile.exists()) {
+                page.stream = { cacheFile.inputStream() }
+            } else {
+                page.status = Page.State.Queue
+            }
         }
 
         val queuedPages = mutableListOf<PriorityPage>()

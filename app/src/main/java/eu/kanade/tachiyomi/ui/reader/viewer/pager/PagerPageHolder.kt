@@ -107,6 +107,12 @@ class PagerPageHolder(
         // SY -->
         val page = if (pageIndex == 1) page else extraPage
         page ?: return
+
+        // Fast path: if page is already Ready, skip loader and show image directly
+        if (page.status == Page.State.Ready && page.stream != null) {
+            setImage()
+            return
+        }
         // SY <--
         val loader = page.chapter.pageLoader ?: return
         supervisorScope {
@@ -163,6 +169,7 @@ class PagerPageHolder(
     private suspend fun setImage() {
         if (extraPage == null) {
             progressIndicator?.setProgress(0)
+            progressIndicator?.isVisible = false
         } else {
             progressIndicator?.setProgress(95)
         }
@@ -215,9 +222,21 @@ class PagerPageHolder(
             }
         } catch (e: Throwable) {
             logcat(LogPriority.ERROR, e)
-            withUIContext {
-                setError(e)
+            if (e is java.io.FileNotFoundException || e is java.io.IOException) {
+                val failPage = page
+                if (failPage != null) {
+                    failPage.status = Page.State.Queue
+                    failPage.chapter.pageLoader?.let { loader ->
+                        if (loader is eu.kanade.tachiyomi.ui.reader.loader.HttpPageLoader) {
+                            loader.boostPage(failPage)
+                        } else {
+                            loader.retryPage(failPage)
+                        }
+                    }
+                }
+                return
             }
+            withUIContext { setError(e) }
         }
     }
 
