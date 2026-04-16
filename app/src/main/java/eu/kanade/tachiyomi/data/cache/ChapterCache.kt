@@ -43,18 +43,9 @@ class ChapterCache(
     private val scope = CoroutineScope(Job() + Dispatchers.Main)
 
     /** Cache class used for cache management.  */
-    private var diskCache = setupDiskCache(readerPreferences.cacheSize.get().toLong())
+    private var diskCache = setupDiskCache(readerPreferences.cacheSize.get().toInt())
 
     init {
-        readerPreferences.cacheSize.changes()
-            .drop(1)
-            .onEach {
-                // Save old cache for destruction later
-                val oldCache = diskCache
-                diskCache = setupDiskCache(it.toLong())
-                oldCache.close()
-            }
-            .launchIn(scope)
     }
     // <-- EH
 
@@ -77,12 +68,12 @@ class ChapterCache(
 
     // --> EH
     // Cache size is in MB
-    private fun setupDiskCache(cacheSize: Long): DiskLruCache {
+    private fun setupDiskCache(cacheSizeMb: Int): DiskLruCache {
         return DiskLruCache.open(
-            File(context.cacheDir, "chapter_disk_cache"),
+            File(context.cacheDir, PARAMETER_CACHE_DIRECTORY),
             PARAMETER_APP_VERSION,
             PARAMETER_VALUE_COUNT,
-            cacheSize * 1024 * 1024,
+            cacheSizeMb.toLong() * 1024 * 1024,
         )
     }
     // <-- EH
@@ -237,4 +228,6 @@ private const val PARAMETER_APP_VERSION = 1
 private const val PARAMETER_VALUE_COUNT = 1
 
 /** The maximum number of bytes this cache should use to store.  */
-private const val PARAMETER_CACHE_SIZE = 100L * 1024 * 1024
+const val PARAMETER_CACHE_SIZE = 150L * 1024 * 1024
+
+private const val PARAMETER_CACHE_DIRECTORY = "chapter_disk_cache"

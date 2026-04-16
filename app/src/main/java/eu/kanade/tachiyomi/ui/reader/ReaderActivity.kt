@@ -468,7 +468,7 @@ class ReaderActivity : BaseActivity() {
 
     override fun onPause() {
         lifecycleScope.launchNonCancellable {
-            viewModel.updateHistory()
+            viewModel.flushReadTimer()
         }
         super.onPause()
     }

@@ -487,7 +487,7 @@ class ReaderViewModel @JvmOverloads constructor(
         viewModelScope.launchIO {
             logcat { "Loading ${chapter.chapter.url}" }
 
-            updateHistory()
+            flushReadTimer()
             restartReadTimer()
 
             try {
@@ -787,7 +787,7 @@ class ReaderViewModel @JvmOverloads constructor(
     /**
      * Saves the chapter last read history if incognito mode isn't on.
      */
-    suspend fun updateHistory() {
+    suspend fun flushReadTimer() {
         getCurrentChapter()?.let { readerChapter ->
             if (incognitoMode) return@let
 
