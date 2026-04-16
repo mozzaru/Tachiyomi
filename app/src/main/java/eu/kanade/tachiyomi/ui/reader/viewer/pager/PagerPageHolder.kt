@@ -111,7 +111,9 @@ class PagerPageHolder(
         val loader = page.chapter.pageLoader ?: return
         supervisorScope {
             launchIO {
-                loader.loadPage(page)
+                if (page.status != Page.State.Ready) {
+                    loader.loadPage(page)
+                }
             }
             page.statusFlow.collectLatest { state ->
                 when (state) {
@@ -165,6 +167,14 @@ class PagerPageHolder(
             progressIndicator?.setProgress(0)
         } else {
             progressIndicator?.setProgress(95)
+        }
+
+        if (page.stream == null) {
+            page.chapter.pageLoader?.loadPage(page)
+        }
+        val extraPage = extraPage
+        if (extraPage != null && extraPage.stream == null) {
+            extraPage.chapter.pageLoader?.loadPage(extraPage)
         }
 
         val streamFn = page.stream ?: return

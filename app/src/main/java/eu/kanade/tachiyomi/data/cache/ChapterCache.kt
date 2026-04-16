@@ -44,18 +44,6 @@ class ChapterCache(
 
     /** Cache class used for cache management.  */
     private var diskCache = setupDiskCache(readerPreferences.cacheSize.get().toLong())
-
-    init {
-        readerPreferences.cacheSize.changes()
-            .drop(1)
-            .onEach {
-                // Save old cache for destruction later
-                val oldCache = diskCache
-                diskCache = setupDiskCache(it.toLong())
-                oldCache.close()
-            }
-            .launchIn(scope)
-    }
     // <-- EH
 
     /**
@@ -237,4 +225,4 @@ private const val PARAMETER_APP_VERSION = 1
 private const val PARAMETER_VALUE_COUNT = 1
 
 /** The maximum number of bytes this cache should use to store.  */
-private const val PARAMETER_CACHE_SIZE = 100L * 1024 * 1024
+private const val PARAMETER_CACHE_SIZE = 150L * 1024 * 1024
