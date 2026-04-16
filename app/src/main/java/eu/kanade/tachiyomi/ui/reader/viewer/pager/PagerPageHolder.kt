@@ -107,6 +107,12 @@ class PagerPageHolder(
         // SY -->
         val page = if (pageIndex == 1) page else extraPage
         page ?: return
+
+        // Fast path: if page is already Ready, skip loader and show image directly
+        if (page.status == Page.State.Ready && page.stream != null) {
+            setImage()
+            return
+        }
         // SY <--
         val loader = page.chapter.pageLoader ?: return
         supervisorScope {

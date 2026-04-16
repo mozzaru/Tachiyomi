@@ -132,6 +132,13 @@ class WebtoonPageHolder(
      */
     private suspend fun loadPageAndProcessStatus() {
         val page = page ?: return
+
+        // Fast path: if page is already Ready, skip loader and show image directly
+        if (page.status == Page.State.Ready && page.stream != null) {
+            setImage()
+            return
+        }
+
         val loader = page.chapter.pageLoader ?: return
         supervisorScope {
             launchIO {
@@ -185,8 +192,8 @@ class WebtoonPageHolder(
      * Called when the page is ready.
      */
     private suspend fun setImage() {
+        progressContainer.isVisible = false
         progressIndicator.setProgress(0)
-
         val streamFn = page?.stream ?: return
 
         try {
@@ -211,6 +218,18 @@ class WebtoonPageHolder(
             }
         } catch (e: Throwable) {
             logcat(LogPriority.ERROR, e)
+            // If image file was evicted from cache, retry loading from network
+            if (e is java.io.FileNotFoundException || e is java.io.IOException) {
+                page?.status = Page.State.Queue
+                page?.chapter?.pageLoader?.let { loader ->
+                    if (loader is eu.kanade.tachiyomi.ui.reader.loader.HttpPageLoader) {
+                        loader.boostPage(page!!)
+                    } else {
+                        loader.retryPage(page!!)
+                    }
+                }
+                return
+            }
             withUIContext {
                 setError(e)
             }
