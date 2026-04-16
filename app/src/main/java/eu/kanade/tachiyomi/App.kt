@@ -82,7 +82,6 @@ import org.conscrypt.Conscrypt
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.preference.Preference
 import tachiyomi.core.common.preference.PreferenceStore
-import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.system.ImageUtil
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.storage.service.StorageManager
@@ -128,40 +127,18 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         Injekt.importModule(SYPreferenceModule(this))
         Injekt.importModule(SYDomainModule())
         InjektKoinBridge.startKoin(this)
-
-        val scope = ProcessLifecycleOwner.get().lifecycleScope
-
-        // SY -->
-        // Force initialization of SourceManager and Database in background to prevent UI deadlock
-        scope.launchIO {
-            try {
-                Injekt.get<tachiyomi.domain.source.service.SourceManager>()
-                Injekt.get<tachiyomi.domain.manga.repository.MangaRepository>()
-
-                // Initialize other expensive components
-                initExpensiveComponents(this@App)
-                initializeMigrator()
-
-                // Updates widget update
-                WidgetManager(Injekt.get(), Injekt.get()).apply { init(scope) }
-
-                val syncPreferences: SyncPreferences = Injekt.get()
-                val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
-                if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppStart) {
-                    SyncDataJob.startNow(this@App)
-                }
-            } catch (e: Exception) {
-                // Ignore initialization errors
-            }
-        }
-        setupNotificationChannels()
+        initExpensiveComponents(this)
         // SY <--
 
         setupExhLogging() // EXH logging
         LogcatLogger.install()
         LogcatLogger.loggers += XLogLogcatLogger() // SY Redirect Logcat to XLog
 
+        setupNotificationChannels()
+
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
+
+        val scope = ProcessLifecycleOwner.get().lifecycleScope
 
         // Show notification to disable Incognito Mode when it's enabled
         basePreferences.incognitoMode.changes()
@@ -212,28 +189,23 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
         setAppCompatDelegateThemeMode(Injekt.get<UiPreferences>().themeMode.get())
 
+        // Updates widget update
+        WidgetManager(Injekt.get(), Injekt.get()).apply { init(scope) }
+
+        /*if (!LogcatLogger.isInstalled && networkPreferences.verboseLogging().get()) {
+            LogcatLogger.install(AndroidLogcatLogger(LogPriority.VERBOSE))
+        }*/
+
         if (!WorkManager.isInitialized()) {
             WorkManager.initialize(this, Configuration.Builder().build())
         }
-
-        // SY -->
-        // Run expensive initialization in background for a faster cold start
-        scope.launchIO {
-            // Remaining expensive components that don't block the UI
-            initExpensiveComponents(this@App)
-
-            initializeMigrator()
-
-            // Updates widget update
-            WidgetManager(Injekt.get(), Injekt.get()).apply { init(scope) }
-
-            val syncPreferences: SyncPreferences = Injekt.get()
-            val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
-            if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppStart) {
-                SyncDataJob.startNow(this@App)
-            }
+        val syncPreferences: SyncPreferences = Injekt.get()
+        val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
+        if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppStart) {
+            SyncDataJob.startNow(this@App)
         }
-        // SY <--
+
+        initializeMigrator()
     }
 
     private fun initializeMigrator() {
