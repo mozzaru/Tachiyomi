@@ -171,19 +171,19 @@ class ReaderViewModel @JvmOverloads constructor(
             field = value
         }
 
-    private var _lastShiftDoubleState: Boolean? = savedState.get<Boolean>("last_shift_double_state")
+    private var savedLastShiftDoubleState: Boolean? = savedState.get<Boolean>("last_shift_double_state")
         set(value) {
             savedState["last_shift_double_state"] = value
             field = value
         }
 
-    private var _indexPageToShift: Int? = savedState.get<Int>("index_page_to_shift")
+    private var savedIndexPageToShift: Int? = savedState.get<Int>("index_page_to_shift")
         set(value) {
             savedState["index_page_to_shift"] = value
             field = value
         }
 
-    private var _indexChapterToShift: Long? = savedState.get<Long>("index_chapter_to_shift")
+    private var savedIndexChapterToShift: Long? = savedState.get<Long>("index_chapter_to_shift")
         set(value) {
             savedState["index_chapter_to_shift"] = value
             field = value
@@ -234,17 +234,17 @@ class ReaderViewModel @JvmOverloads constructor(
         // SY -->
         state.map { it.lastShiftDoubleState }
             .distinctUntilChanged()
-            .onEach { _lastShiftDoubleState = it }
+            .onEach { savedLastShiftDoubleState = it }
             .launchIn(viewModelScope)
 
         state.map { it.indexPageToShift }
             .distinctUntilChanged()
-            .onEach { _indexPageToShift = it }
+            .onEach { savedIndexPageToShift = it }
             .launchIn(viewModelScope)
 
         state.map { it.indexChapterToShift }
             .distinctUntilChanged()
-            .onEach { _indexChapterToShift = it }
+            .onEach { savedIndexChapterToShift = it }
             .launchIn(viewModelScope)
 
         state.mapLatest { it.ehAutoscrollFreq }
@@ -421,9 +421,9 @@ class ReaderViewModel @JvmOverloads constructor(
                                 autoScrollFreq.toString()
                             },
                             isAutoScrollEnabled = autoScrollFreq != -1f,
-                            lastShiftDoubleState = _lastShiftDoubleState,
-                            indexPageToShift = _indexPageToShift,
-                            indexChapterToShift = _indexChapterToShift,
+                            lastShiftDoubleState = savedLastShiftDoubleState,
+                            indexPageToShift = savedIndexPageToShift,
+                            indexChapterToShift = savedIndexChapterToShift,
                             /* SY <-- */
                         )
                     }
