@@ -169,6 +169,7 @@ class PagerPageHolder(
     private suspend fun setImage() {
         if (extraPage == null) {
             progressIndicator?.setProgress(0)
+            progressIndicator?.isVisible = false
         } else {
             progressIndicator?.setProgress(95)
         }
@@ -221,9 +222,21 @@ class PagerPageHolder(
             }
         } catch (e: Throwable) {
             logcat(LogPriority.ERROR, e)
-            withUIContext {
-                setError(e)
+            if (e is java.io.FileNotFoundException || e is java.io.IOException) {
+                val failPage = page
+                if (failPage != null) {
+                    failPage.status = Page.State.Queue
+                    failPage.chapter.pageLoader?.let { loader ->
+                        if (loader is eu.kanade.tachiyomi.ui.reader.loader.HttpPageLoader) {
+                            loader.boostPage(failPage)
+                        } else {
+                            loader.retryPage(failPage)
+                        }
+                    }
+                }
+                return
             }
+            withUIContext { setError(e) }
         }
     }
 
