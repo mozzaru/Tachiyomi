@@ -90,6 +90,7 @@ class PagerPageHolder(
         loadJob = null
         extraLoadJob?.cancel()
         extraLoadJob = null
+        cachedStream = null
     }
 
     private fun initProgressIndicator() {
@@ -233,6 +234,15 @@ class PagerPageHolder(
                 removeErrorLayout()
             }
         } catch (e: Throwable) {
+            if (page.status == Page.State.Ready) {
+                // Stream file was evicted from cache, auto-reload
+                cachedStream = null
+                page.status = Page.State.Queue
+                scope.launchIO {
+                    page.chapter.pageLoader?.loadPage(page)
+                }
+                return
+            }
             logcat(LogPriority.ERROR, e)
             withUIContext {
                 setError(e)
