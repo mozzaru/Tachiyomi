@@ -96,7 +96,13 @@ internal class HttpPageLoader(
         // SY -->
         val rp = pages.mapIndexed { index, page ->
             // Don't trust sources and use our own indexing
-            ReaderPage(index, page.url, page.imageUrl)
+            ReaderPage(index, page.url, page.imageUrl).apply {
+                val imageUrl = page.imageUrl
+                if (imageUrl != null && chapterCache.isImageInCache(imageUrl)) {
+                    status = Page.State.Ready
+                    stream = { chapterCache.getImageFile(imageUrl).inputStream() }
+                }
+            }
         }
         if (readerPreferences.aggressivePageLoading.get()) {
             rp.forEach {
