@@ -475,9 +475,12 @@ class ReaderViewModel @JvmOverloads constructor(
 
         withUIContext {
             mutableState.update {
-                // Add new references first to avoid unnecessary recycling
+                // SY -->
+                // Jangan panggil unref() di sini untuk menghindari loading loop saat pindah bab.
+                // Biarkan sistem Android yang mengelola pembersihan memori.
                 newChapters.ref()
-                it.viewerChapters?.unref()
+                // it.viewerChapters?.unref()
+                // SY <--
 
                 chapterToDownload = cancelQueuedDownloads(newChapters.currChapter)
                 it.copy(

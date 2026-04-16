@@ -179,13 +179,18 @@ class AppModule(val app: Application) : InjektModule {
 }
 
 fun initExpensiveComponents(app: Application) {
-    // SY -->
-    // Initialize expensive components.
-    // We removed MainExecutor to allow this to run on the background thread provided in App.kt
-    Injekt.get<NetworkHelper>()
-    Injekt.get<SourceManager>()
-    Injekt.get<Database>()
-    Injekt.get<DownloadManager>()
-    Injekt.get<GetCustomMangaInfo>()
-    // SY <--
+    // Asynchronously init expensive components for a faster cold start
+    ContextCompat.getMainExecutor(app).execute {
+        Injekt.get<NetworkHelper>()
+
+        Injekt.get<SourceManager>()
+
+        Injekt.get<Database>()
+
+        Injekt.get<DownloadManager>()
+
+        // SY -->
+        Injekt.get<GetCustomMangaInfo>()
+        // SY <--
+    }
 }

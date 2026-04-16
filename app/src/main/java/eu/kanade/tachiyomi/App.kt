@@ -129,11 +129,31 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         Injekt.importModule(SYDomainModule())
         InjektKoinBridge.startKoin(this)
 
+        val scope = ProcessLifecycleOwner.get().lifecycleScope
+
         // SY -->
-        // Force immediate initialization of SourceManager and Database
-        // to prevent "Extension not installed" errors and keep the process alive in RAM
-        Injekt.get<tachiyomi.domain.source.service.SourceManager>()
-        Injekt.get<tachiyomi.domain.manga.repository.MangaRepository>()
+        // Force initialization of SourceManager and Database in background to prevent UI deadlock
+        scope.launchIO {
+            try {
+                Injekt.get<tachiyomi.domain.source.service.SourceManager>()
+                Injekt.get<tachiyomi.domain.manga.repository.MangaRepository>()
+
+                // Initialize other expensive components
+                initExpensiveComponents(this@App)
+                initializeMigrator()
+
+                // Updates widget update
+                WidgetManager(Injekt.get(), Injekt.get()).apply { init(scope) }
+
+                val syncPreferences: SyncPreferences = Injekt.get()
+                val syncTriggerOpt = syncPreferences.getSyncTriggerOptions()
+                if (syncPreferences.isSyncEnabled() && syncTriggerOpt.syncOnAppStart) {
+                    SyncDataJob.startNow(this@App)
+                }
+            } catch (e: Exception) {
+                // Ignore initialization errors
+            }
+        }
         setupNotificationChannels()
         // SY <--
 
@@ -142,8 +162,6 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         LogcatLogger.loggers += XLogLogcatLogger() // SY Redirect Logcat to XLog
 
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
-
-        val scope = ProcessLifecycleOwner.get().lifecycleScope
 
         // Show notification to disable Incognito Mode when it's enabled
         basePreferences.incognitoMode.changes()
