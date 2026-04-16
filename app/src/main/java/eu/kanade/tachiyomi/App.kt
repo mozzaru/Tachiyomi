@@ -195,7 +195,7 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
         }
 
         // SY -->
-        // Jalankan inisialisasi berat di background agar startup tidak lag
+        // Run expensive initialization in background for a faster cold start
         scope.launchIO {
             initExpensiveComponents(this@App)
             setupNotificationChannels()

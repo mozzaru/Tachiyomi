@@ -481,6 +481,19 @@ class ReaderActivity : BaseActivity() {
         super.onResume()
         viewModel.restartReadTimer()
         setMenuVisibility(viewModel.state.value.menuVisible)
+
+        // SY -->
+        // Pastikan viewer tetap sinkron tanpa memicu reload penuh
+        viewModel.state.value.viewer?.let { viewer ->
+            val currentPage = viewModel.state.value.currentPage
+            val currentChapter = viewModel.state.value.currentChapter
+            if (currentChapter != null && currentPage >= 0) {
+                currentChapter.pages?.getOrNull(currentPage)?.let {
+                    viewer.moveToPage(it)
+                }
+            }
+        }
+        // SY <--
     }
 
     /**

@@ -320,15 +320,20 @@ class ReaderViewModel @JvmOverloads constructor(
 
     override fun onCleared() {
         super.onCleared()
+        // SY -->
+        // Jangan panggil unref() atau recycle() di sini.
+        // Biarkan sistem Android yang mengelola pembersihan memori secara alami.
+        // Ini memastikan saat user kembali dari background, loader masih aktif dan gambar tetap ada di RAM.
+        /*
         val currentChapters = state.value.viewerChapters
         if (currentChapters != null) {
-            // Kita tidak mematikan referensi secara agresif jika dimatikan oleh sistem
-            // Yokai approach: keep references longer if possible
             currentChapters.unref()
             chapterToDownload?.let {
                 downloadManager.addDownloadsToStartOfQueue(listOf(it))
             }
         }
+        */
+        // SY <--
     }
 
     /**
