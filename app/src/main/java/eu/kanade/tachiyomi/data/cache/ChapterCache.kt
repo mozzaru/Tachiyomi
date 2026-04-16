@@ -46,10 +46,9 @@ class ChapterCache(
     private var diskCache = setupDiskCache(readerPreferences.cacheSize.get().toLong())
 
     init {
-        readerPreferences.cacheSize.changes()
+        readerPreferences.cacheSize.asFlow()
             .drop(1)
             .onEach {
-                // Save old cache for destruction later
                 val oldCache = diskCache
                 diskCache = setupDiskCache(it.toLong())
                 oldCache.close()

@@ -187,7 +187,7 @@ class ReaderPreferences(
 
     val aggressivePageLoading: Preference<Boolean> = preferenceStore.getBoolean("eh_aggressive_page_loading", false)
 
-    val cacheSize: Preference = preferenceStore.getString("eh_cache_size", "150")
+    val cacheSize: Preference<String> = preferenceStore.getString("eh_cache_size", "150")
 
     val autoscrollInterval: Preference<Float> = preferenceStore.getFloat("eh_util_autoscroll_interval", 3f)
 
