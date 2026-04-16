@@ -33,6 +33,7 @@ import tachiyomi.core.common.util.lang.withUIContext
 import tachiyomi.core.common.util.system.ImageUtil
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.i18n.MR
+import java.io.InputStream
 
 /**
  * Holder of the webtoon reader for a single page of a chapter.
@@ -80,6 +81,8 @@ class WebtoonPageHolder(
      */
     private var loadJob: Job? = null
 
+    private var cachedStream: (() -> InputStream)? = null
+
     init {
         refreshLayoutParams()
 
@@ -116,6 +119,7 @@ class WebtoonPageHolder(
     override fun recycle() {
         loadJob?.cancel()
         loadJob = null
+        cachedStream = null
 
         removeErrorLayout()
         frame.recycle()
@@ -133,6 +137,12 @@ class WebtoonPageHolder(
     private suspend fun loadPageAndProcessStatus() {
         val page = page ?: return
         val loader = page.chapter.pageLoader ?: return
+
+        if (page.status is Page.State.Ready) {
+            setImage()
+            return
+        }
+
         supervisorScope {
             launchIO {
                 loader.loadPage(page)
@@ -187,7 +197,18 @@ class WebtoonPageHolder(
     private suspend fun setImage() {
         progressIndicator.setProgress(0)
 
-        val streamFn = page?.stream ?: return
+        val page = page ?: return
+        val streamFn = page.stream ?: cachedStream
+
+        if (streamFn == null) {
+            scope.launchIO {
+                page.status = Page.State.Queue
+                page.chapter.pageLoader?.loadPage(page)
+            }
+            return
+        }
+
+        cachedStream = streamFn
 
         try {
             val (source, isAnimated) = withIOContext {
@@ -210,6 +231,15 @@ class WebtoonPageHolder(
                 removeErrorLayout()
             }
         } catch (e: Throwable) {
+            if (page.status == Page.State.Ready) {
+                // Stream file was evicted from cache, auto-reload
+                cachedStream = null
+                page.status = Page.State.Queue
+                scope.launchIO {
+                    page.chapter.pageLoader?.loadPage(page)
+                }
+                return
+            }
             logcat(LogPriority.ERROR, e)
             withUIContext {
                 setError(e)

@@ -88,6 +88,12 @@ class WebtoonViewer(
 
     init {
         recycler.setItemViewCacheSize(RECYCLER_VIEW_CACHE_SIZE)
+
+        val pool = RecyclerView.RecycledViewPool()
+        pool.setMaxRecycledViews(PAGE_VIEW, 10)
+        pool.setMaxRecycledViews(TRANSITION_VIEW, 4)
+        recycler.setRecycledViewPool(pool)
+
         recycler.isVisible = false // Don't let the recycler layout yet
         recycler.layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
         recycler.isFocusable = false
@@ -404,4 +410,4 @@ class WebtoonViewer(
 }
 
 // Double the cache size to reduce rebinds/recycles incurred by the extra layout space on scroll direction changes
-private val RECYCLER_VIEW_CACHE_SIZE = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) 4 else 2
+private const val RECYCLER_VIEW_CACHE_SIZE = 10

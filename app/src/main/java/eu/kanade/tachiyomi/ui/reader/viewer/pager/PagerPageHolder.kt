@@ -31,6 +31,7 @@ import tachiyomi.core.common.util.system.ImageUtil
 import tachiyomi.core.common.util.system.logcat
 import tachiyomi.decoder.ImageDecoder
 import tachiyomi.i18n.MR
+import java.io.InputStream
 import kotlin.math.max
 
 /**
@@ -72,6 +73,8 @@ class PagerPageHolder(
      */
     private var extraLoadJob: Job? = null
 
+    private var cachedStream: (() -> InputStream)? = null
+
     init {
         loadJob = scope.launch { loadPageAndProcessStatus(1) }
         extraLoadJob = scope.launch { loadPageAndProcessStatus(2) }
@@ -87,6 +90,7 @@ class PagerPageHolder(
         loadJob = null
         extraLoadJob?.cancel()
         extraLoadJob = null
+        cachedStream = null
     }
 
     private fun initProgressIndicator() {
@@ -109,6 +113,12 @@ class PagerPageHolder(
         page ?: return
         // SY <--
         val loader = page.chapter.pageLoader ?: return
+
+        if (page.status is Page.State.Ready) {
+            setImage()
+            return
+        }
+
         supervisorScope {
             launchIO {
                 loader.loadPage(page)
@@ -167,8 +177,18 @@ class PagerPageHolder(
             progressIndicator?.setProgress(95)
         }
 
-        val streamFn = page.stream ?: return
+        val streamFn = page.stream ?: cachedStream
         val streamFn2 = extraPage?.stream
+
+        if (streamFn == null) {
+            scope.launchIO {
+                page.status = Page.State.Queue
+                page.chapter.pageLoader?.loadPage(page)
+            }
+            return
+        }
+
+        cachedStream = streamFn
 
         try {
             val (source, isAnimated, background) = withIOContext {
@@ -214,6 +234,15 @@ class PagerPageHolder(
                 removeErrorLayout()
             }
         } catch (e: Throwable) {
+            if (page.status == Page.State.Ready) {
+                // Stream file was evicted from cache, auto-reload
+                cachedStream = null
+                page.status = Page.State.Queue
+                scope.launchIO {
+                    page.chapter.pageLoader?.loadPage(page)
+                }
+                return
+            }
             logcat(LogPriority.ERROR, e)
             withUIContext {
                 setError(e)
