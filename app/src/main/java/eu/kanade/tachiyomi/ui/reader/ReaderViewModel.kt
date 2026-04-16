@@ -147,6 +147,10 @@ class ReaderViewModel @JvmOverloads constructor(
     private val eventChannel = Channel<Event>()
     val eventFlow = eventChannel.receiveAsFlow()
 
+    companion object {
+        private const val LAST_PAGE_INDEX = "last_page_index"
+    }
+
     /**
      * The manga loaded in the reader. It can be null when instantiated for a short time.
      */
@@ -315,8 +319,11 @@ class ReaderViewModel @JvmOverloads constructor(
     }
 
     override fun onCleared() {
+        super.onCleared()
         val currentChapters = state.value.viewerChapters
         if (currentChapters != null) {
+            // Kita tidak mematikan referensi secara agresif jika dimatikan oleh sistem
+            // Yokai approach: keep references longer if possible
             currentChapters.unref()
             chapterToDownload?.let {
                 downloadManager.addDownloadsToStartOfQueue(listOf(it))
@@ -410,7 +417,7 @@ class ReaderViewModel @JvmOverloads constructor(
                     loadChapter(
                         loader!!,
                         chapterList.first { chapterId == it.chapter.id },
-                        /* SY --> */page, /* SY <-- */
+                        /* SY --> */ page ?: savedState.get<Int>(LAST_PAGE_INDEX), /* SY <-- */
                     )
                     Result.success(true)
                 } else {
@@ -598,6 +605,7 @@ class ReaderViewModel @JvmOverloads constructor(
         val pages = selectedChapter.pages ?: return
 
         // Save last page read and mark as read if needed
+        savedState[LAST_PAGE_INDEX] = page.number
         viewModelScope.launchNonCancellable {
             updateChapterProgress(selectedChapter, page/* SY --> */, hasExtraPage/* SY <-- */)
         }

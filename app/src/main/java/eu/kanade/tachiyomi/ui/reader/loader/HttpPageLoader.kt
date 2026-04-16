@@ -168,7 +168,6 @@ internal class HttpPageLoader(
 
     override fun recycle() {
         super.recycle()
-        scope.cancel()
         queue.clear()
 
         // Cache current page list progress for online chapters to allow a faster reopen
