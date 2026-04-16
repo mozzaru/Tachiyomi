@@ -135,7 +135,9 @@ class WebtoonPageHolder(
         val loader = page.chapter.pageLoader ?: return
         supervisorScope {
             launchIO {
-                loader.loadPage(page)
+                if (page.status != Page.State.Ready) {
+                    loader.loadPage(page)
+                }
             }
             page.statusFlow.collectLatest { state ->
                 when (state) {
@@ -187,7 +189,12 @@ class WebtoonPageHolder(
     private suspend fun setImage() {
         progressIndicator.setProgress(0)
 
-        val streamFn = page?.stream ?: return
+        val page = page ?: return
+        if (page.stream == null) {
+            page.chapter.pageLoader?.loadPage(page)
+        }
+
+        val streamFn = page.stream ?: return
 
         try {
             val (source, isAnimated) = withIOContext {
