@@ -25,6 +25,7 @@ import coil3.dispose
 import coil3.imageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
+import coil3.request.bitmapConfig
 import coil3.request.crossfade
 import coil3.size.Precision
 import coil3.size.ViewSizeResolver
@@ -319,6 +320,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                     .data(data)
                     .memoryCachePolicy(CachePolicy.ENABLED)
                     .diskCachePolicy(CachePolicy.DISABLED)
+                    .bitmapConfig(Bitmap.Config.ARGB_8888)
                     .target(
                         onSuccess = { result ->
                             val image = result as BitmapImage
@@ -396,6 +398,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
             .data(data)
             .memoryCachePolicy(CachePolicy.ENABLED)
             .diskCachePolicy(CachePolicy.DISABLED)
+            .bitmapConfig(Bitmap.Config.ARGB_8888)
             .target(
                 onSuccess = { result ->
                     val drawable = result.asDrawable(context.resources)
