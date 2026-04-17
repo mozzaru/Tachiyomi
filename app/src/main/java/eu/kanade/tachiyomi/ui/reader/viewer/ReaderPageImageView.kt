@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.reader.viewer
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.PointF
 import android.graphics.RectF
 import android.graphics.drawable.Animatable
@@ -249,7 +250,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
             setMaxTileSize(ImageUtil.hardwareBitmapThreshold)
             setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
-            setMinimumTileDpi(320)
+            setMinimumTileDpi(context.resources.displayMetrics.densityDpi)
             setOnStateChangedListener(
                 object : SubsamplingScaleImageView.OnStateChangedListener {
                     override fun onScaleChanged(newScale: Float, origin: Int) {
@@ -285,7 +286,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
     ) = (pageView as? SubsamplingScaleImageView)?.apply {
         setDoubleTapZoomDuration(config.zoomDuration.getSystemScaledDuration())
         setMinimumScaleType(config.minimumScaleType)
-        setMinimumDpi(1) // Just so that very small image will be fit for initial load
+        setMinimumDpi(1)
         setCropBorders(config.cropBorders)
         setOnImageEventListener(
             object : SubsamplingScaleImageView.DefaultOnImageEventListener() {
@@ -330,8 +331,8 @@ open class ReaderPageImageView @JvmOverloads constructor(
                             onImageLoadError(result.throwable)
                         },
                     )
-                    .size(ViewSizeResolver(this@ReaderPageImageView))
-                    .precision(Precision.INEXACT)
+                    .size(coil3.size.Size.ORIGINAL)
+                    .precision(Precision.EXACT)
                     .cropBorders(config.cropBorders)
                     .customDecoder(true)
                     .crossfade(false)
