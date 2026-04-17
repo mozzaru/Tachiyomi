@@ -114,6 +114,8 @@ class WebtoonPageHolder(
      * Called when the view is recycled and added to the view pool.
      */
     override fun recycle() {
+        page?.let { it.cachedStream = it.stream }
+
         loadJob?.cancel()
         loadJob = null
 
@@ -187,6 +189,9 @@ class WebtoonPageHolder(
     private suspend fun setImage() {
         progressIndicator.setProgress(0)
 
+        if (page?.stream == null) {
+            page?.stream = page?.cachedStream
+        }
         val streamFn = page?.stream ?: return
 
         try {

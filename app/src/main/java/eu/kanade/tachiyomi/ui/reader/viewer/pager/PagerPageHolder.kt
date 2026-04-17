@@ -87,6 +87,9 @@ class PagerPageHolder(
         loadJob = null
         extraLoadJob?.cancel()
         extraLoadJob = null
+
+        page.cachedStream = page.stream
+        extraPage?.let { it.cachedStream = it.stream }
     }
 
     private fun initProgressIndicator() {
@@ -167,7 +170,14 @@ class PagerPageHolder(
             progressIndicator?.setProgress(95)
         }
 
+        if (page.stream == null) {
+            page.stream = page.cachedStream
+        }
         val streamFn = page.stream ?: return
+
+        if (extraPage != null && extraPage!!.stream == null) {
+            extraPage!!.stream = extraPage!!.cachedStream
+        }
         val streamFn2 = extraPage?.stream
 
         try {

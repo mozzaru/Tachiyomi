@@ -481,6 +481,20 @@ class ReaderActivity : BaseActivity() {
         super.onResume()
         viewModel.restartReadTimer()
         setMenuVisibility(viewModel.state.value.menuVisible)
+
+        val viewer = viewModel.state.value.viewer
+        val currentPage = viewModel.state.value.currentChapter?.pages?.getOrNull(viewModel.state.value.currentPage - 1)
+        val extraPage = viewer?.getExtraPage(currentPage)
+        currentPage?.let {
+            lifecycleScope.launchIO {
+                it.chapter.pageLoader?.loadPage(it)
+            }
+        }
+        extraPage?.let {
+            lifecycleScope.launchIO {
+                it.chapter.pageLoader?.loadPage(it)
+            }
+        }
     }
 
     /**
