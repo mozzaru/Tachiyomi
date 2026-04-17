@@ -150,6 +150,8 @@ object ImageUtil {
         }
         val output = Buffer()
         half.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+        imageBitmap.recycle()
+        half.recycle()
 
         return output
     }
@@ -160,6 +162,8 @@ object ImageUtil {
 
         val output = Buffer()
         rotated.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+        imageBitmap.recycle()
+        rotated.recycle()
 
         return output
     }
@@ -198,6 +202,8 @@ object ImageUtil {
 
         val output = Buffer()
         result.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+        imageBitmap.recycle()
+        result.recycle()
         return output
     }
 
@@ -217,7 +223,8 @@ object ImageUtil {
         viewHeight: Int,
         backgroundContext: Context,
     ): BufferedSource {
-        val imageBitmap = ImageDecoder.newInstance(imageSource.inputStream())?.decode()!!
+        val decoder = ImageDecoder.newInstance(imageSource.inputStream())
+        val imageBitmap = decoder?.decode()!!
         val height = imageBitmap.height
         val width = imageBitmap.width
 
@@ -240,6 +247,9 @@ object ImageUtil {
 
         val output = Buffer()
         result.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
+        imageBitmap.recycle()
+        decoder.recycle()
+        result.recycle()
         return output
     }
     // SY <--
@@ -430,6 +440,7 @@ object ImageUtil {
             !color.isWhite() && color.isCloseTo(other)
         }
         if (isNotWhiteAndCloseTo.all { it }) {
+            image.recycle()
             return ColorDrawable(topLeftPixel)
         }
 
@@ -544,10 +555,12 @@ object ImageUtil {
 
         val isLandscape = context.resources.configuration?.orientation == Configuration.ORIENTATION_LANDSCAPE
         if (isLandscape) {
-            return when {
+            val result = when {
                 darkBG -> ColorDrawable(blackColor)
                 else -> ColorDrawable(whiteColor)
             }
+            image.recycle()
+            return result
         }
 
         val botCornersIsWhite = botLeftPixel.isWhite() && botRightPixel.isWhite()
@@ -567,6 +580,7 @@ object ImageUtil {
                 intArrayOf(whiteColor, whiteColor, blackColor, blackColor)
             }
             darkBG -> {
+                image.recycle()
                 return ColorDrawable(blackColor)
             }
             topIsBlackStreak ||
@@ -586,14 +600,17 @@ object ImageUtil {
                 intArrayOf(whiteColor, whiteColor, blackColor, blackColor)
             }
             else -> {
+                image.recycle()
                 return ColorDrawable(whiteColor)
             }
         }
 
-        return GradientDrawable(
+        val result = GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
             gradient,
         )
+        image.recycle()
+        return result
     }
 
     private fun @receiver:ColorInt Int.isDark(): Boolean =
@@ -798,6 +815,11 @@ object ImageUtil {
         val output = Buffer()
         result.compress(Bitmap.CompressFormat.JPEG, 100, output.outputStream())
         progressCallback?.invoke(100)
+
+        imageBitmap.recycle()
+        imageBitmap2.recycle()
+        result.recycle()
+
         return output
     }
 

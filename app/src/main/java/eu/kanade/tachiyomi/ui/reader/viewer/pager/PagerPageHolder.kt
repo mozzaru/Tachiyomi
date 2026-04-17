@@ -23,6 +23,8 @@ import kotlinx.coroutines.supervisorScope
 import logcat.LogPriority
 import okio.Buffer
 import okio.BufferedSource
+import okio.buffer
+import okio.source
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withIOContext
@@ -110,8 +112,10 @@ class PagerPageHolder(
         // SY <--
         val loader = page.chapter.pageLoader ?: return
         supervisorScope {
-            launchIO {
-                loader.loadPage(page)
+            if (page.status != Page.State.Ready) {
+                launchIO {
+                    loader.loadPage(page)
+                }
             }
             page.statusFlow.collectLatest { state ->
                 when (state) {
@@ -172,20 +176,33 @@ class PagerPageHolder(
 
         try {
             val (source, isAnimated, background) = withIOContext {
-                streamFn().buffered(16).use { source ->
+                streamFn().use { source ->
                     // SY -->
-                    if (extraPage != null) {
-                        streamFn2?.invoke()
-                            ?.buffered(16)
-                    } else {
-                        null
-                    }.use { source2 ->
-                        val itemSource = if (viewer.config.dualPageSplit) {
-                            process(item.first, Buffer().readFrom(source))
-                        } else {
-                            mergePages(Buffer().readFrom(source), source2?.let { Buffer().readFrom(it) })
+                    if (extraPage != null || viewer.config.dualPageSplit) {
+                        source.buffered(16).use { bufferedSource ->
+                            if (extraPage != null) {
+                                streamFn2?.invoke()
+                                    ?.buffered(16)
+                            } else {
+                                null
+                            }.use { source2 ->
+                                val itemSource = if (viewer.config.dualPageSplit) {
+                                    process(item.first, Buffer().readFrom(bufferedSource))
+                                } else {
+                                    mergePages(Buffer().readFrom(bufferedSource), source2?.let { Buffer().readFrom(it) })
+                                }
+                                // SY <--
+                                val isAnimated = ImageUtil.isAnimatedAndSupported(itemSource)
+                                val background = if (!isAnimated && viewer.config.automaticBackground) {
+                                    ImageUtil.chooseBackground(context, itemSource.peek())
+                                } else {
+                                    null
+                                }
+                                Triple(itemSource, isAnimated, background)
+                            }
                         }
-                        // SY <--
+                    } else {
+                        val itemSource = Buffer().readFrom(source)
                         val isAnimated = ImageUtil.isAnimatedAndSupported(itemSource)
                         val background = if (!isAnimated && viewer.config.automaticBackground) {
                             ImageUtil.chooseBackground(context, itemSource.peek())

@@ -308,6 +308,12 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
         onPageChange(pager.currentItem)
     }
 
+    override fun getExtraPage(page: ReaderPage?): ReaderPage? {
+        val position = adapter.joinedItems.indexOfFirst { it.first == page || it.second == page }
+        val item = adapter.joinedItems.getOrNull(position)
+        return if (item != null && item.first == page) item.second as? ReaderPage else item?.first as? ReaderPage
+    }
+
     /**
      * Tells this viewer to move to the given [page].
      */

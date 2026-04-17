@@ -243,7 +243,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
             setMaxTileSize(ImageUtil.hardwareBitmapThreshold)
             setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
-            setMinimumTileDpi(180)
+            setMinimumTileDpi(320)
             setOnStateChangedListener(
                 object : SubsamplingScaleImageView.OnStateChangedListener {
                     override fun onScaleChanged(newScale: Float, origin: Int) {
@@ -310,7 +310,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
 
                 ImageRequest.Builder(context)
                     .data(data)
-                    .memoryCachePolicy(CachePolicy.DISABLED)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
                     .diskCachePolicy(CachePolicy.DISABLED)
                     .target(
                         onSuccess = { result ->
@@ -387,7 +387,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
 
         val request = ImageRequest.Builder(context)
             .data(data)
-            .memoryCachePolicy(CachePolicy.DISABLED)
+            .memoryCachePolicy(CachePolicy.ENABLED)
             .diskCachePolicy(CachePolicy.DISABLED)
             .target(
                 onSuccess = { result ->

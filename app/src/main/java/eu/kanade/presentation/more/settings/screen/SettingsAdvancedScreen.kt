@@ -65,6 +65,7 @@ import eu.kanade.tachiyomi.util.system.isDevFlavor
 import eu.kanade.tachiyomi.util.system.isPreviewBuildType
 import eu.kanade.tachiyomi.util.system.isShizukuInstalled
 import eu.kanade.tachiyomi.util.system.powerManager
+import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.setDefaultSettings
 import eu.kanade.tachiyomi.util.system.toast
 import exh.debug.SettingsDebugScreen
@@ -77,6 +78,7 @@ import exh.source.ExhPreferences
 import exh.util.toAnnotatedString
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -187,35 +189,48 @@ object SettingsAdvancedScreen : SearchableSettings {
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.label_background_activity),
-            preferenceItems = persistentListOf(
-                Preference.PreferenceItem.TextPreference(
-                    title = stringResource(MR.strings.pref_disable_battery_optimization),
-                    subtitle = stringResource(MR.strings.pref_disable_battery_optimization_summary),
-                    onClick = {
-                        val packageName: String = context.packageName
-                        if (!context.powerManager.isIgnoringBatteryOptimizations(packageName)) {
-                            try {
-                                @SuppressLint("BatteryLife")
-                                val intent = Intent().apply {
-                                    action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-                                    data = "package:$packageName".toUri()
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            preferenceItems = buildList {
+                add(
+                    Preference.PreferenceItem.TextPreference(
+                        title = stringResource(MR.strings.pref_disable_battery_optimization),
+                        subtitle = stringResource(MR.strings.pref_disable_battery_optimization_summary),
+                        onClick = {
+                            val packageName: String = context.packageName
+                            if (!context.powerManager.isIgnoringBatteryOptimizations(packageName)) {
+                                try {
+                                    @SuppressLint("BatteryLife")
+                                    val intent = Intent().apply {
+                                        action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                                        data = "package:$packageName".toUri()
+                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    }
+                                    context.startActivity(intent)
+                                } catch (e: ActivityNotFoundException) {
+                                    context.toast(MR.strings.battery_optimization_setting_activity_not_found)
                                 }
-                                context.startActivity(intent)
-                            } catch (e: ActivityNotFoundException) {
-                                context.toast(MR.strings.battery_optimization_setting_activity_not_found)
+                            } else {
+                                context.toast(MR.strings.battery_optimization_disabled)
                             }
-                        } else {
-                            context.toast(MR.strings.battery_optimization_disabled)
-                        }
-                    },
-                ),
-                Preference.PreferenceItem.TextPreference(
-                    title = "Don't kill my app!",
-                    subtitle = stringResource(MR.strings.about_dont_kill_my_app),
-                    onClick = { uriHandler.openUri("https://dontkillmyapp.com/") },
-                ),
-            ),
+                        },
+                    ),
+                )
+                add(
+                    Preference.PreferenceItem.TextPreference(
+                        title = "Don't kill my app!",
+                        subtitle = stringResource(MR.strings.about_dont_kill_my_app),
+                        onClick = { uriHandler.openUri("https://dontkillmyapp.com/") },
+                    ),
+                )
+                if (DeviceUtil.isOppoRealme) {
+                    add(
+                        Preference.PreferenceItem.TextPreference(
+                            title = "Oppo/Realme background restrictions",
+                            subtitle = "Instructions for Oppo/Realme users to prevent background activity freezing (ColorHans).",
+                            onClick = { uriHandler.openUri("https://dontkillmyapp.com/oppo") },
+                        ),
+                    )
+                }
+            }.toImmutableList(),
         )
     }
 

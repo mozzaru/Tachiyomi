@@ -22,6 +22,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -303,7 +304,7 @@ class ReaderActivity : BaseActivity() {
     }
 
     private fun ReaderActivityBinding.setComposeOverlay(): Unit = composeOverlay.setComposeContent {
-        val state by viewModel.state.collectAsState()
+        val state by viewModel.state.collectAsStateWithLifecycle()
         val showPageNumber by readerPreferences.showPageNumber.collectAsState()
         val settingsScreenModel = remember {
             ReaderSettingsScreenModel(
@@ -468,20 +469,11 @@ class ReaderActivity : BaseActivity() {
 
     override fun onPause() {
         lifecycleScope.launchNonCancellable {
-            viewModel.updateHistory()
+            viewModel.flushReadTimer()
         }
         super.onPause()
     }
 
-    /**
-     * Set menu visibility again on activity resume to apply immersive mode again if needed.
-     * Helps with rotations.
-     */
-    override fun onResume() {
-        super.onResume()
-        viewModel.restartReadTimer()
-        setMenuVisibility(viewModel.state.value.menuVisible)
-    }
 
     /**
      * Called when the window focus changes. It sets the menu visibility to the last known state
@@ -544,6 +536,31 @@ class ReaderActivity : BaseActivity() {
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
         val handled = viewModel.state.value.viewer?.handleGenericMotionEvent(event) ?: false
         return handled || super.dispatchGenericMotionEvent(event)
+    }
+
+    /**
+     * Set menu visibility again on activity resume to apply immersive mode again if needed.
+     * Helps with rotations.
+     */
+    override fun onResume() {
+        super.onResume()
+        viewModel.restartReadTimer()
+        setMenuVisibility(viewModel.state.value.menuVisible)
+
+        val viewer = viewModel.state.value.viewer ?: return
+        val currentChapter = viewModel.state.value.currentChapter ?: return
+        val pages = currentChapter.pages ?: return
+        val loader = currentChapter.pageLoader ?: return
+
+        val currentPage = pages.getOrNull(viewModel.state.value.currentPage - 1) ?: return
+        val extraPage = viewer.getExtraPage(currentPage)
+
+        lifecycleScope.launchIO {
+            loader.loadPage(currentPage)
+            if (extraPage != null) {
+                loader.loadPage(extraPage)
+            }
+        }
     }
 
     @Composable
