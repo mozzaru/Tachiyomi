@@ -181,7 +181,7 @@ class ReaderPreferences(
 
     // SY -->
 
-    val readerThreads: Preference<Int> = preferenceStore.getInt("eh_reader_threads", 1)
+    val readerThreads: Preference<Int> = preferenceStore.getInt("eh_reader_threads", 2)
 
     val readerInstantRetry: Preference<Boolean> = preferenceStore.getBoolean("eh_reader_instant_retry", true)
 

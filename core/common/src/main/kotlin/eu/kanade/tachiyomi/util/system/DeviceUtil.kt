@@ -99,18 +99,6 @@ object DeviceUtil {
         return totalMemBytes < 3L * 1024 * 1024 * 1024
     }
 
-    val isOppo: Boolean by lazy {
-        Build.MANUFACTURER.equals("oppo", ignoreCase = true)
-    }
-
-    val isRealme: Boolean by lazy {
-        Build.MANUFACTURER.equals("realme", ignoreCase = true)
-    }
-
-    val isOppoRealme: Boolean by lazy {
-        isOppo || isRealme
-    }
-
     @SuppressLint("PrivateApi")
     private fun getSystemProperty(key: String?): String? {
         return try {

@@ -169,18 +169,12 @@ open class ReaderPageImageView @JvmOverloads constructor(
         }
     }
 
-    fun recycle() {
-        onImageLoaded = null
-        onImageLoadError = null
-        onScaleChanged = null
-        onViewClicked = null
-        pageView?.let {
-            when (it) {
-                is SubsamplingScaleImageView -> it.recycle()
-                is AppCompatImageView -> it.dispose()
-            }
-            it.isVisible = false
+    fun recycle() = pageView?.let {
+        when (it) {
+            is SubsamplingScaleImageView -> it.recycle()
+            is AppCompatImageView -> it.dispose()
         }
+        it.isVisible = false
     }
 
     /**
@@ -249,7 +243,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
             setMaxTileSize(ImageUtil.hardwareBitmapThreshold)
             setDoubleTapZoomStyle(SubsamplingScaleImageView.ZOOM_FOCUS_CENTER)
             setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_INSIDE)
-            setMinimumTileDpi(context.resources.displayMetrics.densityDpi)
+            setMinimumTileDpi(180)
             setOnStateChangedListener(
                 object : SubsamplingScaleImageView.OnStateChangedListener {
                     override fun onScaleChanged(newScale: Float, origin: Int) {
@@ -307,7 +301,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                 isVisible = true
             }
             is BufferedSource -> {
-                if (!isWebtoon || alwaysDecodeLongStripWithSSIV || ImageUtil.isTallImage(data)) {
+                if (!isWebtoon || alwaysDecodeLongStripWithSSIV) {
                     setHardwareConfig(ImageUtil.canUseHardwareBitmap(data))
                     setImage(ImageSource.inputStream(data.inputStream()))
                     isVisible = true

@@ -178,9 +178,9 @@ class WebtoonAdapter(val viewer: WebtoonViewer) : RecyclerView.Adapter<RecyclerV
 /**
  * View holder type of a chapter page view.
  */
-internal const val PAGE_VIEW = 0
+private const val PAGE_VIEW = 0
 
 /**
  * View holder type of a chapter transition view.
  */
-internal const val TRANSITION_VIEW = 1
+private const val TRANSITION_VIEW = 1

@@ -60,7 +60,6 @@ import eu.kanade.tachiyomi.source.AndroidSourceManager
 import eu.kanade.tachiyomi.ui.more.OnboardingScreen
 import eu.kanade.tachiyomi.util.CrashLogUtil
 import eu.kanade.tachiyomi.util.storage.DiskUtil
-import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.GLUtil
 import eu.kanade.tachiyomi.util.system.isDevFlavor
 import eu.kanade.tachiyomi.util.system.isPreviewBuildType
@@ -214,14 +213,7 @@ object SettingsAdvancedScreen : SearchableSettings {
                 Preference.PreferenceItem.TextPreference(
                     title = "Don't kill my app!",
                     subtitle = stringResource(MR.strings.about_dont_kill_my_app),
-                    onClick = {
-                        val url = if (DeviceUtil.isOppoRealme) {
-                            "https://dontkillmyapp.com/oppo"
-                        } else {
-                            "https://dontkillmyapp.com/"
-                        }
-                        uriHandler.openUri(url)
-                    },
+                    onClick = { uriHandler.openUri("https://dontkillmyapp.com/") },
                 ),
             ),
         )

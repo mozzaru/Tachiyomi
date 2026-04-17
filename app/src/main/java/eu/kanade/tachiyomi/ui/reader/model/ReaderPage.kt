@@ -17,8 +17,6 @@ open class ReaderPage(
 
 ) : Page(index, url, imageUrl, null), ReaderItem {
 
-    var cachedStream: (() -> InputStream)? = null
-
     open lateinit var chapter: ReaderChapter
 
     /** Value to check if a page is too wide to be doubled up */
