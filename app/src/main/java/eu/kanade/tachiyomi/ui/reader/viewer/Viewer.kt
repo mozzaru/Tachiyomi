@@ -32,6 +32,11 @@ interface Viewer {
     fun moveToPage(page: ReaderPage)
 
     /**
+     * Returns an extra page for the given [page] if the viewer supports it (e.g. double-page).
+     */
+    fun getExtraPage(page: ReaderPage?): ReaderPage? = null
+
+    /**
      * Called from the containing activity when a key [event] is received. It should return true
      * if the event was handled, false otherwise.
      */
