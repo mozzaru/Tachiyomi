@@ -116,10 +116,18 @@ internal class HttpPageLoader(
         val imageUrl = page.imageUrl
 
         if (page.status == Page.State.Ready) {
-            if (page.stream == null && imageUrl != null && chapterCache.isImageInCache(imageUrl)) {
-                page.stream = { chapterCache.getImageFile(imageUrl).inputStream() }
+            if (page.stream == null && imageUrl != null) {
+                try {
+                    if (chapterCache.isImageInCache(imageUrl)) {
+                        page.stream = { chapterCache.getImageFile(imageUrl).inputStream() }
+                    } else {
+                        page.status = Page.State.Queue
+                    }
+                } catch (e: Throwable) {
+                    page.status = Page.State.Queue
+                }
             }
-            return@withIOContext
+            if (page.status == Page.State.Ready) return@withIOContext
         }
 
         // Automatically retry failed pages when subscribed to this page

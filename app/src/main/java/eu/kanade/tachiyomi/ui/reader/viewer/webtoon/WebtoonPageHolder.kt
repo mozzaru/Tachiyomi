@@ -96,6 +96,11 @@ class WebtoonPageHolder(
         loadJob?.cancel()
         loadJob = scope.launch { loadPageAndProcessStatus() }
         refreshLayoutParams()
+
+        if (page.status == Page.State.Ready) {
+            progressContainer.isVisible = false
+            removeErrorLayout()
+        }
     }
 
     private fun refreshLayoutParams() {

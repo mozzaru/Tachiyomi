@@ -73,6 +73,10 @@ class PagerPageHolder(
     private var extraLoadJob: Job? = null
 
     init {
+        if (page.status == Page.State.Ready) {
+            progressIndicator?.isVisible = false
+            removeErrorLayout()
+        }
         loadJob = scope.launch { loadPageAndProcessStatus(1) }
         extraLoadJob = scope.launch { loadPageAndProcessStatus(2) }
     }
