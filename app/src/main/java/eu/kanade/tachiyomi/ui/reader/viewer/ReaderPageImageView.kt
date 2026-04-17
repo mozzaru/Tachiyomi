@@ -169,12 +169,18 @@ open class ReaderPageImageView @JvmOverloads constructor(
         }
     }
 
-    fun recycle() = pageView?.let {
-        when (it) {
-            is SubsamplingScaleImageView -> it.recycle()
-            is AppCompatImageView -> it.dispose()
+    fun recycle() {
+        onImageLoaded = null
+        onImageLoadError = null
+        onScaleChanged = null
+        onViewClicked = null
+        pageView?.let {
+            when (it) {
+                is SubsamplingScaleImageView -> it.recycle()
+                is AppCompatImageView -> it.dispose()
+            }
+            it.isVisible = false
         }
-        it.isVisible = false
     }
 
     /**
