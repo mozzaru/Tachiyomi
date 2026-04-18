@@ -118,6 +118,13 @@ internal class HttpPageLoader(
     override suspend fun loadPage(page: ReaderPage) = withIOContext {
         val imageUrl = page.imageUrl
 
+        if (page.status == Page.State.Ready && imageUrl != null && chapterCache.isImageInCache(imageUrl)) {
+            if (page.stream == null) {
+                page.stream = { chapterCache.getImageFile(imageUrl).inputStream() }
+            }
+            return@withIOContext
+        }
+
         // Check if the image has been deleted
         if (page.status == Page.State.Ready && imageUrl != null && !chapterCache.isImageInCache(imageUrl)) {
             page.status = Page.State.Queue
