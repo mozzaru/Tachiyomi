@@ -72,13 +72,13 @@ import exh.debug.SettingsDebugScreen
 import exh.log.EHLogLevel
 import exh.pref.DelegateSourcePreferences
 import exh.source.BlacklistedSources
-import kotlinx.collections.immutable.toImmutableList
 import exh.source.EH_SOURCE_ID
 import exh.source.EXH_SOURCE_ID
 import exh.source.ExhPreferences
 import exh.util.toAnnotatedString
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
