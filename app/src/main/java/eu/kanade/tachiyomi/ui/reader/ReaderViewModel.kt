@@ -141,7 +141,17 @@ class ReaderViewModel @JvmOverloads constructor(
     // SY <--
 ) : ViewModel() {
 
-    private val mutableState = MutableStateFlow(State())
+    private val mutableState = MutableStateFlow(
+        State(
+            menuVisible = savedState.get<Boolean>("menu_visible") ?: false,
+            ehUtilsVisible = savedState.get<Boolean>("eh_utils_visible") ?: false,
+            doublePages = savedState.get<Boolean>("double_pages") ?: false,
+            indexPageToShift = savedState.get<Int>("index_page_to_shift"),
+            indexChapterToShift = savedState.get<Long>("index_chapter_to_shift"),
+            ehAutoscrollFreq = savedState.get<String>("eh_autoscroll_freq") ?: "",
+            brightnessOverlayValue = savedState.get<Int>("brightness_overlay_value") ?: 0,
+        ),
+    )
     val state = mutableState.asStateFlow()
 
     private val eventChannel = Channel<Event>()
@@ -988,19 +998,23 @@ class ReaderViewModel @JvmOverloads constructor(
 
     fun showMenus(visible: Boolean) {
         mutableState.update { it.copy(menuVisible = visible) }
+        savedState["menu_visible"] = visible
     }
 
     // SY -->
     fun showEhUtils(visible: Boolean) {
         mutableState.update { it.copy(ehUtilsVisible = visible) }
+        savedState["eh_utils_visible"] = visible
     }
 
     fun setIndexChapterToShift(index: Long?) {
         mutableState.update { it.copy(indexChapterToShift = index) }
+        savedState["index_chapter_to_shift"] = index
     }
 
     fun setIndexPageToShift(index: Int?) {
         mutableState.update { it.copy(indexPageToShift = index) }
+        savedState["index_page_to_shift"] = index
     }
 
     fun openChapterListDialog() {
@@ -1009,6 +1023,7 @@ class ReaderViewModel @JvmOverloads constructor(
 
     fun setDoublePages(doublePages: Boolean) {
         mutableState.update { it.copy(doublePages = doublePages) }
+        savedState["double_pages"] = doublePages
     }
 
     fun openAutoScrollHelpDialog() {
@@ -1029,6 +1044,7 @@ class ReaderViewModel @JvmOverloads constructor(
 
     fun setAutoScrollFrequency(frequency: String) {
         mutableState.update { it.copy(ehAutoscrollFreq = frequency) }
+        savedState["eh_autoscroll_freq"] = frequency
     }
     // SY <--
 
@@ -1058,6 +1074,7 @@ class ReaderViewModel @JvmOverloads constructor(
 
     fun setBrightnessOverlayValue(value: Int) {
         mutableState.update { it.copy(brightnessOverlayValue = value) }
+        savedState["brightness_overlay_value"] = value
     }
 
     /**
