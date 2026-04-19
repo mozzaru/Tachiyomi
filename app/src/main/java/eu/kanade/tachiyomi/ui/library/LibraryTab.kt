@@ -24,7 +24,6 @@ import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import tachiyomi.presentation.core.util.collectAsState
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
@@ -77,6 +76,7 @@ import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.screens.EmptyScreen
 import tachiyomi.presentation.core.screens.EmptyScreenAction
 import tachiyomi.presentation.core.screens.LoadingScreen
+import tachiyomi.presentation.core.util.collectAsState
 import tachiyomi.source.local.isLocal
 
 data object LibraryTab : Tab {
@@ -211,10 +211,26 @@ data object LibraryTab : Tab {
                         // <-- SY
                     },
                     // SY -->
-                    onClickCleanTitles = if (libraryState.showCleanTitles) { { screenModel.cleanTitles() } } else null,
-                    onClickCollectRecommendations = if (libraryState.selection.size > 1) { { screenModel.showRecommendationSearchDialog() } } else null,
-                    onClickAddToMangaDex = if (libraryState.showAddToMangadex) { { screenModel.syncMangaToDex() } } else null,
-                    onClickResetInfo = if (libraryState.showResetInfo) { { screenModel.resetInfo() } } else null,
+                    onClickCleanTitles = if (libraryState.showCleanTitles) {
+                        { screenModel.cleanTitles() }
+                    } else {
+                        null
+                    },
+                    onClickCollectRecommendations = if (libraryState.selection.size > 1) {
+                        { screenModel.showRecommendationSearchDialog() }
+                    } else {
+                        null
+                    },
+                    onClickAddToMangaDex = if (libraryState.showAddToMangadex) {
+                        { screenModel.syncMangaToDex() }
+                    } else {
+                        null
+                    },
+                    onClickResetInfo = if (libraryState.showResetInfo) {
+                        { screenModel.resetInfo() }
+                    } else {
+                        null
+                    },
                     // SY <--
                 )
             },
