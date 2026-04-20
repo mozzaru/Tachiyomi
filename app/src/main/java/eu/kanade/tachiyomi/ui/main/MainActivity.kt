@@ -214,7 +214,7 @@ class MainActivity : BaseActivity() {
 
                     if (isLaunch) {
                         // Set start screen
-                        handleIntentAction(intent, navigator)
+                        ready = handleIntentAction(intent, navigator)
 
                         // Reset Incognito Mode on relaunch
                         preferences.incognitoMode.set(false)
@@ -326,6 +326,22 @@ class MainActivity : BaseActivity() {
             val elapsed = System.currentTimeMillis() - startTime
             elapsed <= SPLASH_MIN_DURATION || (!ready && elapsed <= SPLASH_MAX_DURATION)
         }
+
+        val root: View = findViewById(android.R.id.content)
+        root.viewTreeObserver.addOnPreDrawListener(
+            object : android.view.ViewTreeObserver.OnPreDrawListener {
+                override fun onPreDraw(): Boolean {
+                    if (!firstPaint) {
+                        root.viewTreeObserver.removeOnPreDrawListener(this)
+                        firstPaint = true
+                        while (iuuQueue.isNotEmpty()) {
+                            iuuQueue.poll()?.invoke()
+                        }
+                    }
+                    return true
+                }
+            },
+        )
         setSplashScreenExitAnimation(splashScreen)
 
         if (isLaunch && libraryPreferences.autoClearChapterCache.get()) {
@@ -340,6 +356,11 @@ class MainActivity : BaseActivity() {
             BlacklistedSources.HIDDEN_SOURCES += EXH_SOURCE_ID
         }
         // SY -->
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        System.gc()
     }
 
     override fun onProvideAssistContent(outContent: AssistContent) {
@@ -542,6 +563,6 @@ class MainActivity : BaseActivity() {
 }
 
 // Splash screen
-private const val SPLASH_MIN_DURATION = 500 // ms
+private const val SPLASH_MIN_DURATION = 0 // ms
 private const val SPLASH_MAX_DURATION = 5000 // ms
 private const val SPLASH_EXIT_ANIM_DURATION = 400L // ms

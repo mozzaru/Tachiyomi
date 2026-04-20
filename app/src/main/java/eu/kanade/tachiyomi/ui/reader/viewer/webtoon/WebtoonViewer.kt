@@ -389,6 +389,8 @@ class WebtoonViewer(
         return false
     }
 
+    override fun getExtraPage(page: ReaderPage?): ReaderPage? = null
+
     /**
      * Notifies adapter of changes around the current page to trigger a relayout in the recycler.
      * Used when an image configuration is changed.

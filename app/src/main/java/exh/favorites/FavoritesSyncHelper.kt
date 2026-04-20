@@ -77,6 +77,13 @@ class FavoritesSyncHelper(val context: Context) {
 
     val status: MutableStateFlow<FavoritesSyncStatus> = MutableStateFlow(FavoritesSyncStatus.Idle)
 
+    fun dispose() {
+        ignore { wakeLock?.release() }
+        wakeLock = null
+        ignore { wifiLock?.release() }
+        wifiLock = null
+    }
+
     @Synchronized
     fun runSync(scope: CoroutineScope) {
         if (status.value !is FavoritesSyncStatus.Idle) {

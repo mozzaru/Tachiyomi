@@ -42,4 +42,9 @@ interface Viewer {
      * return true if the event was handled, false otherwise.
      */
     fun handleGenericMotionEvent(event: MotionEvent): Boolean
+
+    /**
+     * Returns the extra page for the given [page], if any.
+     */
+    fun getExtraPage(page: ReaderPage?): ReaderPage? = null
 }
