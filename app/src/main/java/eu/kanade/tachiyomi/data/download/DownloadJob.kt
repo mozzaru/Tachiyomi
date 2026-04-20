@@ -78,12 +78,12 @@ class DownloadJob(context: Context, workerParams: WorkerParameters) : CoroutineW
                 )
                     .onEach { networkCheck = it }
                     .launchIn(this)
-            }
 
-            // Keep the worker running when needed
-            while (active) {
-                delay(100)
-                active = !isStopped && downloadManager.isRunning && networkCheck
+                // Keep the worker running when needed
+                while (active) {
+                    delay(100)
+                    active = !isStopped && downloadManager.isRunning && networkCheck
+                }
             }
         } catch (e: CancellationException) {
             return Result.success()

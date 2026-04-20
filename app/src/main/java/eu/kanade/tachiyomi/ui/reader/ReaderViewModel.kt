@@ -110,36 +110,38 @@ import java.util.Date
 /**
  * Presenter used by the activity to perform background operations.
  */
-class ReaderViewModel @JvmOverloads constructor(
+class ReaderViewModel(
     private val savedState: SavedStateHandle,
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val downloadManager: DownloadManager = Injekt.get(),
-    private val downloadProvider: DownloadProvider = Injekt.get(),
-    private val tempFileManager: UniFileTempFileManager = Injekt.get(),
-    private val imageSaver: ImageSaver = Injekt.get(),
-    val readerPreferences: ReaderPreferences = Injekt.get(),
-    private val basePreferences: BasePreferences = Injekt.get(),
-    private val downloadPreferences: DownloadPreferences = Injekt.get(),
-    private val trackPreferences: TrackPreferences = Injekt.get(),
-    private val trackChapter: TrackChapter = Injekt.get(),
-    private val getManga: GetManga = Injekt.get(),
-    private val getChaptersByMangaId: GetChaptersByMangaId = Injekt.get(),
-    private val getNextChapters: GetNextChapters = Injekt.get(),
-    private val upsertHistory: UpsertHistory = Injekt.get(),
-    private val updateChapter: UpdateChapter = Injekt.get(),
-    private val setMangaViewerFlags: SetMangaViewerFlags = Injekt.get(),
-    private val getIncognitoState: GetIncognitoState = Injekt.get(),
-    private val libraryPreferences: LibraryPreferences = Injekt.get(),
-    // SY -->
-    private val syncPreferences: SyncPreferences = Injekt.get(),
-    private val uiPreferences: UiPreferences = Injekt.get(),
-    private val getFlatMetadataById: GetFlatMetadataById = Injekt.get(),
-    private val getMergedMangaById: GetMergedMangaById = Injekt.get(),
-    private val getMergedReferencesById: GetMergedReferencesById = Injekt.get(),
-    private val getMergedChaptersByMangaId: GetMergedChaptersByMangaId = Injekt.get(),
-    private val setReadStatus: SetReadStatus = Injekt.get(),
-    // SY <--
 ) : ViewModel() {
+
+    private val sourceManager: SourceManager = Injekt.get()
+    private val downloadManager: DownloadManager = Injekt.get()
+    private val downloadProvider: DownloadProvider = Injekt.get()
+    private val tempFileManager: UniFileTempFileManager = Injekt.get()
+    private val imageSaver: ImageSaver = Injekt.get()
+    val readerPreferences: ReaderPreferences = Injekt.get()
+    private val basePreferences: BasePreferences = Injekt.get()
+    private val downloadPreferences: DownloadPreferences = Injekt.get()
+    private val trackPreferences: TrackPreferences = Injekt.get()
+    private val trackChapter: TrackChapter = Injekt.get()
+    private val getManga: GetManga = Injekt.get()
+    private val getChaptersByMangaId: GetChaptersByMangaId = Injekt.get()
+    private val getNextChapters: GetNextChapters = Injekt.get()
+    private val upsertHistory: UpsertHistory = Injekt.get()
+    private val updateChapter: UpdateChapter = Injekt.get()
+    private val setMangaViewerFlags: SetMangaViewerFlags = Injekt.get()
+    private val getIncognitoState: GetIncognitoState = Injekt.get()
+    private val libraryPreferences: LibraryPreferences = Injekt.get()
+
+    // SY -->
+    private val syncPreferences: SyncPreferences = Injekt.get()
+    private val uiPreferences: UiPreferences = Injekt.get()
+    private val getFlatMetadataById: GetFlatMetadataById = Injekt.get()
+    private val getMergedMangaById: GetMergedMangaById = Injekt.get()
+    private val getMergedReferencesById: GetMergedReferencesById = Injekt.get()
+    private val getMergedChaptersByMangaId: GetMergedChaptersByMangaId = Injekt.get()
+    private val setReadStatus: SetReadStatus = Injekt.get()
+    // SY <--
 
     private val mutableState = MutableStateFlow(
         State(

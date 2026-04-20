@@ -122,37 +122,38 @@ import kotlin.random.Random
 
 class LibraryScreenModel(
     private val savedState: SavedStateHandle,
-    private val getLibraryManga: GetLibraryManga = Injekt.get(),
-    private val getCategories: GetCategories = Injekt.get(),
-    private val getTracksPerManga: GetTracksPerManga = Injekt.get(),
-    private val getNextChapters: GetNextChapters = Injekt.get(),
-    private val getChaptersByMangaId: GetChaptersByMangaId = Injekt.get(),
-    private val getBookmarkedChaptersByMangaId: GetBookmarkedChaptersByMangaId = Injekt.get(),
-    private val setReadStatus: SetReadStatus = Injekt.get(),
-    private val updateManga: UpdateManga = Injekt.get(),
-    private val setMangaCategories: SetMangaCategories = Injekt.get(),
-    private val preferences: BasePreferences = Injekt.get(),
-    private val libraryPreferences: LibraryPreferences = Injekt.get(),
-    private val coverCache: CoverCache = Injekt.get(),
-    private val sourceManager: SourceManager = Injekt.get(),
-    private val downloadManager: DownloadManager = Injekt.get(),
-    private val downloadCache: DownloadCache = Injekt.get(),
-    private val trackerManager: TrackerManager = Injekt.get(),
-    // SY -->
-    private val exhPreferences: ExhPreferences = Injekt.get(),
-    private val sourcePreferences: SourcePreferences = Injekt.get(),
-    private val getMergedMangaById: GetMergedMangaById = Injekt.get(),
-    private val getTracks: GetTracks = Injekt.get(),
-    private val getIdsOfFavoriteMangaWithMetadata: GetIdsOfFavoriteMangaWithMetadata = Injekt.get(),
-    private val getSearchTags: GetSearchTags = Injekt.get(),
-    private val getSearchTitles: GetSearchTitles = Injekt.get(),
-    private val searchEngine: SearchEngine = Injekt.get(),
-    private val setCustomMangaInfo: SetCustomMangaInfo = Injekt.get(),
-    private val getMergedChaptersByMangaId: GetMergedChaptersByMangaId = Injekt.get(),
-
-    syncPreferences: SyncPreferences = Injekt.get(),
-    // SY <--
 ) : ViewModel() {
+
+    private val getLibraryManga: GetLibraryManga = Injekt.get()
+    private val getCategories: GetCategories = Injekt.get()
+    private val getTracksPerManga: GetTracksPerManga = Injekt.get()
+    private val getNextChapters: GetNextChapters = Injekt.get()
+    private val getChaptersByMangaId: GetChaptersByMangaId = Injekt.get()
+    private val getBookmarkedChaptersByMangaId: GetBookmarkedChaptersByMangaId = Injekt.get()
+    private val setReadStatus: SetReadStatus = Injekt.get()
+    private val updateManga: UpdateManga = Injekt.get()
+    private val setMangaCategories: SetMangaCategories = Injekt.get()
+    private val preferences: BasePreferences = Injekt.get()
+    private val libraryPreferences: LibraryPreferences = Injekt.get()
+    private val coverCache: CoverCache = Injekt.get()
+    private val sourceManager: SourceManager = Injekt.get()
+    private val downloadManager: DownloadManager = Injekt.get()
+    private val downloadCache: DownloadCache = Injekt.get()
+    private val trackerManager: TrackerManager = Injekt.get()
+
+    // SY -->
+    private val exhPreferences: ExhPreferences = Injekt.get()
+    private val sourcePreferences: SourcePreferences = Injekt.get()
+    private val getMergedMangaById: GetMergedMangaById = Injekt.get()
+    private val getTracks: GetTracks = Injekt.get()
+    private val getIdsOfFavoriteMangaWithMetadata: GetIdsOfFavoriteMangaWithMetadata = Injekt.get()
+    private val getSearchTags: GetSearchTags = Injekt.get()
+    private val getSearchTitles: GetSearchTitles = Injekt.get()
+    private val searchEngine: SearchEngine = Injekt.get()
+    private val setCustomMangaInfo: SetCustomMangaInfo = Injekt.get()
+    private val getMergedChaptersByMangaId: GetMergedChaptersByMangaId = Injekt.get()
+    private val syncPreferences: SyncPreferences = Injekt.get()
+    // SY <--
 
     private val _state = MutableStateFlow(State())
     val state = _state.asStateFlow()
