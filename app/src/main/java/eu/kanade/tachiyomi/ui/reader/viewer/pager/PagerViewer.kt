@@ -489,4 +489,9 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
 
     fun getShiftedPage(): ReaderPage? = adapter.pageToShift
     // SY <--
+
+    override fun getExtraPage(page: ReaderPage?): ReaderPage? {
+        if (page == null) return null
+        return adapter.joinedItems.find { it.first == page }?.second as? ReaderPage
+    }
 }

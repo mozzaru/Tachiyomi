@@ -8,6 +8,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkQuery
@@ -107,6 +108,7 @@ class SyncDataJob(private val context: Context, workerParams: WorkerParameters) 
             val request = OneTimeWorkRequestBuilder<SyncDataJob>()
                 .addTag(TAG_JOB)
                 .addTag(tag)
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .build()
             context.workManager.enqueueUniqueWork(tag, ExistingWorkPolicy.KEEP, request)
         }

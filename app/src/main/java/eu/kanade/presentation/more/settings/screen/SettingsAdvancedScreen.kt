@@ -60,6 +60,7 @@ import eu.kanade.tachiyomi.source.AndroidSourceManager
 import eu.kanade.tachiyomi.ui.more.OnboardingScreen
 import eu.kanade.tachiyomi.util.CrashLogUtil
 import eu.kanade.tachiyomi.util.storage.DiskUtil
+import eu.kanade.tachiyomi.util.system.DeviceUtil
 import eu.kanade.tachiyomi.util.system.GLUtil
 import eu.kanade.tachiyomi.util.system.isDevFlavor
 import eu.kanade.tachiyomi.util.system.isPreviewBuildType
@@ -77,6 +78,7 @@ import exh.source.ExhPreferences
 import exh.util.toAnnotatedString
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -215,7 +217,12 @@ object SettingsAdvancedScreen : SearchableSettings {
                     subtitle = stringResource(MR.strings.about_dont_kill_my_app),
                     onClick = { uriHandler.openUri("https://dontkillmyapp.com/") },
                 ),
-            ),
+                Preference.PreferenceItem.TextPreference(
+                    title = "Oppo & Realme background freezing",
+                    subtitle = "These devices may freeze background activity (ColorHans). Check here for more info.",
+                    onClick = { uriHandler.openUri("https://dontkillmyapp.com/oppo") },
+                ).takeIf { DeviceUtil.isOppoRealme },
+            ).filterNotNull().toImmutableList(),
         )
     }
 

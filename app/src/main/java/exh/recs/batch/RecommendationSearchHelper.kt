@@ -58,6 +58,13 @@ class RecommendationSearchHelper(val context: Context) {
 
     val status: MutableStateFlow<SearchStatus> = MutableStateFlow(SearchStatus.Idle)
 
+    fun dispose() {
+        ignore { wakeLock?.release() }
+        wakeLock = null
+        ignore { wifiLock?.release() }
+        wifiLock = null
+    }
+
     @Synchronized
     fun runSearch(scope: CoroutineScope, mangaList: List<Manga>): Job? {
         if (status.value !is SearchStatus.Idle) {

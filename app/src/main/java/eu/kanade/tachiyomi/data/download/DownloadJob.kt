@@ -8,6 +8,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -18,7 +19,9 @@ import eu.kanade.tachiyomi.util.system.activeNetworkState
 import eu.kanade.tachiyomi.util.system.networkStateFlow
 import eu.kanade.tachiyomi.util.system.notificationBuilder
 import eu.kanade.tachiyomi.util.system.setForegroundSafely
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.launchIn
@@ -66,19 +69,24 @@ class DownloadJob(context: Context, workerParams: WorkerParameters) : CoroutineW
 
         setForegroundSafely()
 
-        coroutineScope {
-            combineTransform(
-                applicationContext.networkStateFlow(),
-                downloadPreferences.downloadOnlyOverWifi.changes(),
-                transform = { a, b -> emit(checkNetworkState(a, b)) },
-            )
-                .onEach { networkCheck = it }
-                .launchIn(this)
-        }
+        try {
+            coroutineScope {
+                combineTransform(
+                    applicationContext.networkStateFlow(),
+                    downloadPreferences.downloadOnlyOverWifi.changes(),
+                    transform = { a, b -> emit(checkNetworkState(a, b)) },
+                )
+                    .onEach { networkCheck = it }
+                    .launchIn(this)
 
-        // Keep the worker running when needed
-        while (active) {
-            active = !isStopped && downloadManager.isRunning && networkCheck
+                // Keep the worker running when needed
+                while (active) {
+                    delay(100)
+                    active = !isStopped && downloadManager.isRunning && networkCheck
+                }
+            }
+        } catch (e: CancellationException) {
+            return Result.success()
         }
 
         return Result.success()
@@ -105,6 +113,7 @@ class DownloadJob(context: Context, workerParams: WorkerParameters) : CoroutineW
         fun start(context: Context) {
             val request = OneTimeWorkRequestBuilder<DownloadJob>()
                 .addTag(TAG)
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .build()
             WorkManager.getInstance(context)
                 .enqueueUniqueWork(TAG, ExistingWorkPolicy.REPLACE, request)
