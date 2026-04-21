@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastAny
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -104,7 +105,11 @@ data object LibraryTab : Tab {
         val scope = rememberCoroutineScope()
         val haptic = LocalHapticFeedback.current
 
-        val screenModel = viewModel<LibraryScreenModel>()
+        val screenModel = viewModel<LibraryScreenModel>(
+            initializer = {
+                LibraryScreenModel(this.createSavedStateHandle())
+            },
+        )
         val settingsScreenModel = rememberScreenModel { LibrarySettingsScreenModel() }
         val libraryState = screenModel.state.collectAsStateWithLifecycle().value
 
