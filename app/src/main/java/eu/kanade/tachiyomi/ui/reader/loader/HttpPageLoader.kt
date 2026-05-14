@@ -180,6 +180,7 @@ internal class HttpPageLoader(
 
         // Cache current page list progress for online chapters to allow a faster reopen
         chapter.pages?.let { pages ->
+            pages.forEach { it.stream = null }
             launchIO {
                 try {
                     // Convert to pages without reader information

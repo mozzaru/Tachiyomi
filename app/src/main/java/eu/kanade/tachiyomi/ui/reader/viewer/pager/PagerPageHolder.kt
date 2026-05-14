@@ -23,6 +23,8 @@ import kotlinx.coroutines.supervisorScope
 import logcat.LogPriority
 import okio.Buffer
 import okio.BufferedSource
+import okio.buffer
+import okio.source
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withIOContext
@@ -111,7 +113,9 @@ class PagerPageHolder(
         val loader = page.chapter.pageLoader ?: return
         supervisorScope {
             launchIO {
-                loader.loadPage(page)
+                if (page.status != Page.State.Ready || page.stream == null) {
+                    loader.loadPage(page)
+                }
             }
             page.statusFlow.collectLatest { state ->
                 when (state) {
@@ -172,28 +176,41 @@ class PagerPageHolder(
 
         try {
             val (source, isAnimated, background) = withIOContext {
-                streamFn().buffered(16).use { source ->
-                    // SY -->
-                    if (extraPage != null) {
-                        streamFn2?.invoke()
-                            ?.buffered(16)
+                val source = streamFn().source().buffer()
+                val source2 = streamFn2?.invoke()?.source()?.buffer()
+
+                try {
+                    val itemSource: BufferedSource = if (viewer.config.dualPageSplit) {
+                        source.use { process(item.first, Buffer().readFrom(it.inputStream())) }
+                    } else if (extraPage != null && source2 != null) {
+                        source.use { s1 ->
+                            source2.use { s2 ->
+                                mergePages(Buffer().readFrom(s1.inputStream()), Buffer().readFrom(s2.inputStream()))
+                            }
+                        }
+                    } else {
+                        val isAnimated = ImageUtil.isAnimatedAndSupported(source)
+                        val isWide = ImageUtil.isWideImage(source)
+                        if (!isAnimated && isWide && (viewer.config.centerMarginType and PagerConfig.CenterMarginType.WIDE_PAGE_CENTER_MARGIN > 0) && !viewer.config.imageCropBorders) {
+                            source.use { handleWideImage(Buffer().readFrom(it.inputStream())) }
+                        } else {
+                            source
+                        }
+                    }
+                    // SY <--
+                    val isAnimated = ImageUtil.isAnimatedAndSupported(itemSource)
+                    val background = if (!isAnimated && viewer.config.automaticBackground) {
+                        ImageUtil.chooseBackground(context, itemSource.peek())
                     } else {
                         null
-                    }.use { source2 ->
-                        val itemSource = if (viewer.config.dualPageSplit) {
-                            process(item.first, Buffer().readFrom(source))
-                        } else {
-                            mergePages(Buffer().readFrom(source), source2?.let { Buffer().readFrom(it) })
-                        }
-                        // SY <--
-                        val isAnimated = ImageUtil.isAnimatedAndSupported(itemSource)
-                        val background = if (!isAnimated && viewer.config.automaticBackground) {
-                            ImageUtil.chooseBackground(context, itemSource.peek())
-                        } else {
-                            null
-                        }
-                        Triple(itemSource, isAnimated, background)
                     }
+                    Triple(itemSource, isAnimated, background)
+                } catch (e: Throwable) {
+                    source.close()
+                    source2?.close()
+                    throw e
+                } finally {
+                    source2?.close()
                 }
             }
             withUIContext {

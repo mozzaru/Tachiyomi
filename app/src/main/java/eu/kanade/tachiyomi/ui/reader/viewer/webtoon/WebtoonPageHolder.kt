@@ -26,6 +26,8 @@ import kotlinx.coroutines.supervisorScope
 import logcat.LogPriority
 import okio.Buffer
 import okio.BufferedSource
+import okio.buffer
+import okio.source
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.withIOContext
@@ -135,7 +137,9 @@ class WebtoonPageHolder(
         val loader = page.chapter.pageLoader ?: return
         supervisorScope {
             launchIO {
-                loader.loadPage(page)
+                if (page.status != Page.State.Ready || page.stream == null) {
+                    loader.loadPage(page)
+                }
             }
             page.statusFlow.collectLatest { state ->
                 when (state) {
@@ -191,9 +195,19 @@ class WebtoonPageHolder(
 
         try {
             val (source, isAnimated) = withIOContext {
-                val source = streamFn().use { process(Buffer().readFrom(it)) }
-                val isAnimated = ImageUtil.isAnimatedAndSupported(source)
-                Pair(source, isAnimated)
+                val stream = streamFn().source().buffer()
+                try {
+                    val source: BufferedSource = if (viewer.config.dualPageRotateToFit || viewer.config.dualPageSplit) {
+                        stream.use { process(Buffer().readFrom(it.inputStream())) }
+                    } else {
+                        stream
+                    }
+                    val isAnimated = ImageUtil.isAnimatedAndSupported(source)
+                    Pair(source, isAnimated)
+                } catch (e: Throwable) {
+                    stream.close()
+                    throw e
+                }
             }
             withUIContext {
                 frame.setImage(

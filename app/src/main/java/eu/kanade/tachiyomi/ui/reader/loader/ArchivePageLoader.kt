@@ -70,12 +70,12 @@ internal class ArchivePageLoader(private val reader: ArchiveReader) : PageLoader
             .sortedWith { f1, f2 -> f1.name.compareToCaseInsensitiveNaturalOrder(f2.name) }
             .mapIndexed { i, entry ->
                 // SY -->
-                val imageBytesDeferred: Deferred<ByteArray>? =
+                val imageBytesDeferred: Deferred<ByteArray?>? =
                     when (readerPreferences.archiveReaderMode.get()) {
                         ReaderPreferences.ArchiveReaderMode.LOAD_INTO_MEMORY -> {
                             CoroutineScope(Dispatchers.IO).async {
                                 mutex.withLock {
-                                    reader.getInputStream(entry.name)!!.buffered().use { stream ->
+                                    reader.getInputStream(entry.name)?.buffered()?.use { stream ->
                                         stream.readBytes()
                                     }
                                 }
@@ -84,11 +84,13 @@ internal class ArchivePageLoader(private val reader: ArchiveReader) : PageLoader
 
                         else -> null
                     }
-                val imageBytes by lazy { runBlocking { imageBytesDeferred?.await() } }
                 // SY <--
                 ReaderPage(i).apply {
                     // SY -->
-                    stream = { imageBytes?.copyOf()?.inputStream() ?: reader.getInputStream(entry.name)!! }
+                    stream = {
+                        val imageBytes: ByteArray? = runBlocking { imageBytesDeferred?.await() }
+                        imageBytes?.copyOf()?.inputStream() ?: reader.getInputStream(entry.name)!!
+                    }
                     // SY <--
                     status = Page.State.Ready
                 }
